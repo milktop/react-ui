@@ -39,7 +39,9 @@ where one doesn't fit you build from the parts.
 
 So far:
 
-- Actions: Button
+- Actions: Button · CopyButton
+- Display: Badge · Card (props or composed from Card.Header/Body/Footer)
+- Feedback: Alert · Progress · Skeleton · Spinner · EmptyState
 - Inputs: Input · Textarea · NumberInput · PasswordInput · PinInput · TagsInput ·
   Slider · FileUpload
 - Pickers: Select (one component: searchable, server `load`, `onCreate`,
@@ -47,7 +49,8 @@ So far:
 - Choices: Checkbox · CheckboxGroup · Switch · RadioGroup · Segmented ·
   ThemeToggle (`colorScheme`, `useColorScheme`)
 - Forms: Field · Fields
-- Overlays: Tooltip · Dialog
+- Overlays: Tooltip · Dialog · Menu · ContextMenu (Menu.Item, Separator, Group,
+  Checkbox, RadioGroup/Radio, Submenu; also as MenuItem…)
 - Disclosure: Tabs/Tab (with counts and dots, inline or in the corner)
 
 The rest of svelte-ui's set (Editor, Attachments, menus, navigation, display)

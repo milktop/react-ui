@@ -56,6 +56,7 @@ const all: Group[] = [
   { heading: 'Overlays', icon: 'lucide:layers', pages: [
     { slug: 'tooltip', title: 'Tooltip', about: 'Hints on hover and focus', file: 'tooltip/Tooltip.tsx' },
     { slug: 'dialog', title: 'Dialog', about: 'Modals and confirmations', file: 'dialog/Dialog.tsx' },
+    { slug: 'menu', title: 'Menu', about: 'Dropdowns and context menus', file: 'menu/Menu.tsx' },
   ] },
   { heading: 'Disclosure', icon: 'lucide:chevrons-up-down', pages: [
     { slug: 'tabs', title: 'Tabs', about: 'Panels behind tabs, with counts', file: 'tabs/Tabs.tsx' },

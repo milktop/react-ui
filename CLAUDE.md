@@ -99,6 +99,14 @@ look. Read `README.md` first.
   so a test that inserts "a," in one go adds nothing.
 - A multiple SearchSelect's list stays open when Tab leaves it, and its layer
   swallows the next field's typing: the component closes it on focus-out.
+- Menu: our item components (Menu.Item…) sit beside Ark's raw parts on
+  Menu. `items` checkbox/radio entries take Zag's option props through
+  `useMenuContext` (Ark's RadioItem wants a RadioItemGroup round it). Zag
+  moves focus into an opened menu in an animation frame: in a hidden pane,
+  keys sent straight after opening still go to the trigger.
+- Ark renders Separator as an <hr>: CSS clears its border.
+- Ark's Progress.ValueText shows the percentage whatever formatOptions or
+  translations say; the shortcut renders Zag's valueAsString instead.
 - Zag won't clear a disabled item (hideSelected disables picks): remove picks
   through our own state.
 

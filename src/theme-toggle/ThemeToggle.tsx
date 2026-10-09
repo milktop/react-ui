@@ -23,14 +23,13 @@
  * - `onChange`: called with 'light', 'dark' or 'system'
  */
 import { useEffect, useState, type ComponentProps } from 'react'
-import { Menu } from '@ark-ui/react/menu'
+import { Menu } from '../menu/Menu.js'
 import 'iconify-icon'
 import { Segmented } from '../segment-group/Segmented.js'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { useColorScheme, type Scheme } from '../color-scheme.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import '../theme.css'
-import '../menu/menu.css'
 import './theme-toggle.css'
 
 type Variant = 'segmented' | 'menu' | 'toggle'
@@ -44,7 +43,7 @@ export type ThemeToggleProps = Omit<ComponentProps<'div'>, 'onChange'> & {
   labels?: Record<Scheme, string>
   label?: string
   size?: 'sm' | 'md' | 'lg'
-  placement?: NonNullable<Menu.RootProps['positioning']>['placement'] | null
+  placement?: NonNullable<Parameters<typeof Menu>[0]['placement']> | null
   keepOpen?: boolean
   iconOnly?: boolean
   onChange?: (scheme: Scheme) => void
@@ -93,24 +92,16 @@ export function ThemeToggle({
     <div {...rest} {...part('root')} className={cx(className, classes?.root)} role="group" aria-label={label}
       data-variant={mode} data-size={size} data-icon-only={(iconOnly && mode === 'menu') || undefined}>
       {mode === 'menu' ? (
-        <Menu.Root positioning={{ placement: placement ?? (iconOnly ? 'bottom' : 'bottom-end') }} closeOnSelect={!keepOpen}>
-          <Menu.Trigger {...part('trigger')} aria-label={`${label}: ${labels[value]}`}>
-            <iconify-icon {...part('trigger-icon')} icon={icons[value]} aria-hidden="true" />
-          </Menu.Trigger>
-          <Menu.Positioner>
-            <Menu.Content>
-              <Menu.RadioItemGroup value={value} onValueChange={(details) => pick(details.value as Scheme)}>
-                {items.map((item) => (
-                  <Menu.RadioItem key={item.value} value={item.value} data-part="item">
-                    <span data-scope="menu" data-part="indicator"><Menu.ItemIndicator data-type="radio" /></span>
-                    <iconify-icon data-scope="menu" data-part="icon" icon={item.icon} aria-hidden="true" />
-                    <Menu.ItemText data-part="label">{item.label}</Menu.ItemText>
-                  </Menu.RadioItem>
-                ))}
-              </Menu.RadioItemGroup>
-            </Menu.Content>
-          </Menu.Positioner>
-        </Menu.Root>
+        <Menu placement={placement ?? (iconOnly ? 'bottom' : 'bottom-end')} keepOpen={keepOpen}
+          trigger={(
+            <button {...part('trigger')} type="button" aria-label={`${label}: ${labels[value]}`}>
+              <iconify-icon {...part('trigger-icon')} icon={icons[value]} aria-hidden="true" />
+            </button>
+          )}>
+          <Menu.RadioGroup value={value} onValueChange={(next) => pick(next as Scheme)}>
+            {items.map((item) => <Menu.Radio key={item.value} value={item.value} icon={item.icon}>{item.label}</Menu.Radio>)}
+          </Menu.RadioGroup>
+        </Menu>
       ) : mode === 'toggle' ? (
         // Flips what's showing, so 'system' becomes an explicit choice.
         <Tooltip content={labels[shown]}>

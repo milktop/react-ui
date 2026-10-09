@@ -28,6 +28,10 @@ export { Segmented } from './segment-group/Segmented.js'
 export { ThemeToggle } from './theme-toggle/ThemeToggle.js'
 export { colorScheme, useColorScheme, type Scheme } from './color-scheme.js'
 export { Tooltip } from './tooltip/Tooltip.js'
+export {
+  Menu, ContextMenu, MenuItem, MenuSeparator, MenuGroup, MenuCheckbox, MenuRadioGroup, MenuRadio, Submenu,
+  type MenuEntry, type MenuOptionChange,
+} from './menu/Menu.js'
 export { Tabs, Tab } from './tabs/Tabs.js'
 export { Dialog } from './dialog/Dialog.js'
 
