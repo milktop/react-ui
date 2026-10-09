@@ -1,0 +1,14 @@
+// `npm run build:lib`: src/ to dist/, as JS (keeping each component's CSS
+// import) and .d.ts types.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": [],
+    "paths": {}
+  },
+  "include": ["src"]
+}

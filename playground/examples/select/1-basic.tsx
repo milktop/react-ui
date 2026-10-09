@@ -10,8 +10,8 @@ const students = [
 ]
 
 export default function Example() {
-  const [level, setLevel] = useState(null)
-  const [studentId, setStudentId] = useState(2)
+  const [level, setLevel] = useState<string | null>(null)
+  const [studentId, setStudentId] = useState<number | null>(2)
   return <>
     <Select label="Level" items={['Key Stage 3', 'GCSE', 'A Level', 'IB']} value={level} onValueChange={setLevel} />
     <Select label="Student" items={students} labelKey="name" valueKey="id" value={studentId} onValueChange={setStudentId} clearable />

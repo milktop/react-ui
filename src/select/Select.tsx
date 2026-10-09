@@ -37,38 +37,77 @@
  *   </Select.Root>
  */
 import { useMemo } from 'react'
-import { Select as Ark, createListCollection } from '@ark-ui/react/select'
+import type { ReactNode } from 'react'
+import { Select as Ark, createListCollection, type SelectValueChangeDetails } from '@ark-ui/react/select'
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
-import { cx, partOf, partsOf, slot, useControllable, withParts } from '../utils.js'
+import { cx, partOf, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './select.css'
 
-function SelectShortcut({
-  label = null, items = [], value, defaultValue, onValueChange, placeholder = 'Select…',
-  labelKey = 'label', valueKey = 'value', disabledKey = 'disabled',
-  multiple = false, tags = false, variant = 'subtle', deselectable = false, closeOnSelect, clearable = false,
-  emptyText = 'No options', empty, name, size = 'md', placement = 'bottom-start', disabled = false,
-  renderItem, className, classes, ...rest
-}) {
+type Primitive = string | number
+// An item's own value: the item itself (strings, numbers), or its `valueKey`.
+export type ItemValue<T, K extends string> = T extends Primitive ? T : K extends keyof T ? T[K] : unknown
+
+type One<V> = {
+  multiple?: false
+  value?: V | null
+  defaultValue?: V | null
+  onValueChange?: (value: V | null) => void
+}
+type Several<V> = {
+  multiple: true
+  value?: V[]
+  defaultValue?: V[]
+  onValueChange?: (value: V[]) => void
+}
+
+export type SelectProps<T, K extends string = 'value'> = Omit<Ark.RootProps<T>,
+  'collection' | 'value' | 'defaultValue' | 'onValueChange' | 'multiple' | 'children' | 'positioning'> & {
+  items: readonly T[]
+  label?: ReactNode
+  labelKey?: string
+  valueKey?: K
+  disabledKey?: string
+  placeholder?: string
+  tags?: boolean
+  variant?: 'subtle' | 'accent' | 'outline'
+  clearable?: boolean
+  emptyText?: ReactNode
+  empty?: ReactNode
+  size?: 'sm' | 'md'
+  placement?: NonNullable<Ark.RootProps<T>['positioning']>['placement']
+  renderItem?: (item: T, state: { selected: boolean }) => ReactNode
+  classes?: Classes<'root' | 'label' | 'control' | 'trigger' | 'valueText' | 'tags' | 'tag' | 'tagText' | 'indicator'
+    | 'clearTrigger' | 'positioner' | 'content' | 'item' | 'itemText' | 'itemIndicator' | 'empty'>
+} & (One<ItemValue<T, K>> | Several<ItemValue<T, K>>)
+
+function SelectShortcut<T, K extends string = 'value'>(props: SelectProps<T, K>) {
+  const {
+    label = null, items, value, defaultValue, onValueChange, placeholder = 'Select…',
+    labelKey = 'label', valueKey = 'value', disabledKey = 'disabled',
+    multiple = false, tags = false, variant = 'subtle', deselectable = false, closeOnSelect, clearable = false,
+    emptyText = 'No options', empty, name, size = 'md', placement = 'bottom-start', disabled = false,
+    renderItem, className, classes, ...rest
+  } = props as SelectProps<T, K> & { value?: unknown, defaultValue?: unknown, onValueChange?: (value: unknown) => void }
   const field = useFieldContext()
   const part = partsOf('select', classes)
 
-  const labelOf = (item) => (typeof item === 'object' ? item[labelKey] : String(item))
-  const valueOf = (item) => (typeof item === 'object' ? item[valueKey] : item)
+  const labelOf = (item: T) => String(typeof item === 'object' && item ? (item as Record<string, unknown>)[labelKey] : item)
+  const valueOf = (item: T) => (typeof item === 'object' && item ? (item as Record<string, unknown>)[valueKey] : item)
 
   // Zag's values are strings: the items' own values map to and from them.
-  const [current, setCurrent] = useControllable(value, defaultValue ?? (multiple ? [] : null), onValueChange)
-  const keys = multiple ? (current ?? []).map(String) : current == null ? [] : [String(current)]
+  const [current, setCurrent] = useControllable<unknown>(value, defaultValue ?? (multiple ? [] : null), onValueChange)
+  const keys = multiple ? ((current as unknown[]) ?? []).map(String) : current == null ? [] : [String(current)]
 
   const collection = useMemo(() => createListCollection({
     items,
     itemToString: labelOf,
     itemToValue: (item) => String(valueOf(item)),
-    isItemDisabled: (item) => typeof item === 'object' && !!item[disabledKey],
+    isItemDisabled: (item) => typeof item === 'object' && !!item && !!(item as Record<string, unknown>)[disabledKey],
   }), [items, labelKey, valueKey, disabledKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function change(details) {
+  function change(details: SelectValueChangeDetails<T>) {
     const chosen = details.items.map(valueOf)
     setCurrent(multiple ? chosen : chosen[0] ?? null)
   }
@@ -84,8 +123,8 @@ function SelectShortcut({
           <Ark.Context>{(api) => multiple && tags && api.hasSelectedItems
             // Chips, not buttons (a button can't hold buttons): untick an item to remove it.
             ? <span {...part('tags')}>
-                {api.selectedItems.map((item) => (
-                  <span key={valueOf(item)} {...part('tag')}><span {...part('tag-text')}>{labelOf(item)}</span></span>
+                {(api.selectedItems as T[]).map((item) => (
+                  <span key={String(valueOf(item))} {...part('tag')}><span {...part('tag-text')}>{labelOf(item)}</span></span>
                 ))}
               </span>
             : <Ark.ValueText {...part('value-text')} placeholder={placeholder} />}
@@ -98,14 +137,14 @@ function SelectShortcut({
       <Ark.Positioner {...part('positioner')}>
         <Ark.Content {...part('content')}>
           {items.map((item) => (
-            <Ark.Item key={valueOf(item)} item={item} {...part('item')}>
+            <Ark.Item key={String(valueOf(item))} item={item} {...part('item')}>
               <Ark.ItemText {...part('item-text')}>
                 {renderItem ? renderItem(item, { selected: keys.includes(String(valueOf(item))) }) : labelOf(item)}
               </Ark.ItemText>
               <Ark.ItemIndicator {...part('item-indicator')}><iconify-icon icon="lucide:check" /></Ark.ItemIndicator>
             </Ark.Item>
           ))}
-          {!items.length && <div {...part('empty')}>{slot(empty, emptyText)}</div>}
+          {!items.length && <div {...part('empty')}>{empty ?? emptyText}</div>}
         </Ark.Content>
       </Ark.Positioner>
       <Ark.HiddenSelect />

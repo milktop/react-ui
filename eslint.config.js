@@ -1,23 +1,15 @@
-// `npm run check`: undefined names (a prop used but never declared, a
-// component never imported) and broken hook rules, which the build lets
-// through until the page loads.
-import globals from 'globals'
+// `npm run check` runs tsc first (undefined names, wrong props, bad imports);
+// this adds React's hook rules, which the types don't cover.
+import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
 
 export default [
-  { ignores: ['playground/dist'] },
+  { ignores: ['dist', 'playground/dist'] },
   {
-    files: ['**/*.{js,jsx}'],
-    languageOptions: {
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      globals: globals.browser,
-      parserOptions: { ecmaFeatures: { jsx: true } },
-    },
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: { parser: tseslint.parser },
     plugins: { 'react-hooks': reactHooks },
     rules: {
-      'no-undef': 'error',
-      'no-unused-vars': ['error', { varsIgnorePattern: '^_', ignoreRestSiblings: true }],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
     },

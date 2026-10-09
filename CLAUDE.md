@@ -1,20 +1,27 @@
 # @milktop/react-ui
 
-React 19 components on Ark UI (Zag underneath), ported from svelte-ui
+React 19 components, in TypeScript, on Ark UI (Zag underneath), ported from svelte-ui
 (`~/sites/svelte/ui`) and imba-ui (`~/sites/imba/ui`): same props, tokens and
 look. Read `README.md` first.
 
 ## Layout
 
-- `src/<component>/<Name>.jsx` and `<component>.css`, exported from `src/index.js`.
+- `src/<component>/<Name>.tsx` and `<component>.css`, exported from `src/index.ts`.
+  Imports inside src use `.js` extensions (`'../utils.js'`), which tsc
+  resolves to the .ts files and keeps in dist.
   The CSS and `src/theme.css` come from svelte-ui; keep them in step.
-- `src/utils.js`: `cx`, `partsOf`, `partOf`, `withParts`, `slot`, `on`, `useControllable`
+- `src/utils.ts`: `cx`, `partsOf`, `partOf`, `withParts`, `slot`, `on`, `useControllable`;
+  types `Classes<'part' | …>` and `Slot<State>`
+- `npm run build:lib`: tsc (`tsconfig.build.json`) to dist/, then
+  `scripts/after-tsc.js` copies the CSS and `css.d.ts` (and references it from
+  `index.d.ts`, so apps that check library types resolve the CSS imports).
+  Test a change to the package's shape with `npm pack` into a scratch app.
 - `playground/`: Vite app (`npm run dev`, port 5194). Pages are listed in
-  `registry.js`; examples are `playground/examples/<slug>/<n>-<name>.jsx`,
+  `registry.ts`; examples are `playground/examples/<slug>/<n>-<name>.tsx`,
   default-exporting a component, with a leading `/* Title\n  description */`
   comment. Pages in a `form` group lay examples on a two-column grid (a `<p>`
   readout spans both). Pages without examples are left out of the nav. Show
-  a by-hand example (`<n>-by-hand.jsx`) on each page with parts.
+  a by-hand example (`<n>-by-hand.tsx`) on each page with parts.
 
 ## Every component
 
@@ -22,6 +29,9 @@ look. Read `README.md` first.
   `export const Checkbox = withParts(CheckboxShortcut, { Root: Ark.Root, … })`.
   Parts are Ark's own where Ark has them; parts of our own (Dialog's Header,
   Body, Footer) are `partOf(scope, name)`.
+- Exports its props type (`CheckboxProps`): Ark's root props (`Ark.RootProps`)
+  with ours added, `Omit`ting what we replace (`onCheckedChange`, and `label`,
+  which Ark types as a string). `classes` is `Classes<…>` of its part names.
 - Starts with a `/** */` doc comment: a summary line, a usage example, one
   bullet per prop (``- `name`: what it does``), then a by-hand example.
 - Form controls take `label`, skipped inside a Field (`useFieldContext()`).
@@ -48,11 +58,19 @@ look. Read `README.md` first.
 
 ## Checks
 
-- `npm run check` (ESLint): undefined names and components, unused
-  variables and hook rules. Run it after editing a component.
+- `npm run check`: tsc over src and playground (undefined names, wrong
+  props, bad imports), then ESLint for hook rules. Run it after editing a
+  component. Examples are typed like app code: give state its full type
+  (`useState<number | null>(2)` when a Select can clear it).
 
 ## Gotchas
 
+- typescript-eslint supports TypeScript < 6.1, so TypeScript stays on 6.0.
+- Input's `type` union lists React's known input types without its
+  `string & {}` catch-all, or `type="number"` matches both members and
+  `onValueChange`'s argument isn't inferred.
+- Change handlers get the plain value, typed for what a user can do:
+  Checkbox's is a boolean (a click never leaves it indeterminate).
 - Zag's select opens on pointerdown: a script's `.click()` doesn't open it.
 - Ark's Checkbox.Indicator shows for checked only; the dash needs a second
   `<Indicator indeterminate>`, and the CSS hides `[hidden]` ones.

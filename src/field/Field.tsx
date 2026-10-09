@@ -20,23 +20,38 @@
  *     <Field.ErrorText>{error}</Field.ErrorText>
  *   </Field.Root>
  */
+import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import { Field as Ark } from '@ark-ui/react/field'
-import { Input } from '../input/Input.jsx'
-import { cx, partsOf, withParts } from '../utils.js'
+import { Input, type InputProps } from '../input/Input.js'
+import { cx, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './field.css'
+
+// Omit, kept per member of InputProps' union (type="number" or not).
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
+
+export type FieldProps = DistributiveOmit<InputProps, 'label' | 'classes' | 'children'> & {
+  label?: ReactNode
+  hint?: ReactNode
+  error?: ReactNode
+  required?: boolean
+  disabled?: boolean
+  span?: number
+  classes?: Classes<'root' | 'label' | 'requiredIndicator' | 'helperText' | 'errorText'>
+  children?: ReactNode
+}
 
 function FieldShortcut({
   label = null, hint = null, error = null, required = false, disabled = false, span = 12,
   className, classes, style, children, ...inputProps
-}) {
+}: FieldProps) {
   const part = partsOf('field', classes)
 
   return (
-    <Ark.Root {...part('root')} className={cx(className, classes?.root)} style={{ '--span': span, ...style }}
+    <Ark.Root {...part('root')} className={cx(className, classes?.root)} style={{ '--span': span, ...style } as CSSProperties}
       invalid={!!error} required={required} disabled={disabled}>
       {label && <Ark.Label {...part('label')}>{label}<Ark.RequiredIndicator {...part('required-indicator')} aria-hidden="true"> *</Ark.RequiredIndicator></Ark.Label>}
-      {children ?? <Input {...inputProps} />}
+      {children ?? <Input {...inputProps as InputProps} />}
       {error ? <Ark.ErrorText {...part('error-text')}>{error}</Ark.ErrorText>
         : hint && <Ark.HelperText {...part('helper-text')}>{hint}</Ark.HelperText>}
     </Ark.Root>
@@ -63,7 +78,13 @@ export const Field = withParts(FieldShortcut, {
  *
  * - `legend`, `description`: a heading for the group
  */
-export function Fields({ legend = null, description = null, className, classes, children, ...rest }) {
+export type FieldsProps = ComponentProps<'fieldset'> & {
+  legend?: ReactNode
+  description?: ReactNode
+  classes?: Classes<'root' | 'legend' | 'description' | 'grid'>
+}
+
+export function Fields({ legend = null, description = null, className, classes, children, ...rest }: FieldsProps) {
   const part = partsOf('fields', classes)
 
   return (

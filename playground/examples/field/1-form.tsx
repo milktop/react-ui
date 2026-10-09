@@ -1,6 +1,6 @@
 /* A form
   Fields on a 12-column grid. Controls inside a Field use its label, hint and error. Submit with nothing picked to see the errors. */
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Fields, Field, Select, Checkbox, Button } from '@milktop/react-ui'
 
 const students = [
@@ -8,13 +8,15 @@ const students = [
   { id: 2, name: 'Alan Turing' },
 ]
 
-export default function Example() {
-  const [form, setForm] = useState({ student: null, duration: 60, notes: '', reminder: true })
-  const [errors, setErrors] = useState({})
-  const [saved, setSaved] = useState(null)
-  const set = (key) => (value) => setForm({ ...form, [key]: value })
+type Lesson = { student: number | null, duration: number, notes: string, reminder: boolean }
 
-  function save(e) {
+export default function Example() {
+  const [form, setForm] = useState<Lesson>({ student: null, duration: 60, notes: '', reminder: true })
+  const [errors, setErrors] = useState<{ student?: string | null }>({})
+  const [saved, setSaved] = useState<Lesson | null>(null)
+  const set = <K extends keyof Lesson>(key: K) => (value: Lesson[K]) => setForm({ ...form, [key]: value })
+
+  function save(e: FormEvent) {
     e.preventDefault()
     const next = { student: form.student ? null : 'Pick a student' }
     setErrors(next)

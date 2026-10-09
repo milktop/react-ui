@@ -8,7 +8,7 @@ export default function Example() {
   const [student, setStudent] = useState({ name: 'Ada Lovelace', email: 'ada@example.com' })
   const [draft, setDraft] = useState(student)
 
-  function openChange(next) {
+  function openChange(next: boolean) {
     if (next) setDraft(student)
     setOpen(next)
   }

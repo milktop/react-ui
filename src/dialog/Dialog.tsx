@@ -37,23 +37,39 @@
  *     </Portal>
  *   </Dialog.Root>
  */
-import { Dialog as Ark } from '@ark-ui/react/dialog'
+import type { ReactElement, ReactNode } from 'react'
+import { Dialog as Ark, type DialogOpenChangeDetails } from '@ark-ui/react/dialog'
 import { Portal } from '@ark-ui/react/portal'
 import 'iconify-icon'
-import { cx, on, partOf, partsOf, withParts } from '../utils.js'
+import { cx, on, partOf, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './dialog.css'
+
+export type DialogProps = Omit<Ark.ContentProps, 'children'> & {
+  open?: boolean
+  defaultOpen?: boolean
+  onOpenChange?: (open: boolean, details: DialogOpenChangeDetails) => void
+  heading?: ReactNode
+  description?: ReactNode
+  alert?: boolean
+  size?: 'sm' | 'md' | 'lg'
+  closable?: boolean
+  trigger?: ReactElement | null
+  footer?: ReactNode
+  classes?: Classes<'backdrop' | 'positioner' | 'content' | 'closeTrigger' | 'header' | 'title' | 'description' | 'body' | 'footer'>
+  children?: ReactNode
+}
 
 function DialogShortcut({
   open, defaultOpen, onOpenChange, heading = null, description = null, alert = false, size = 'md', closable = true,
   trigger = null, footer = null, className, classes, children, ...rest
-}) {
+}: DialogProps) {
   const part = partsOf('dialog', classes)
   // Left out when not given: Zag reads undefined as a value.
   const state = { ...(open !== undefined && { open }), ...(defaultOpen !== undefined && { defaultOpen }) }
 
   return (
-    <Ark.Root {...state} {...on('onOpenChange', onOpenChange, (details) => details.open)}
+    <Ark.Root {...state} {...on('onOpenChange', onOpenChange, (details: DialogOpenChangeDetails) => details.open)}
       role={alert ? 'alertdialog' : 'dialog'} closeOnInteractOutside={!alert} lazyMount unmountOnExit>
       {trigger && <Ark.Trigger asChild>{trigger}</Ark.Trigger>}
       <Portal>

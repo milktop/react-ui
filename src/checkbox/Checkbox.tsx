@@ -4,7 +4,7 @@
  *   <Checkbox checked={agreed} onCheckedChange={setAgreed}>I agree to the terms</Checkbox>
  *
  * - `checked`, `defaultChecked`: true, false or 'indeterminate'
- * - `onCheckedChange`: called with the new checked state
+ * - `onCheckedChange`: called with the new checked state (a boolean)
  * - `label`: its text (or children, for richer content)
  * - `labelHidden`: keep the label for assistive tech only (a table's row checkbox)
  * - `indicator`: replaces the tick and dash; a node, or ({ indeterminate }) => node
@@ -22,21 +22,31 @@
  *     <Checkbox.HiddenInput />
  *   </Checkbox.Root>
  */
-import { Checkbox as Ark } from '@ark-ui/react/checkbox'
+import type { ReactNode } from 'react'
+import { Checkbox as Ark, type CheckboxCheckedChangeDetails } from '@ark-ui/react/checkbox'
 import 'iconify-icon'
-import { cx, on, partsOf, slot, withParts } from '../utils.js'
+import { cx, on, partsOf, slot, withParts, type Classes, type Slot } from '../utils.js'
 import '../theme.css'
 import './checkbox.css'
+
+export type CheckboxProps = Omit<Ark.RootProps, 'onCheckedChange' | 'label'> & {
+  // A click never leaves it indeterminate, so this gets a boolean.
+  onCheckedChange?: (checked: boolean, details: CheckboxCheckedChangeDetails) => void
+  label?: ReactNode
+  labelHidden?: boolean
+  indicator?: Slot<{ indeterminate: boolean }>
+  classes?: Classes<'root' | 'control' | 'indicator' | 'label'>
+}
 
 function CheckboxShortcut({
   onCheckedChange, label = null, labelHidden = false, indicator,
   className, classes, children, ...rest
-}) {
+}: CheckboxProps) {
   const part = partsOf('checkbox', classes)
 
   return (
     <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)}
-      {...on('onCheckedChange', onCheckedChange, (details) => details.checked)}>
+      {...on('onCheckedChange', onCheckedChange, (details: CheckboxCheckedChangeDetails) => details.checked === true)}>
       <Ark.Control {...part('control')}>
         <Ark.Indicator {...part('indicator')}>
           {slot(indicator, <iconify-icon icon="lucide:check" aria-hidden="true" />, { indeterminate: false })}

@@ -16,27 +16,44 @@
  * - `countLabel`: what the count is, for assistive tech ('new': "Inbox, 3 new")
  * - `type`: 'button' by default (pass 'submit' for forms)
  */
-import { forwardRef } from 'react'
+import type { ComponentProps } from 'react'
 import 'iconify-icon'
-import { cx, partsOf } from '../utils.js'
+import { cx, partsOf, type Classes } from '../utils.js'
 import '../theme.css'
 import './button.css'
 
-export const Button = forwardRef(function Button({
+export type ButtonProps = ComponentProps<'button'> & {
+  variant?: 'default' | 'primary' | 'danger' | 'soft' | 'ghost' | 'link'
+  size?: 'sm' | 'md' | 'lg'
+  icon?: string | null
+  iconEnd?: string | null
+  loading?: boolean
+  round?: boolean
+  block?: boolean
+  count?: number | null
+  max?: number
+  dot?: boolean
+  pulse?: boolean
+  countColor?: 'danger' | 'accent' | 'success' | 'warning' | 'neutral'
+  countLabel?: string
+  classes?: Classes<'root' | 'spinner' | 'icon' | 'badge' | 'spoken'>
+}
+
+export function Button({
   variant = 'default', size = 'md', icon = null, iconEnd = null, loading = false,
   round = false, block = false, count = null, max = 99, dot = false, pulse = false, countColor = 'danger', countLabel = 'new',
   type = 'button', disabled = false,
   className, classes, children, ...rest
-}, ref) {
+}: ButtonProps) {
   const part = partsOf('button', classes)
-  const badge = count > 0 ? (count > max ? `${max}+` : String(count)) : dot ? '' : null
+  const badge = count && count > 0 ? (count > max ? `${max}+` : String(count)) : dot ? '' : null
   // Read after the label by assistive tech: "Inbox, 3 new".
-  const spoken = count > 0 ? `${count} ${countLabel}` : dot ? countLabel : ''
+  const spoken = count && count > 0 ? `${count} ${countLabel}` : dot ? countLabel : ''
   // An aria-label hides the button's text from assistive tech, so the count joins the label.
   const label = rest['aria-label'] && spoken ? `${rest['aria-label']}, ${spoken}` : rest['aria-label']
 
   return (
-    <button ref={ref} {...rest} {...part('root')} className={cx(className, classes?.root)} type={type} disabled={disabled || loading}
+    <button {...rest} {...part('root')} className={cx(className, classes?.root)} type={type} disabled={disabled || loading}
       aria-label={label} aria-busy={loading || undefined}
       data-variant={variant} data-size={size} data-round={round || undefined} data-block={block || undefined}
       data-loading={loading || undefined} data-icon-only={(children == null && !(icon && iconEnd)) || undefined}>
@@ -51,4 +68,4 @@ export const Button = forwardRef(function Button({
       </>}
     </button>
   )
-})
+}

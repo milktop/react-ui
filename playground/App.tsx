@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import 'iconify-icon'
 import { Button, cx } from '@milktop/react-ui'
-import { Demo, Toggle, Backticked } from './lib/Demo.jsx'
-import { groups, pages, examplesOf, docOf } from './registry.js'
+import { Demo, Toggle, Backticked } from './lib/Demo'
+import { groups, pages, examplesOf, docOf, type Group, type Page } from './registry'
 
 function useHash() {
   const [hash, setHash] = useState(location.hash)
@@ -23,7 +23,7 @@ function useDark() {
     document.documentElement.classList.toggle('dark', dark)
     try { localStorage.setItem('react-ui:dark', dark ? '1' : '0') } catch { /* private mode */ }
   }, [dark])
-  return [dark, setDark]
+  return [dark, setDark] as const
 }
 
 export function App() {
@@ -63,7 +63,7 @@ export function App() {
   )
 }
 
-function ComponentPage({ page }) {
+function ComponentPage({ page }: { page: Page & { group: Group } }) {
   const [showDoc, setShowDoc] = useState(false)
   const doc = docOf(page.file)
 

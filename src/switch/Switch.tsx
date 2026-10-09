@@ -17,17 +17,24 @@
  *     <Switch.HiddenInput />
  *   </Switch.Root>
  */
-import { Switch as Ark } from '@ark-ui/react/switch'
-import { cx, on, partsOf, withParts } from '../utils.js'
+import type { ReactNode } from 'react'
+import { Switch as Ark, type SwitchCheckedChangeDetails } from '@ark-ui/react/switch'
+import { cx, on, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './switch.css'
 
-function SwitchShortcut({ onCheckedChange, label = null, className, classes, children, ...rest }) {
+export type SwitchProps = Omit<Ark.RootProps, 'onCheckedChange' | 'label'> & {
+  onCheckedChange?: (checked: boolean, details: SwitchCheckedChangeDetails) => void
+  label?: ReactNode
+  classes?: Classes<'root' | 'control' | 'thumb' | 'label'>
+}
+
+function SwitchShortcut({ onCheckedChange, label = null, className, classes, children, ...rest }: SwitchProps) {
   const part = partsOf('switch', classes)
 
   return (
     <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)}
-      {...on('onCheckedChange', onCheckedChange, (details) => details.checked)}>
+      {...on('onCheckedChange', onCheckedChange, (details: SwitchCheckedChangeDetails) => details.checked)}>
       <Ark.Control {...part('control')}><Ark.Thumb {...part('thumb')} /></Ark.Control>
       {(label || children) && <Ark.Label {...part('label')}>{children ?? label}</Ark.Label>}
       <Ark.HiddenInput />

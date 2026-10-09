@@ -52,6 +52,9 @@ The rest of svelte-ui's set follows the same pattern.
 - Slots replace a part's content: a node, or a function given its state
   (`indicator={({ indeterminate }) => …}`, `renderItem={(item) => …}`).
 - `style={{ '--ui-accent': … }}`: tokens for one instance; on `:root` for the whole app.
+- Typed: written in TypeScript, shipped as JS with `.d.ts` types, so TSX apps
+  get checked props (Select's value is the type of your items' `valueKey`)
+  and JSX apps get autocomplete, with no errors either way.
 - Other props go to the natural element (the button, the input, Ark's root).
 
 Parts carry Zag's `data-scope` and `data-part` attributes, which the CSS
@@ -88,10 +91,20 @@ will also be exported by name (`CheckboxRoot`…), and the files will get
 
 ```sh
 npm install
-npm run dev     # the playground, http://localhost:5194
-npm run check   # undefined names and hook rules, which the build lets through
-npm run build   # the playground as a static site, in playground/dist
+npm run dev        # the playground, http://localhost:5194
+npm run check      # types (tsc) and React's hook rules
+npm run build      # the playground as a static site, in playground/dist
+npm run build:lib  # the package: src/ to dist/ (JS, .d.ts, CSS); runs before npm publish
 ```
 
 Each playground page shows its component's doc comment, and its examples are
-the files in `playground/examples/<component>/`, shown with their code.
+the files in `playground/examples/<component>/`, shown with their code. The
+playground compiles the TSX source directly, so it never needs `build:lib`.
+
+## Deploy the playground
+
+`npm run build` writes a static, client-side site to `playground/dist`, set
+up for **Cloudflare Pages** just like svelte-ui: framework preset None, build
+command `npm run build`, output directory `playground/dist`, Node 22 from
+`.nvmrc`. The site routes on the URL hash (no SPA fallback needed) and is kept
+out of search results by a `noindex` meta tag and `playground/public/_headers`.

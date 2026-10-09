@@ -1,10 +1,11 @@
 // One example: its title and Code toggle on the canvas, the example in a
 // card below. `form`: lay it out on a two-column grid (inputs, pickers, choices).
-import { useState } from 'react'
+import { useState, type ComponentProps } from 'react'
 import 'iconify-icon'
 import { cx } from '@milktop/react-ui'
+import type { Example } from '../registry'
 
-export function Demo({ example, form = false }) {
+export function Demo({ example, form = false }: { example: Example, form?: boolean }) {
   const [showCode, setShowCode] = useState(false)
   const { Component } = example
 
@@ -33,10 +34,10 @@ export function Demo({ example, form = false }) {
 }
 
 // `backticked` words show as code.
-export const Backticked = ({ text }) => text.split('`').map((piece, i) =>
+export const Backticked = ({ text }: { text: string }) => text.split('`').map((piece, i) =>
   i % 2 ? <code key={i} className="rounded bg-(--ui-hover) px-1 text-xs text-(--ui-text)">{piece}</code> : piece)
 
-export const Toggle = ({ pressed, icon, children, ...rest }) => (
+export const Toggle = ({ pressed, icon, children, ...rest }: ComponentProps<'button'> & { pressed: boolean, icon: string }) => (
   <button type="button" aria-pressed={pressed} {...rest}
     className="inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border border-transparent bg-transparent px-2 text-xs text-(--ui-muted) hover:bg-(--ui-hover) hover:text-(--ui-text) aria-pressed:border-(--ui-border) aria-pressed:bg-(--ui-surface) aria-pressed:text-(--ui-text)">
     <iconify-icon icon={icon} />{children}

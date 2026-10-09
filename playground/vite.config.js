@@ -6,6 +6,6 @@ import { fileURLToPath } from 'node:url'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   // Examples import the library by its package name, as an app would.
-  resolve: { alias: { '@milktop/react-ui': fileURLToPath(new URL('../src/index.js', import.meta.url)) } },
+  resolve: { alias: { '@milktop/react-ui': fileURLToPath(new URL('../src/index.ts', import.meta.url)) } },
   server: { fs: { allow: ['..'] } },
 })
