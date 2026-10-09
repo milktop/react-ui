@@ -48,6 +48,7 @@ So far:
   ThemeToggle (`colorScheme`, `useColorScheme`)
 - Forms: Field · Fields
 - Overlays: Tooltip · Dialog
+- Disclosure: Tabs/Tab (with counts and dots, inline or in the corner)
 
 The rest of svelte-ui's set (Editor, Attachments, menus, navigation, display)
 follows the same pattern.

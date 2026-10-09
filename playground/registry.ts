@@ -45,6 +45,9 @@ const all: Group[] = [
     { slug: 'tooltip', title: 'Tooltip', about: 'Hints on hover and focus', file: 'tooltip/Tooltip.tsx' },
     { slug: 'dialog', title: 'Dialog', about: 'Modals and confirmations', file: 'dialog/Dialog.tsx' },
   ] },
+  { heading: 'Disclosure', icon: 'lucide:chevrons-up-down', pages: [
+    { slug: 'tabs', title: 'Tabs', about: 'Panels behind tabs, with counts', file: 'tabs/Tabs.tsx' },
+  ] },
 ]
 
 const hasExamples = (slug: string) => Object.keys(modules).some((path) => path.startsWith(`./examples/${slug}/`))
