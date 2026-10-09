@@ -5,7 +5,8 @@
  *
  * - `files`, `defaultFiles`: the accepted Files; `onFilesChange`: called with them
  * - `accept`: types to allow ('image/*', '.pdf', or an array of them)
- * - `maxFiles`: how many (1); `maxFileSize`: in bytes
+ * - `maxFiles`: how many (1); past it, the first that fit are taken and the
+ *   rest listed as "Too many files"; `maxFileSize`: in bytes
  * - `hint`: text under the prompt
  * - `name`: for plain form posts
  *
@@ -23,8 +24,9 @@
  *     <FileUpload.HiddenInput />
  *   </FileUpload.Root>
  */
-import { useEffect, useMemo, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import { FileUpload as Ark, type FileUploadFileAcceptDetails } from '@ark-ui/react/file-upload'
+import { createFileTypeValidator, getAcceptAttrString, getFileKey, isValidFileSize } from '@zag-js/file-utils'
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { cx, partsOf, useControllable, withParts, type Classes } from '../utils.js'
@@ -54,8 +56,11 @@ function usePreviews(files: File[]) {
   return urls
 }
 
+type Validate = NonNullable<Ark.RootProps['validate']>
+
 function FileUploadShortcut({
-  label = null, files, defaultFiles, onFilesChange, maxFiles = 1, hint = null, className, classes, ...rest
+  label = null, files, defaultFiles, onFilesChange, maxFiles = 1, accept, minFileSize, maxFileSize, validate,
+  hint = null, className, classes, ...rest
 }: FileUploadProps) {
   const field = useFieldContext()
   const part = partsOf('file-upload', classes)
@@ -65,14 +70,39 @@ function FileUploadShortcut({
   // From onFileAccept, which Zag calls whenever the accepted files change.
   // (onFileChange also fires for rejections, carrying the accepted files as
   // they were before this render: it would undo a drop of good and bad files.)
-  function accept(details: FileUploadFileAcceptDetails) {
+  function acceptFiles(details: FileUploadFileAcceptDetails) {
     setAccepted(details.files)
     onFilesChange?.(details.files)
   }
 
+  // Zag rejects a whole drop that would go past maxFiles. Instead it gets no
+  // limit, and this takes files in order until there's no room: Zag checks
+  // each dropped file in turn, so it counts the ones Zag would take (the right
+  // type and size, not already there) through one drop.
+  const fitsType = useMemo(() => createFileTypeValidator(getAcceptAttrString(accept)), [accept])
+  const drop = useRef({ taken: 0, open: false })
+  const limit: Validate = (file, details) => {
+    const own = validate?.(file, details)
+    if (own?.length) return own
+    if (maxFiles <= 1) return null
+    if (!drop.current.open) {
+      drop.current = { taken: 0, open: true }
+      queueMicrotask(() => { drop.current.open = false })
+    }
+    const takes = fitsType(file)[0] && isValidFileSize(file, minFileSize, maxFileSize)[0]
+      && !details.acceptedFiles.some((f) => getFileKey(f) === getFileKey(file))
+    if (!takes) return null
+    if (details.acceptedFiles.length + drop.current.taken >= maxFiles) return ['TOO_MANY_FILES']
+    drop.current.taken++
+    return null
+  }
+
   return (
-    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)} maxFiles={maxFiles}
-      acceptedFiles={accepted} onFileAccept={accept}>
+    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)}
+      maxFiles={maxFiles > 1 ? Number.MAX_SAFE_INTEGER : maxFiles} validate={limit}
+      {...(accept !== undefined && { accept })} {...(minFileSize !== undefined && { minFileSize })}
+      {...(maxFileSize !== undefined && { maxFileSize })}
+      acceptedFiles={accepted} onFileAccept={acceptFiles}>
       {label && !field && <Ark.Label {...part('label')}>{label}</Ark.Label>}
       <Ark.Dropzone {...part('dropzone')}>
         <iconify-icon {...part('icon')} icon="lucide:upload" aria-hidden="true" />
@@ -83,8 +113,9 @@ function FileUploadShortcut({
       </Ark.Dropzone>
       <Ark.HiddenInput />
 
-      <Ark.Context>{(api) => (api.acceptedFiles.length > 0 || api.rejectedFiles.length > 0) && (
-        <Ark.ItemGroup {...part('item-group')}>
+      {/* Two groups: an item's group tells Zag whether it's accepted or rejected (so its delete button removes it). */}
+      <Ark.Context>{(api) => <>
+        {api.acceptedFiles.length > 0 && <Ark.ItemGroup type="accepted" {...part('item-group')}>
           {api.acceptedFiles.map((file) => (
             <Ark.Item key={`${file.name}:${file.lastModified}`} file={file} {...part('item')}>
               <Ark.ItemPreview type=".*" {...part('item-preview')}>
@@ -95,6 +126,8 @@ function FileUploadShortcut({
               <Ark.ItemDeleteTrigger {...part('item-delete-trigger')}><iconify-icon icon="lucide:x" /></Ark.ItemDeleteTrigger>
             </Ark.Item>
           ))}
+        </Ark.ItemGroup>}
+        {api.rejectedFiles.length > 0 && <Ark.ItemGroup type="rejected" {...part('item-group')}>
           {api.rejectedFiles.map(({ file, errors }) => (
             <Ark.Item key={`${file.name}:${file.lastModified}`} file={file} {...part('item')} data-rejected="">
               <Ark.ItemPreview type=".*" {...part('item-preview')}><iconify-icon icon="lucide:file-x" aria-hidden="true" /></Ark.ItemPreview>
@@ -103,8 +136,8 @@ function FileUploadShortcut({
               <Ark.ItemDeleteTrigger {...part('item-delete-trigger')}><iconify-icon icon="lucide:x" /></Ark.ItemDeleteTrigger>
             </Ark.Item>
           ))}
-        </Ark.ItemGroup>
-      )}</Ark.Context>
+        </Ark.ItemGroup>}
+      </>}</Ark.Context>
     </Ark.Root>
   )
 }

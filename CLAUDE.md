@@ -86,6 +86,11 @@ look. Read `README.md` first.
 - FileUpload keeps accepted files from `onFileAccept`: `onFileChange` also
   fires for rejections with the accepted list from before the render, which
   would undo a drop of good and bad files together.
+- FileUpload past maxFiles: Zag would reject the whole drop, so it gets no
+  limit and `validate` takes files in order until there's no room (using
+  Zag's own type and size checks from @zag-js/file-utils, so only files Zag
+  would take count). Rejected files sit in their own ItemGroup type="rejected":
+  an item's group is how Zag knows which list its delete button removes from.
 - Zag's file input listens for `input`, not `change` (a test script must
   fire `input`); tags input adds on an input event ending in the delimiter,
   so a test that inserts "a," in one go adds nothing.
