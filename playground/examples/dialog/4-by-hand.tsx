@@ -1,5 +1,5 @@
 /* By hand
-  Ark's parts with Portal, plus Header, Body and Footer for the layout. They pick up the same styles and animations. */
+  Ark's parts with Portal, plus Header, Body and Footer for the layout. They pick up the same styles and animations, and take classes like any element: a tinted, blurred backdrop here. */
 import { Dialog, Portal, Button } from '@milktop/react-ui'
 
 export default function Example() {
@@ -7,7 +7,7 @@ export default function Example() {
     <Dialog.Root lazyMount unmountOnExit>
       <Dialog.Trigger asChild><Button variant="soft">Open by hand</Button></Dialog.Trigger>
       <Portal>
-        <Dialog.Backdrop />
+        <Dialog.Backdrop className="bg-indigo-950/40 backdrop-blur-sm" />
         <Dialog.Positioner>
           <Dialog.Content data-size="lg">
             <Dialog.Header>
