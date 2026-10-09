@@ -4,12 +4,16 @@
  *   <Segmented items={['Day', 'Week', 'Month']} value={view} onValueChange={setView} />
  *   <Segmented items={[{ value: 'grid', label: 'Grid', icon: 'lucide:grid-2x2' }]} iconOnly />
  *
- * - `items`: strings, or objects (see `labelKey`, `valueKey`, `disabledKey`; `icon`, `tooltip`)
+ * - `items`: strings, or objects (see `labelKey`, `valueKey`, `disabledKey`; `icon`, `tooltip`,
+ *   and a badge on the corner as on Button: `count` (hidden at 0), `dot`,
+ *   `pulse`, `countColor`: 'danger', 'accent', 'success', 'warning' or 'neutral')
  * - `value`, `defaultValue`: the item's own value; `onValueChange`: called with it
  * - `label`: a label above it (skipped inside a Field)
  * - `iconOnly`: just the icons (each keeps its label for assistive tech)
  * - `tooltips`: each item's label (or its own `tooltip`) in a tooltip on
  *   hover and keyboard focus; on by default with `iconOnly`
+ * - `max`: counts past it show as "99+"; `countLabel`: what they are, for
+ *   assistive tech ('new': "Inbox, 3 new")
  * - `size`: 'sm', 'md' or 'lg'
  * - `renderItem`: an option's content, (item, { selected }) => node (a count
  *   beside the label, say); the icon still comes first
@@ -49,13 +53,15 @@ export type SegmentedProps<T, K extends string = 'value'> = Omit<Ark.RootProps, 
   iconOnly?: boolean
   tooltips?: boolean | null
   size?: 'sm' | 'md' | 'lg'
+  max?: number
+  countLabel?: string
   renderItem?: (item: T, state: { selected: boolean }) => ReactNode
-  classes?: Classes<'root' | 'label' | 'group' | 'indicator' | 'item' | 'itemText' | 'itemIcon' | 'tooltipTarget'>
+  classes?: Classes<'root' | 'label' | 'group' | 'indicator' | 'item' | 'itemText' | 'itemIcon' | 'badge' | 'tooltipTarget'>
 }
 
 function SegmentedShortcut<T, K extends string = 'value'>({
   items, value, defaultValue, onValueChange, label = null, labelKey = 'label', valueKey = 'value' as K, disabledKey = 'disabled',
-  iconOnly = false, tooltips = null, size = 'md', renderItem, className, classes, ...rest
+  iconOnly = false, tooltips = null, size = 'md', max = 99, countLabel = 'new', renderItem, className, classes, ...rest
 }: SegmentedProps<T, K>) {
   const field = useFieldContext()
   const part = partsOf('segment-group', classes)
@@ -67,6 +73,20 @@ function SegmentedShortcut<T, K extends string = 'value'>({
   const valueOf = (item: T) => (isObject(item) ? key(item, valueKey) : item) as Value<T, K>
   const iconOf = (item: T) => (isObject(item) ? key(item, 'icon') as string | undefined : undefined)
   const tipFor = (item: T) => (isObject(item) && key(item, 'tooltip') as ReactNode) || labelOf(item)
+
+  // The corner badge, as on Button: a count (hidden at 0), or a dot.
+  function badgeOf(item: T) {
+    if (!isObject(item)) return null
+    const count = key(item, 'count') as number | undefined
+    const dot = !!key(item, 'dot')
+    if (!(count && count > 0) && !dot) return null
+    return {
+      text: count && count > 0 ? (count > max ? `${max}+` : String(count)) : '',
+      spoken: count && count > 0 ? `${count} ${countLabel}` : countLabel,
+      pulse: !!key(item, 'pulse'),
+      color: (key(item, 'countColor') as string | undefined) ?? 'danger',
+    }
+  }
 
   // Zag's values are strings; map them back to the items' own.
   function change(details: SegmentGroupValueChangeDetails) {
@@ -94,6 +114,7 @@ function SegmentedShortcut<T, K extends string = 'value'>({
         <Ark.Indicator {...part('indicator')} />
         {items.map((item) => {
           const itemKey = String(valueOf(item))
+          const badge = badgeOf(item)
           return (
             <Ark.Item key={itemKey} value={itemKey} disabled={isObject(item) && !!key(item, disabledKey)} {...part('item')}
               data-icon-only={iconOnly || undefined}>
@@ -101,7 +122,11 @@ function SegmentedShortcut<T, K extends string = 'value'>({
                 {iconOf(item) && <iconify-icon {...part('item-icon')} icon={iconOf(item)!} aria-hidden="true" />}
                 {iconOnly ? <span {...part('sr-only')}>{labelOf(item)}</span>
                   : renderItem ? renderItem(item, { selected: String(current) === itemKey }) : labelOf(item)}
+                {/* Read after the label: "Inbox, 3 new". */}
+                {badge && <span {...part('sr-only')}>, {badge.spoken}</span>}
               </Ark.ItemText>
+              {badge && <span {...part('badge')} aria-hidden="true" data-dot={badge.text === '' || undefined}
+                data-pulse={badge.pulse || undefined} data-color={badge.color}>{badge.text}</span>}
               {withTooltips && (
                 // The tooltip's trigger is a layer over the item, since the item's own props are the radio's.
                 <Tooltip content={tipFor(item)} open={tipOpen === itemKey}
