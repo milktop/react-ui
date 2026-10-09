@@ -16,6 +16,18 @@ export type Example = ReturnType<typeof examplesOf>[number]
 const all: Group[] = [
   { heading: 'Actions', icon: 'lucide:mouse-pointer-click', pages: [
     { slug: 'button', title: 'Button', about: 'Variants, sizes, icons, loading and counts', file: 'button/Button.tsx' },
+    { slug: 'copy-button', title: 'Copy button', about: 'Copy text with feedback', file: 'copy-button/CopyButton.tsx' },
+  ] },
+  { heading: 'Display', icon: 'lucide:layout-grid', pages: [
+    { slug: 'badge', title: 'Badge', about: 'Statuses and counts', file: 'badge/Badge.tsx' },
+    { slug: 'card', title: 'Card', about: 'A surface with a header and footer', file: 'card/Card.tsx' },
+  ] },
+  { heading: 'Feedback', icon: 'lucide:bell', pages: [
+    { slug: 'alert', title: 'Alert', about: 'Messages in the page', file: 'alert/Alert.tsx' },
+    { slug: 'progress', title: 'Progress', about: 'Bars and circles', file: 'progress/Progress.tsx' },
+    { slug: 'skeleton', title: 'Skeleton', about: 'Loading placeholders', file: 'skeleton/Skeleton.tsx' },
+    { slug: 'spinner', title: 'Spinner', about: 'Short waits', file: 'spinner/Spinner.tsx' },
+    { slug: 'empty-state', title: 'Empty state', about: 'Nothing here yet', file: 'empty-state/EmptyState.tsx' },
   ] },
   { heading: 'Inputs', form: true, icon: 'lucide:text-cursor-input', pages: [
     { slug: 'input', title: 'Input', about: 'Text and numbers, with icons and affixes', file: 'input/Input.tsx' },

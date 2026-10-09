@@ -1,6 +1,14 @@
 // Every component is a shortcut (<Checkbox label="…" />) with its parts on it,
 // for building it by hand (<Checkbox.Root>…</Checkbox.Root>).
 export { Button } from './button/Button.js'
+export { CopyButton } from './copy-button/CopyButton.js'
+export { Badge } from './badge/Badge.js'
+export { Card } from './card/Card.js'
+export { Alert } from './alert/Alert.js'
+export { Progress } from './progress/Progress.js'
+export { Skeleton } from './skeleton/Skeleton.js'
+export { Spinner } from './spinner/Spinner.js'
+export { EmptyState } from './empty-state/EmptyState.js'
 export { Input } from './input/Input.js'
 export { Textarea } from './textarea/Textarea.js'
 export { PasswordInput } from './password-input/PasswordInput.js'
