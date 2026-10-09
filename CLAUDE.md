@@ -32,6 +32,9 @@ look. Read `README.md` first.
 - Exports its props type (`CheckboxProps`): Ark's root props (`Ark.RootProps`)
   with ours added, `Omit`ting what we replace (`onCheckedChange`, and `label`,
   which Ark types as a string). `classes` is `Classes<…>` of its part names.
+- A middle layer where it helps (Dialog): the shortcut also takes our
+  layout parts as children (Dialog.Header, Body, Footer), placing them as-is
+  and keeping the machinery (portal, backdrop, positioner) to itself.
 - Starts with a `/** */` doc comment: a summary line, a usage example, one
   bullet per prop (``- `name`: what it does``), then a by-hand example.
 - Form controls take `label`, skipped inside a Field (`useFieldContext()`).

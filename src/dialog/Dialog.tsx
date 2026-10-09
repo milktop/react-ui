@@ -21,7 +21,17 @@
  * - `size`: 'sm', 'md' (default) or 'lg'
  * - `closable`: false hides the close button
  *
- * By hand, with Ark's parts (and Header, Body and Footer for the layout):
+ * Or composed, with the overlay still done for you (backdrop, positioning,
+ * close button), from Header, Body and Footer; a Dialog.Trigger child opens it:
+ *
+ *   <Dialog>
+ *     <Dialog.Trigger asChild><Button>Edit</Button></Dialog.Trigger>
+ *     <Dialog.Header heading="Edit student" description="Saved to their profile." />
+ *     <Dialog.Body>…</Dialog.Body>
+ *     <Dialog.Footer><Dialog.CloseTrigger asChild><Button>Cancel</Button></Dialog.CloseTrigger>…</Dialog.Footer>
+ *   </Dialog>
+ *
+ * Fully by hand, with Ark's parts (and Header, Body and Footer for the layout):
  *
  *   <Dialog.Root>
  *     <Dialog.Trigger asChild><Button>Open</Button></Dialog.Trigger>
@@ -37,7 +47,7 @@
  *     </Portal>
  *   </Dialog.Root>
  */
-import type { ReactElement, ReactNode } from 'react'
+import { Children, isValidElement, type ComponentProps, type ReactElement, type ReactNode } from 'react'
 import { Dialog as Ark, type DialogOpenChangeDetails } from '@ark-ui/react/dialog'
 import { Portal } from '@ark-ui/react/portal'
 import 'iconify-icon'
@@ -60,11 +70,34 @@ export type DialogProps = Omit<Ark.ContentProps, 'children'> & {
   children?: ReactNode
 }
 
+// Our layout parts. Header can name and describe the dialog itself:
+// <Dialog.Header heading="…" description="…" />, wired up as the dialog's
+// title and description, like the shortcut's props.
+type HeaderProps = ComponentProps<'div'> & { heading?: ReactNode, description?: ReactNode }
+function Header({ heading = null, description = null, children, ...rest }: HeaderProps) {
+  return (
+    <div data-scope="dialog" data-part="header" {...rest}>
+      {heading && <Ark.Title>{heading}</Ark.Title>}
+      {description && <Ark.Description>{description}</Ark.Description>}
+      {children}
+    </div>
+  )
+}
+const Body = partOf('dialog', 'body')
+const Footer = partOf('dialog', 'footer')
+const layout = [Header, Body, Footer] as unknown[]
+
 function DialogShortcut({
   open, defaultOpen, onOpenChange, heading = null, description = null, alert = false, size = 'md', closable = true,
   trigger = null, footer = null, className, classes, children, ...rest
 }: DialogProps) {
   const part = partsOf('dialog', classes)
+  // Composed from Dialog.Header, Body and Footer: they go straight into the
+  // dialog (not wrapped as its body), and a Dialog.Trigger goes before it.
+  const nodes = Children.toArray(children)
+  const composed = nodes.some((node) => isValidElement(node) && layout.includes(node.type))
+  const triggers = nodes.filter((node) => isValidElement(node) && node.type === Ark.Trigger)
+  const content = composed ? nodes.filter((node) => !triggers.includes(node)) : children
   // Left out when not given: Zag reads undefined as a value.
   const state = { ...(open !== undefined && { open }), ...(defaultOpen !== undefined && { defaultOpen }) }
 
@@ -72,6 +105,7 @@ function DialogShortcut({
     <Ark.Root {...state} {...on('onOpenChange', onOpenChange, (details: DialogOpenChangeDetails) => details.open)}
       role={alert ? 'alertdialog' : 'dialog'} closeOnInteractOutside={!alert} lazyMount unmountOnExit>
       {trigger && <Ark.Trigger asChild>{trigger}</Ark.Trigger>}
+      {composed && triggers}
       <Portal>
         <Ark.Backdrop {...part('backdrop')} />
         <Ark.Positioner {...part('positioner')}>
@@ -83,7 +117,7 @@ function DialogShortcut({
                 {description && <Ark.Description {...part('description')}>{description}</Ark.Description>}
               </div>
             )}
-            {children != null && <div {...part('body')}>{children}</div>}
+            {composed ? content : children != null && <div {...part('body')}>{children}</div>}
             {footer && <div {...part('footer')}>{footer}</div>}
           </Ark.Content>
         </Ark.Positioner>
@@ -102,7 +136,7 @@ export const Dialog = withParts(DialogShortcut, {
   Title: Ark.Title,
   Description: Ark.Description,
   Context: Ark.Context,
-  Header: partOf('dialog', 'header'),
-  Body: partOf('dialog', 'body'),
-  Footer: partOf('dialog', 'footer'),
+  Header,
+  Body,
+  Footer,
 })
