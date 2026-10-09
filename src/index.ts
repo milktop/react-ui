@@ -5,7 +5,7 @@ export { Input } from './input/Input.js'
 export { Field, Fields } from './field/Field.js'
 export { Checkbox } from './checkbox/Checkbox.js'
 export { Switch } from './switch/Switch.js'
-export { Select, createListCollection } from './select/Select.js'
+export { Select, Combobox, createListCollection } from './select/Select.js'
 export { Dialog } from './dialog/Dialog.js'
 
 // Ark's Portal, for overlays built by hand.

@@ -1,5 +1,5 @@
-/* Custom items
-  `renderItem` draws each option, given the item and whether it's picked. */
+/* Custom items and parts
+  `renderItem` draws each option, given the item and whether it's picked; `classes` reaches into the trigger and the list; `empty` replaces the empty text. */
 import { Select } from '@milktop/react-ui'
 
 const people = [
@@ -17,6 +17,8 @@ export default function Example() {
           <span className="text-xs text-(--ui-muted)">{person.role}</span>
         </span>
       )} />
-    <Select label="Nothing to pick" items={[]} empty={<em>No people yet</em>} />
+    <Select label="Colour" items={['Pink', 'Teal', 'Amber']} defaultValue="Pink"
+      classes={{ trigger: 'rounded-full border-pink-300', item: 'rounded-full', itemIndicator: 'text-pink-600' }} />
+    <Select label="Nothing to pick" items={[] as string[]} empty={<em>No people yet</em>} />
   </>
 }
