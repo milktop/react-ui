@@ -259,7 +259,7 @@ function Submenu({ label, icon = null, items = [], keepOpen = null, className, c
   const part = outer.part
   const stays = keepOpen ?? outer.keepOpen
   return (
-    <Ark.Root lazyMount unmountOnExit closeOnSelect={!stays} positioning={{ placement: 'right-start', strategy: 'fixed', gutter: 2 }}
+    <Ark.Root closeOnSelect={!stays} positioning={{ placement: 'right-start', strategy: 'fixed', gutter: 2 }}
       navigate={(details) => details.node.click()} onSelect={(details: MenuSelectionDetails) => outer.select(details.value)}>
       <Ark.TriggerItem {...part('item')}>
         {icon && <iconify-icon {...part('icon')} icon={icon} aria-hidden="true" />}
@@ -382,7 +382,9 @@ function MenuShortcut({
 
   const Trigger = context ? Ark.ContextTrigger : Ark.Trigger
   return (
-    <Ark.Root lazyMount unmountOnExit closeOnSelect={!keepOpen} positioning={{ placement, strategy: 'fixed', gutter: 4 }}
+    // Mounted (hidden) from the start, as in svelte-ui: mounting on first open
+    // made it grow as its icons loaded.
+    <Ark.Root closeOnSelect={!keepOpen} positioning={{ placement, strategy: 'fixed', gutter: 4 }}
       {...(open !== undefined && { open })} {...(defaultOpen !== undefined && { defaultOpen })}
       {...(onOpenChange && { onOpenChange: (details: { open: boolean }) => onOpenChange(details.open) })}
       // Enter on a link: Zag's own click doesn't bubble, so routers listening

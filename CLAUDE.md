@@ -104,6 +104,9 @@ look. Read `README.md` first.
   `useMenuContext` (Ark's RadioItem wants a RadioItemGroup round it). Zag
   moves focus into an opened menu in an animation frame: in a hidden pane,
   keys sent straight after opening still go to the trigger.
+- iconify-icon fetches its icon when it first renders: content mounted on
+  first open (lazyMount) grows as its icons arrive. Menus stay mounted
+  (hidden) from the start, as in svelte-ui, so their icons are ready.
 - Ark renders Separator as an <hr>: CSS clears its border.
 - Ark's Progress.ValueText shows the percentage whatever formatOptions or
   translations say; the shortcut renders Zag's valueAsString instead.
