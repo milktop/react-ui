@@ -11,6 +11,8 @@
  * - `tooltips`: each item's label (or its own `tooltip`) in a tooltip on
  *   hover and keyboard focus; on by default with `iconOnly`
  * - `size`: 'sm', 'md' or 'lg'
+ * - `renderItem`: an option's content, (item, { selected }) => node (a count
+ *   beside the label, say); the icon still comes first
  * - `name`: for plain form posts
  *
  * By hand, with Ark's SegmentGroup parts (and Group, the track):
@@ -47,12 +49,13 @@ export type SegmentedProps<T, K extends string = 'value'> = Omit<Ark.RootProps, 
   iconOnly?: boolean
   tooltips?: boolean | null
   size?: 'sm' | 'md' | 'lg'
+  renderItem?: (item: T, state: { selected: boolean }) => ReactNode
   classes?: Classes<'root' | 'label' | 'group' | 'indicator' | 'item' | 'itemText' | 'itemIcon' | 'tooltipTarget'>
 }
 
 function SegmentedShortcut<T, K extends string = 'value'>({
   items, value, defaultValue, onValueChange, label = null, labelKey = 'label', valueKey = 'value' as K, disabledKey = 'disabled',
-  iconOnly = false, tooltips = null, size = 'md', className, classes, ...rest
+  iconOnly = false, tooltips = null, size = 'md', renderItem, className, classes, ...rest
 }: SegmentedProps<T, K>) {
   const field = useFieldContext()
   const part = partsOf('segment-group', classes)
@@ -96,7 +99,8 @@ function SegmentedShortcut<T, K extends string = 'value'>({
               data-icon-only={iconOnly || undefined}>
               <Ark.ItemText {...part('item-text')}>
                 {iconOf(item) && <iconify-icon {...part('item-icon')} icon={iconOf(item)!} aria-hidden="true" />}
-                {iconOnly ? <span {...part('sr-only')}>{labelOf(item)}</span> : labelOf(item)}
+                {iconOnly ? <span {...part('sr-only')}>{labelOf(item)}</span>
+                  : renderItem ? renderItem(item, { selected: String(current) === itemKey }) : labelOf(item)}
               </Ark.ItemText>
               {withTooltips && (
                 // The tooltip's trigger is a layer over the item, since the item's own props are the radio's.

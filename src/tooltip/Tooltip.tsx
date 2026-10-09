@@ -5,16 +5,17 @@
  *   <Tooltip content="Ada Lovelace">Ada</Tooltip>
  *
  * - children: the element it describes, which gets the trigger's props (a
- *   component must pass them and its ref on, as Button does); text or several
- *   elements are wrapped in a span that takes them
+ *   component must pass them and its ref on, as Button does); text, several
+ *   elements or a disabled one (which fires no events) are wrapped in a span
+ *   that takes them
  * - `content`: what it says (text or markup)
  * - `placement`: 'top' (default), 'bottom-start', …
  * - `openDelay` (0), `closeDelay` in ms; `interactive`: stays open while the
  *   pointer is over it; `disabled`
  * - `open`, `defaultOpen`; `onOpenChange`: called with the new open state
  *
- * It closes on Escape, click or scroll. Disabled buttons fire no events, so
- * wrap those in a span.
+ * It closes on Escape, click or scroll. With `interactive` it stays open while
+ * the pointer is over it, so its text can be selected.
  *
  * By hand, with Ark's parts:
  *
@@ -56,7 +57,7 @@ function TooltipShortcut({
       {...(closeDelay !== undefined && { closeDelay })} {...(open !== undefined && { open })}
       {...(defaultOpen !== undefined && { defaultOpen })}
       {...on('onOpenChange', onOpenChange, (details: TooltipOpenChangeDetails) => details.open)}>
-      {isValidElement(children)
+      {isValidElement<{ disabled?: boolean }>(children) && !children.props.disabled
         ? <Ark.Trigger asChild>{children}</Ark.Trigger>
         : <Ark.Trigger asChild><span {...part('trigger')}>{children}</span></Ark.Trigger>}
       <Portal>

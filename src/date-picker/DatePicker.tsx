@@ -23,7 +23,7 @@
  * TableRow, TableCell, TableCellTrigger, with DatePicker.Context for the
  * weeks, months and years to lay out.
  */
-import type { KeyboardEvent, ReactElement, ReactNode } from 'react'
+import { Fragment, type KeyboardEvent, type ReactElement, type ReactNode } from 'react'
 import { DatePicker as Ark, parseDate, useDatePicker, type DatePickerValueChangeDetails, type DateValue } from '@ark-ui/react/date-picker'
 import { useFieldContext } from '@ark-ui/react/field'
 import { getLocalTimeZone, today } from '@internationalized/date'
@@ -101,11 +101,12 @@ function DatePickerShortcut(props: DatePickerProps) {
     <Ark.RootProvider value={picker} {...rest} {...part('root')} className={cx(className, classes?.root)}>
       {label && !field && <Ark.Label {...part('label')}>{label}</Ark.Label>}
       <Ark.Control {...part('control')}>
-        {(range ? [0, 1] : [0]).map((index) => <span key={index} style={{ display: 'contents' }}>
+        {/* Siblings, not wrapped: the CSS grows the last input (:last-of-type). */}
+        {(range ? [0, 1] : [0]).map((index) => <Fragment key={index}>
           {index === 1 && <span {...part('separator')}>–</span>}
           <Ark.Input index={index} {...part('input')} size={10} onKeyDownCapture={(e) => step(e, index)}
             aria-describedby={field?.ariaDescribedby} />
-        </span>)}
+        </Fragment>)}
         <Ark.ClearTrigger {...part('clear-trigger')}><iconify-icon icon="lucide:x" /></Ark.ClearTrigger>
         <Ark.Trigger {...part('trigger')}><iconify-icon icon="lucide:calendar" /></Ark.Trigger>
       </Ark.Control>
