@@ -8,7 +8,7 @@
     &[data-focus-visible] { outline: 2px solid var(--ui-ring-soft); border-color: var(--ui-ring); }
     &[data-invalid] { border-color: var(--ui-danger); } }
   [data-scope=checkbox][data-part=label][data-hidden] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  [data-scope=checkbox][data-part=indicator] { display: none; font-size: 12px;
+  [data-scope=checkbox][data-part=indicator] { display: none; font-size: 12px; line-height: 1;
     &:is([data-state=checked], [data-state=indeterminate]) { display: grid; }
     /* Ark renders one for the tick and one for the dash, hiding the other. */
     &[hidden] { display: none; } }
