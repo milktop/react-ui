@@ -19,18 +19,30 @@ const all: Group[] = [
   ] },
   { heading: 'Inputs', form: true, icon: 'lucide:text-cursor-input', pages: [
     { slug: 'input', title: 'Input', about: 'Text and numbers, with icons and affixes', file: 'input/Input.tsx' },
+    { slug: 'password-input', title: 'Password input', about: 'Show or hide what was typed', file: 'password-input/PasswordInput.tsx' },
+    { slug: 'number-input', title: 'Number input', about: 'Step buttons, arrow keys, limits and formatting', file: 'number-input/NumberInput.tsx' },
+    { slug: 'textarea', title: 'Textarea', about: 'Grows with its content', file: 'textarea/Textarea.tsx' },
+    { slug: 'tags-input', title: 'Tags input', about: 'Type, press Enter, get a tag', file: 'tags-input/TagsInput.tsx' },
+    { slug: 'pin-input', title: 'Pin input', about: 'One box per character, for codes', file: 'pin-input/PinInput.tsx' },
+    { slug: 'slider', title: 'Slider', about: 'A number or a range', file: 'slider/Slider.tsx' },
+    { slug: 'file-upload', form: false, title: 'File upload', about: 'Drop or browse, with previews', file: 'file-upload/FileUpload.tsx' },
   ] },
   { heading: 'Pickers', form: true, icon: 'lucide:list-checks', pages: [
-    { slug: 'select', title: 'Select', about: 'Pick one or several', file: 'select/Select.tsx' },
+    { slug: 'select', title: 'Select', about: 'Pick one or several; search, load or create', file: 'select/Select.tsx' },
+    { slug: 'date-picker', title: 'Date picker', about: 'Type a date or pick it from a calendar', file: 'date-picker/DatePicker.tsx' },
   ] },
   { heading: 'Choices', form: true, icon: 'lucide:circle-check', pages: [
-    { slug: 'checkbox', title: 'Checkbox', about: 'On or off, or in between', file: 'checkbox/Checkbox.tsx' },
+    { slug: 'checkbox', title: 'Checkbox', about: 'On its own or in a group', file: 'checkbox/Checkbox.tsx' },
+    { slug: 'radio-group', title: 'Radio group', about: 'Pick one, with descriptions', file: 'radio-group/RadioGroup.tsx' },
     { slug: 'switch', title: 'Switch', about: 'On or off', file: 'switch/Switch.tsx' },
+    { slug: 'segment-group', title: 'Segmented', about: 'A row of options with a sliding indicator', file: 'segment-group/Segmented.tsx' },
+    { slug: 'theme-toggle', title: 'Theme toggle', about: 'Light, dark or the OS setting', file: 'theme-toggle/ThemeToggle.tsx' },
   ] },
   { heading: 'Forms', icon: 'lucide:clipboard-list', pages: [
     { slug: 'field', title: 'Field', about: 'Labels, hints and errors, on a grid', file: 'field/Field.tsx' },
   ] },
   { heading: 'Overlays', icon: 'lucide:layers', pages: [
+    { slug: 'tooltip', title: 'Tooltip', about: 'Hints on hover and focus', file: 'tooltip/Tooltip.tsx' },
     { slug: 'dialog', title: 'Dialog', about: 'Modals and confirmations', file: 'dialog/Dialog.tsx' },
   ] },
 ]

@@ -37,8 +37,20 @@ where one doesn't fit you build from the parts.
 
 ## Components
 
-So far: Button · Input · Field/Fields · Checkbox · Switch · Select · Dialog.
-The rest of svelte-ui's set follows the same pattern.
+So far:
+
+- Actions: Button
+- Inputs: Input · Textarea · NumberInput · PasswordInput · PinInput · TagsInput ·
+  Slider · FileUpload
+- Pickers: Select (one component: searchable, server `load`, `onCreate`,
+  multiple, tags; Combobox's parts for building one by hand) · DatePicker
+- Choices: Checkbox · CheckboxGroup · Switch · RadioGroup · Segmented ·
+  ThemeToggle (`colorScheme`, `useColorScheme`)
+- Forms: Field · Fields
+- Overlays: Tooltip · Dialog
+
+The rest of svelte-ui's set (Editor, Attachments, menus, navigation, display)
+follows the same pattern.
 
 ## Every component works the same way
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import 'iconify-icon'
-import { Button, cx } from '@milktop/react-ui'
+import { ThemeToggle, cx } from '@milktop/react-ui'
 import { Demo, Toggle, Backticked } from './lib/Demo'
 import { groups, pages, examplesOf, docOf, type Group, type Page } from './registry'
 
@@ -14,21 +14,8 @@ function useHash() {
   return hash
 }
 
-// Light or dark, saved, as `dark` on <html> (the theme's tokens follow it).
-function useDark() {
-  const [dark, setDark] = useState(() => {
-    try { return localStorage.getItem('react-ui:dark') === '1' } catch { return false }
-  })
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark)
-    try { localStorage.setItem('react-ui:dark', dark ? '1' : '0') } catch { /* private mode */ }
-  }, [dark])
-  return [dark, setDark] as const
-}
-
 export function App() {
   const hash = useHash()
-  const [dark, setDark] = useDark()
   const page = pages.find((p) => hash === `#/${p.slug}`)
 
   return (
@@ -55,7 +42,7 @@ export function App() {
 
       <main className="mx-auto w-full max-w-4xl min-w-0 px-4 py-6 md:px-8">
         <div className="mb-4 flex justify-end gap-2">
-          <Button size="sm" variant="ghost" icon={dark ? 'lucide:sun' : 'lucide:moon'} aria-label="Toggle dark mode" onClick={() => setDark(!dark)} />
+          <ThemeToggle size="sm" />
         </div>
         {page ? <ComponentPage key={page.slug} page={page} /> : <Overview />}
       </main>

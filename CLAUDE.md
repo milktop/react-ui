@@ -65,6 +65,35 @@ look. Read `README.md` first.
 
 ## Gotchas
 
+- Zag in React applies a machine's state on the next render: an api call
+  (`setHighlightValue`) isn't visible to a key event sent straight after it,
+  so wait a tick (SearchSelect's keep-place does). Keep the latest api in a
+  ref for timers and promises.
+- A component that needs the api itself (Select, TagsInput, PasswordInput,
+  DatePicker) uses Ark's hook (`useSelect`…) and `<Ark.RootProvider value={…}>`.
+- Ark's Label (and other parts) must sit inside its Root: our roots hold the
+  label and an items row (RadioGroup's `items`, Segmented's `group`).
+- Segmented is Ark's SegmentGroup, scope `segment-group` (svelte-ui's
+  `segmented`), so its by-hand parts get the CSS.
+- Generic item components type `value` as `NoInfer<…>`, or TypeScript infers
+  the item type from the value (a number) instead of `items`.
+- Ark Root props include HTML attributes typed as strings (`label`, `prefix`):
+  `Omit` them before adding ours.
+- Zag reads the Field context only in some machines (select, combobox,
+  checkbox, switch, number/password/pin/tags input, file upload). For the
+  rest (radio, segment, slider, date picker) pass `ids.label` and
+  `aria-describedby={field?.ariaDescribedby}` by hand.
+- FileUpload keeps accepted files from `onFileAccept`: `onFileChange` also
+  fires for rejections with the accepted list from before the render, which
+  would undo a drop of good and bad files together.
+- Zag's file input listens for `input`, not `change` (a test script must
+  fire `input`); tags input adds on an input event ending in the delimiter,
+  so a test that inserts "a," in one go adds nothing.
+- A multiple SearchSelect's list stays open when Tab leaves it, and its layer
+  swallows the next field's typing: the component closes it on focus-out.
+- Zag won't clear a disabled item (hideSelected disables picks): remove picks
+  through our own state.
+
 - typescript-eslint supports TypeScript < 6.1, so TypeScript stays on 6.0.
 - Input's `type` union lists React's known input types without its
   `string & {}` catch-all, or `type="number"` matches both members and
