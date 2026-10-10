@@ -12,7 +12,8 @@
  * scroll, Escape or a click on the backdrop closes it, and focus returns to
  * the trigger.
  *
- * - `open`, `defaultOpen`; `onOpenChange`: called with the new open state
+ * - `open`, `defaultOpen`; `onOpenChange`: called with the new open state;
+ *   `onExitComplete`: called once it has animated out
  * - `trigger`: the element that opens it (optional; it gets the trigger's props,
  *   so a component must pass them and its ref on, as Button does)
  * - `heading`, `description`: label and describe it for assistive tech
@@ -59,6 +60,7 @@ export type DialogProps = Omit<Ark.ContentProps, 'children'> & {
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean, details: DialogOpenChangeDetails) => void
+  onExitComplete?: () => void
   heading?: ReactNode
   description?: ReactNode
   alert?: boolean
@@ -88,7 +90,7 @@ const Footer = partOf('dialog', 'footer')
 const layout = [Header, Body, Footer] as unknown[]
 
 function DialogShortcut({
-  open, defaultOpen, onOpenChange, heading = null, description = null, alert = false, size = 'md', closable = true,
+  open, defaultOpen, onOpenChange, onExitComplete, heading = null, description = null, alert = false, size = 'md', closable = true,
   trigger = null, footer = null, className, classes, children, ...rest
 }: DialogProps) {
   const part = partsOf('dialog', classes)
@@ -103,6 +105,7 @@ function DialogShortcut({
 
   return (
     <Ark.Root {...state} {...on('onOpenChange', onOpenChange, (details: DialogOpenChangeDetails) => details.open)}
+      {...(onExitComplete && { onExitComplete })}
       role={alert ? 'alertdialog' : 'dialog'} closeOnInteractOutside={!alert} lazyMount unmountOnExit>
       {trigger && <Ark.Trigger asChild>{trigger}</Ark.Trigger>}
       {composed && triggers}

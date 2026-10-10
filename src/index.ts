@@ -34,6 +34,7 @@ export {
 } from './menu/Menu.js'
 export { Tabs, Tab } from './tabs/Tabs.js'
 export { Dialog } from './dialog/Dialog.js'
+export { confirm, type ConfirmOptions } from './confirm/confirm.js'
 export { Sheet } from './sheet/Sheet.js'
 export { Popover } from './popover/Popover.js'
 export { HoverCard } from './hover-card/HoverCard.js'
