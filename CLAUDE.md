@@ -92,6 +92,9 @@ look. Read `README.md` first.
   checkbox, switch, number/password/pin/tags input, file upload). For the
   rest (radio, segment, slider, date picker) pass `ids.label` and
   `aria-describedby={field?.ariaDescribedby}` by hand.
+- Attachments posts with a plain form through a hidden file input whose
+  files are set from a DataTransfer (the only way to set them); its CSS has
+  rules (label, invalid) svelte-ui's copy doesn't have yet.
 - FileUpload keeps accepted files from `onFileAccept`: `onFileChange` also
   fires for rejections with the accepted list from before the render, which
   would undo a drop of good and bad files together.

@@ -18,19 +18,31 @@
  *   `maxFileSize` (bytes) limit what's added; files that don't fit are listed
  *   with the reason, and `onReject` gets `[{ file, reason }]`
  * - `addLabel`, `emptyText`
+ * - `label`: a label above it (skipped inside a Field, whose label, hint and
+ *   error it takes, as the other controls do)
+ * - `name`: posts the new Files with a plain <form> (a hidden file input);
+ *   `keptName` also posts the `id` of each saved item still in the list, so
+ *   the server can tell what was removed
+ * - `disabled`: read only (no adding or removing); a disabled Field's too
+ *
+ * In a new-record form, start with no items; in an edit form, with the
+ * record's saved files as plain objects (with an `id`). Files added are
+ * Files, so on submit: new = items that are Files, kept = the rest, removed =
+ * the saved ones no longer there.
  *
  * Clicking an image opens it large; other files open their `url`, if any, in
  * a new tab. Files with a `url` get a download button.
  */
-import { useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent, type HTMLAttributes, type ReactNode } from 'react'
-import { createFileTypeValidator, getAcceptAttrString } from '@zag-js/file-utils'
+import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent, type HTMLAttributes, type ReactNode } from 'react'
+import { createFileTypeValidator, getAcceptAttrString, getFileKey } from '@zag-js/file-utils'
+import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { Dialog } from '../dialog/Dialog.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import '../theme.css'
 import './attachments.css'
 
-export type Attachment = File | { name?: string, size?: number | string, type?: string, url?: string, thumb?: string }
+export type Attachment = File | { id?: string | number, name?: string, size?: number | string, type?: string, url?: string, thumb?: string }
 export type AttachmentRejection = { file: File, reason: string }
 
 export type AttachmentsProps = Omit<HTMLAttributes<HTMLDivElement>, 'onDrop'> & {
@@ -49,7 +61,11 @@ export type AttachmentsProps = Omit<HTMLAttributes<HTMLDivElement>, 'onDrop'> & 
   onRemove?: (item: Attachment) => void
   onAdd?: (files: File[]) => void
   onReject?: (rejected: AttachmentRejection[]) => void
-  classes?: Classes<'root' | 'empty' | 'files' | 'file' | 'open' | 'thumb' | 'icon' | 'ext' | 'meta' | 'name' | 'size' | 'actions'
+  label?: ReactNode
+  name?: string
+  keptName?: string
+  disabled?: boolean
+  classes?: Classes<'root' | 'label' | 'empty' | 'files' | 'file' | 'open' | 'thumb' | 'icon' | 'ext' | 'meta' | 'name' | 'size' | 'actions'
     | 'action' | 'addTile' | 'addInput' | 'addIcon' | 'addText' | 'addLabel' | 'limit' | 'rejected' | 'dropHint' | 'preview' | 'downloadLink'>
 }
 
@@ -71,6 +87,8 @@ function iconFor(type: string, name: string) {
   if (/\.(pdf|docx?|txt|md|pages|rtf)$/.test(n)) return 'lucide:file-text'
   return 'lucide:file'
 }
+
+const fileKey = (file: File) => getFileKey(file)
 
 // Local previews for Files, made once each.
 const urls = new WeakMap<File, string>()
@@ -105,9 +123,18 @@ const typeChecker = (accept: string | null) => {
 export function Attachments({
   items: itemsProp, defaultItems = [], onItemsChange, layout = 'grid', columns = null, removable = false, addable = false,
   accept = null, maxFiles = null, maxFileSize = null, addLabel = 'Add files', emptyText = null, onRemove, onAdd, onReject,
-  className, classes, style, ...rest
+  label = null, name, keptName, disabled: disabledProp = false, className, classes, style, ...rest
 }: AttachmentsProps) {
   const part = partsOf('attachments', classes)
+  const field = useFieldContext()
+  const id = useId()
+  const labelId = field ? field.ids.label : label ? `${id}-label` : undefined
+  const disabled = disabledProp || !!field?.disabled
+  // Read only: nothing added or removed.
+  if (disabled) {
+    addable = false
+    removable = false
+  }
   const [items, setItems] = useControllable(itemsProp, defaultItems, onItemsChange)
   const list = items.map(info)
   const count = items.length
@@ -119,6 +146,19 @@ export function Attachments({
   }
 
   const fitsType = useMemo(() => typeChecker(accept), [accept])
+
+  // For a plain <form>: the new Files, in a hidden file input. A DataTransfer
+  // is the only way to set an input's files.
+  const posted = useRef<HTMLInputElement>(null)
+  const newFiles = items.filter((item): item is File => typeof File !== 'undefined' && item instanceof File)
+  useEffect(() => {
+    if (!posted.current) return
+    const transfer = new DataTransfer()
+    newFiles.forEach((file) => transfer.items.add(file))
+    posted.current.files = transfer.files
+  }, [newFiles.map(fileKey).join('\u0000')]) // eslint-disable-line react-hooks/exhaustive-deps
+  const keptIds = items.filter((item) => !(typeof File !== 'undefined' && item instanceof File))
+    .map((item) => (item as Exclude<Attachment, File>).id).filter((id) => id != null)
 
   // Adds what fits (type, size, count); the rest is rejected with a reason.
   const [rejected, setRejected] = useState<AttachmentRejection[]>([])
@@ -193,9 +233,14 @@ export function Attachments({
 
   return (
     <div {...rest} {...part('root')} className={cx(className, classes?.root)} ref={root} data-layout={layout}
+      aria-labelledby={labelId} aria-describedby={field?.ariaDescribedby} aria-invalid={field?.invalid || undefined}
+      data-invalid={field?.invalid || undefined} data-disabled={disabled || undefined}
       data-empty={!list.length || undefined} data-add-wide={addWide || undefined} data-fixed={columns ? '' : undefined}
       style={{ ...style, ...(columns && { '--columns': columns }) } as CSSProperties}
       onDragEnter={dragOver} onDragOver={dragOver} onDragLeave={dragLeave} onDrop={dropped} role="group">
+      {label && !field && <span {...part('label')} id={labelId}>{label}</span>}
+      {name && <input ref={posted} type="file" name={name} multiple hidden aria-hidden="true" tabIndex={-1} />}
+      {keptName && keptIds.map((kept) => <input key={String(kept)} type="hidden" name={keptName} value={String(kept)} />)}
       {!list.length && !addable && emptyText && <p {...part('empty')}>{emptyText}</p>}
       <ul {...part('files')} ref={filesEl}>
         {list.map((entry, i) => (
@@ -225,7 +270,7 @@ export function Attachments({
         {addable && !atMax && (
           <li {...part('file')} data-add="">
             <label {...part('add-tile')}>
-              <input {...part('add-input')} type="file" multiple={maxFiles !== 1} {...(accept && { accept })} onChange={added} />
+              <input {...part('add-input')} {...(field && { id: field.ids.control })} type="file" multiple={maxFiles !== 1} {...(accept && { accept })} onChange={added} />
               <span {...part('add-icon')}><iconify-icon icon="lucide:plus" /></span>
               <span {...part('add-text')}>
                 <span {...part('add-label')}>{addLabel}</span>
