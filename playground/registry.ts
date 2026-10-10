@@ -26,6 +26,7 @@ const all: Group[] = [
     { slug: 'pagination', title: 'Pagination', about: 'Pages, with a summary', file: 'pagination/Pagination.tsx' },
     { slug: 'data-list', title: 'Data list', about: 'Labels and values', file: 'data-list/DataList.tsx' },
     { slug: 'stat', title: 'Stat', about: 'Headline numbers, with change', file: 'stat/Stat.tsx' },
+    { slug: 'charts', title: 'Charts', about: 'Area, bar and sparklines', file: 'chart/AreaChart.tsx' },
     { slug: 'timeline', title: 'Timeline', about: 'Events down a line', file: 'timeline/Timeline.tsx' },
   ] },
   { heading: 'Feedback', icon: 'lucide:bell', pages: [

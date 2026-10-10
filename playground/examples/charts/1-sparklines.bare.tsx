@@ -1,0 +1,17 @@
+/* Sparklines
+  Colours come from the theme (--ui-chart-1…5, the first being the accent), so they follow dark mode and the accent picker. */
+import { Sparkline, Card } from '@milktop/react-ui'
+import { months } from './months'
+
+export default function Example() {
+  return (
+    <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(14rem,1fr))] gap-4">
+      <Card><span className="text-sm text-(--ui-muted)">Revenue</span><div className="mb-2 text-xl font-bold">£1,820</div>
+        <Sparkline data={months} y="revenue" label="Revenue, April to October" /></Card>
+      <Card><span className="text-sm text-(--ui-muted)">Maths lessons</span><div className="mb-2 text-xl font-bold">33</div>
+        <Sparkline data={months} y="maths" variant="area" color="success" /></Card>
+      <Card><span className="text-sm text-(--ui-muted)">Physics lessons</span><div className="mb-2 text-xl font-bold">12</div>
+        <Sparkline data={months} y="physics" variant="bar" height={40} /></Card>
+    </div>
+  )
+}
