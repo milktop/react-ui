@@ -59,6 +59,8 @@ export { Stats } from './stat/Stats.js'
 export { Timeline, TimelineItem } from './timeline/Timeline.js'
 export { Accordion, AccordionItem, type AccordionEntry } from './accordion/Accordion.js'
 export { Collapsible } from './collapsible/Collapsible.js'
+export { Attachments, formatSize, type Attachment, type AttachmentRejection } from './attachments/Attachments.js'
+export { Banner } from './banner/Banner.js'
 
 // Ark's Portal, for overlays built by hand.
 export { Portal } from '@ark-ui/react/portal'

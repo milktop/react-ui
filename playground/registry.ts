@@ -30,6 +30,7 @@ const all: Group[] = [
   ] },
   { heading: 'Feedback', icon: 'lucide:bell', pages: [
     { slug: 'alert', title: 'Alert', about: 'Messages in the page', file: 'alert/Alert.tsx' },
+    { slug: 'banner', title: 'Banner', about: 'Announcements across the page', file: 'banner/Banner.tsx' },
     { slug: 'progress', title: 'Progress', about: 'Bars and circles', file: 'progress/Progress.tsx' },
     { slug: 'skeleton', title: 'Skeleton', about: 'Loading placeholders', file: 'skeleton/Skeleton.tsx' },
     { slug: 'spinner', title: 'Spinner', about: 'Short waits', file: 'spinner/Spinner.tsx' },
@@ -43,6 +44,7 @@ const all: Group[] = [
     { slug: 'tags-input', title: 'Tags input', about: 'Type, press Enter, get a tag', file: 'tags-input/TagsInput.tsx' },
     { slug: 'pin-input', title: 'Pin input', about: 'One box per character, for codes', file: 'pin-input/PinInput.tsx' },
     { slug: 'slider', title: 'Slider', about: 'A number or a range', file: 'slider/Slider.tsx' },
+    { slug: 'attachments', form: false, title: 'Attachments', about: 'Files as tiles or a list, with previews', file: 'attachments/Attachments.tsx' },
     { slug: 'file-upload', form: false, title: 'File upload', about: 'Drop or browse, with previews', file: 'file-upload/FileUpload.tsx' },
   ] },
   { heading: 'Pickers', form: true, icon: 'lucide:list-checks', pages: [
