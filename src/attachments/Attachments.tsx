@@ -8,7 +8,9 @@
  *   objects `{ name, size (bytes, or text), type (MIME), url, thumb }` or File
  *   objects (e.g. from FileUpload or an <input type=file>), which are
  *   previewed locally
- * - `layout`: 'grid' (default) or 'list'
+ * - `layout`, `defaultLayout`: 'grid' (default) or 'list'; `onLayoutChange`
+ * - `switchable`: a grid/list switch above the files, so people pick; with
+ *   `persist` (a localStorage key) their choice is remembered
  * - `columns`: the most tiles per row in the grid; fewer when tiles would get
  *   too small (without it, as many as fit)
  * - `removable`: a remove button on each; `onRemove` gets the item
@@ -38,18 +40,24 @@ import { createFileTypeValidator, getAcceptAttrString, getFileKey } from '@zag-j
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { Dialog } from '../dialog/Dialog.js'
+import { Segmented } from '../segment-group/Segmented.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import '../theme.css'
 import './attachments.css'
 
 export type Attachment = File | { id?: string | number, name?: string, size?: number | string, type?: string, url?: string, thumb?: string }
+export type AttachmentsLayout = 'grid' | 'list'
 export type AttachmentRejection = { file: File, reason: string }
 
 export type AttachmentsProps = Omit<HTMLAttributes<HTMLDivElement>, 'onDrop'> & {
   items?: Attachment[]
   defaultItems?: Attachment[]
   onItemsChange?: (items: Attachment[]) => void
-  layout?: 'grid' | 'list'
+  layout?: AttachmentsLayout
+  defaultLayout?: AttachmentsLayout
+  onLayoutChange?: (layout: AttachmentsLayout) => void
+  switchable?: boolean
+  persist?: string | null
   columns?: number | null
   removable?: boolean
   addable?: boolean
@@ -65,7 +73,7 @@ export type AttachmentsProps = Omit<HTMLAttributes<HTMLDivElement>, 'onDrop'> & 
   name?: string
   keptName?: string
   disabled?: boolean
-  classes?: Classes<'root' | 'label' | 'empty' | 'files' | 'file' | 'open' | 'thumb' | 'icon' | 'ext' | 'meta' | 'name' | 'size' | 'actions'
+  classes?: Classes<'root' | 'header' | 'label' | 'switch' | 'empty' | 'files' | 'file' | 'open' | 'thumb' | 'icon' | 'ext' | 'meta' | 'name' | 'size' | 'actions'
     | 'action' | 'addTile' | 'addInput' | 'addIcon' | 'addText' | 'addLabel' | 'limit' | 'rejected' | 'dropHint' | 'preview' | 'downloadLink'>
 }
 
@@ -89,6 +97,17 @@ function iconFor(type: string, name: string) {
 }
 
 const fileKey = (file: File) => getFileKey(file)
+
+const layouts = [{ value: 'grid', label: 'Grid', icon: 'lucide:layout-grid' }, { value: 'list', label: 'List', icon: 'lucide:list' }]
+
+function saved(key: string | null): AttachmentsLayout | null {
+  try {
+    const value = key ? localStorage.getItem(key) : null
+    return value === 'grid' || value === 'list' ? value : null
+  } catch {
+    return null
+  }
+}
 
 // Local previews for Files, made once each.
 const urls = new WeakMap<File, string>()
@@ -121,7 +140,8 @@ const typeChecker = (accept: string | null) => {
 }
 
 export function Attachments({
-  items: itemsProp, defaultItems = [], onItemsChange, layout = 'grid', columns = null, removable = false, addable = false,
+  items: itemsProp, defaultItems = [], onItemsChange, layout: layoutProp, defaultLayout = 'grid', onLayoutChange,
+  switchable = false, persist = null, columns = null, removable = false, addable = false,
   accept = null, maxFiles = null, maxFileSize = null, addLabel = 'Add files', emptyText = null, onRemove, onAdd, onReject,
   label = null, name, keptName, disabled: disabledProp = false, className, classes, style, ...rest
 }: AttachmentsProps) {
@@ -136,6 +156,13 @@ export function Attachments({
     removable = false
   }
   const [items, setItems] = useControllable(itemsProp, defaultItems, onItemsChange)
+  // The layout: remembered under `persist`, when there's one.
+  const [initialLayout] = useState(() => saved(persist) ?? defaultLayout)
+  const [layout, setLayoutValue] = useControllable(layoutProp, initialLayout, onLayoutChange)
+  function setLayout(next: AttachmentsLayout) {
+    setLayoutValue(next)
+    try { if (persist) localStorage.setItem(persist, next) } catch { /* private mode */ }
+  }
   const list = items.map(info)
   const count = items.length
   const atMax = !!maxFiles && count >= maxFiles
@@ -238,7 +265,16 @@ export function Attachments({
       data-empty={!list.length || undefined} data-add-wide={addWide || undefined} data-fixed={columns ? '' : undefined}
       style={{ ...style, ...(columns && { '--columns': columns }) } as CSSProperties}
       onDragEnter={dragOver} onDragOver={dragOver} onDragLeave={dragLeave} onDrop={dropped} role="group">
-      {label && !field && <span {...part('label')} id={labelId}>{label}</span>}
+      {((label && !field) || switchable) && (
+        <div {...part('header')}>
+          {label && !field && <span {...part('label')} id={labelId}>{label}</span>}
+          {switchable && (
+            // Segmented keeps its own scope (its CSS); `classes.switch` still applies.
+            <Segmented className={classes?.switch} size="sm" iconOnly aria-label="Layout" items={layouts} value={layout}
+              onValueChange={(next) => next && setLayout(next as AttachmentsLayout)} />
+          )}
+        </div>
+      )}
       {name && <input ref={posted} type="file" name={name} multiple hidden aria-hidden="true" tabIndex={-1} />}
       {keptName && keptIds.map((kept) => <input key={String(kept)} type="hidden" name={keptName} value={String(kept)} />)}
       {!list.length && !addable && emptyText && <p {...part('empty')}>{emptyText}</p>}
