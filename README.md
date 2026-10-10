@@ -42,9 +42,10 @@ So far:
 - Actions: Button · CopyButton
 - Display: Avatar · AvatarGroup · Badge · Card (props or composed from Card.Header/Body/Footer) ·
   Table (sorting, selection with Shift ranges, loading, custom cells; `sortRows`) ·
-  Pagination · DataList · Stat · Stats · Timeline
-- Feedback: Alert · Progress · Skeleton · Spinner · EmptyState
-- Inputs: Input · Textarea · NumberInput · PasswordInput · PinInput · TagsInput ·
+  Pagination · DataList · Stat · Stats · Timeline · Attachments (tiles or a list,
+  click-to-enlarge images) · Charts (AreaChart, BarChart, Sparkline; d3 for the maths)
+- Feedback: Alert · Banner · Progress · Skeleton · Spinner · EmptyState
+- Inputs: Input · Textarea · Editor (rich text on TipTap, with image uploads) · NumberInput · PasswordInput · PinInput · TagsInput ·
   Slider · FileUpload
 - Pickers: Select (one component: searchable, server `load`, `onCreate`,
   multiple, tags; Combobox's parts for building one by hand) · DatePicker
@@ -60,7 +61,9 @@ So far:
   and is a drawer on phones) · Topbar · Sidebar (NavSection, NavGroup, NavItem,
   SidebarUser; also Sidebar.Section…) · Page · Breadcrumbs · Command (⌘K)
 
-Still to come from svelte-ui's set: Attachments, Editor and charts.
+That's all of svelte-ui's components. Its playground also has guides
+(Theming, Installation), blocks (page and section layouts) and a demo app
+page, not yet ported.
 
 The playground runs on the library's own AppShell, Sidebar, Topbar, Page,
 Breadcrumbs and Command.
