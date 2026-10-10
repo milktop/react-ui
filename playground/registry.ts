@@ -55,8 +55,13 @@ const all: Group[] = [
   ] },
   { heading: 'Overlays', icon: 'lucide:layers', pages: [
     { slug: 'tooltip', title: 'Tooltip', about: 'Hints on hover and focus', file: 'tooltip/Tooltip.tsx' },
+    { slug: 'popover', title: 'Popover', about: 'A panel that opens from a trigger', file: 'popover/Popover.tsx' },
+    { slug: 'hover-card', title: 'Hover card', about: 'Previews on hover', file: 'hover-card/HoverCard.tsx' },
     { slug: 'dialog', title: 'Dialog', about: 'Modals and confirmations', file: 'dialog/Dialog.tsx' },
+    { slug: 'sheet', title: 'Sheet', about: 'Panels that slide in from an edge', file: 'sheet/Sheet.tsx' },
+    { slug: 'action-bar', title: 'Action bar', about: 'Actions for a selection', file: 'action-bar/ActionBar.tsx' },
     { slug: 'menu', title: 'Menu', about: 'Dropdowns and context menus', file: 'menu/Menu.tsx' },
+    { slug: 'toast', title: 'Toast', about: 'Notifications', file: 'toast/Toaster.tsx' },
   ] },
   { heading: 'Disclosure', icon: 'lucide:chevrons-up-down', pages: [
     { slug: 'tabs', title: 'Tabs', about: 'Panels behind tabs, with counts', file: 'tabs/Tabs.tsx' },

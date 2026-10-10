@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import 'iconify-icon'
-import { ThemeToggle, cx } from '@milktop/react-ui'
+import { ThemeToggle, Toaster, cx } from '@milktop/react-ui'
 import { Demo, Toggle, Backticked } from './lib/Demo'
 import { groups, pages, examplesOf, docOf, type Group, type Page } from './registry'
 
@@ -46,6 +46,7 @@ export function App() {
         </div>
         {page ? <ComponentPage key={page.slug} page={page} /> : <Overview />}
       </main>
+      <Toaster />
     </div>
   )
 }

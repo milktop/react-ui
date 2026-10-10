@@ -107,6 +107,12 @@ look. Read `README.md` first.
 - iconify-icon fetches its icon when it first renders: content mounted on
   first open (lazyMount) grows as its icons arrive. Menus stay mounted
   (hidden) from the start, as in svelte-ui, so their icons are ready.
+- Sheet runs Ark's dialog under the `sheet` scope: every part, its own
+  Header/Title too, passes data-scope="sheet", or Dialog's CSS applies.
+- Zag types `toaster.loading` as void though it returns the id: use
+  `toaster.create({ type: 'loading', … })` where the id matters.
+- Components that build a new value from the current one (CheckboxGroup)
+  read it from a ref of the latest, so two changes before a render stack.
 - Ark renders Separator as an <hr>: CSS clears its border.
 - Ark's Progress.ValueText shows the percentage whatever formatOptions or
   translations say; the shortcut renders Zag's valueAsString instead.

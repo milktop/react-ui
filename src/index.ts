@@ -34,6 +34,11 @@ export {
 } from './menu/Menu.js'
 export { Tabs, Tab } from './tabs/Tabs.js'
 export { Dialog } from './dialog/Dialog.js'
+export { Sheet } from './sheet/Sheet.js'
+export { Popover } from './popover/Popover.js'
+export { HoverCard } from './hover-card/HoverCard.js'
+export { Toaster, Toast, toaster, createToaster } from './toast/Toaster.js'
+export { ActionBar } from './action-bar/ActionBar.js'
 
 // Ark's Portal, for overlays built by hand.
 export { Portal } from '@ark-ui/react/portal'

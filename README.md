@@ -49,12 +49,15 @@ So far:
 - Choices: Checkbox · CheckboxGroup · Switch · RadioGroup · Segmented ·
   ThemeToggle (`colorScheme`, `useColorScheme`)
 - Forms: Field · Fields
-- Overlays: Tooltip · Dialog · Menu · ContextMenu (Menu.Item, Separator, Group,
-  Checkbox, RadioGroup/Radio, Submenu; also as MenuItem…)
+- Overlays: Tooltip · Popover · HoverCard · Dialog · Sheet (both: props or
+  composed from Header/Body/Footer) · ActionBar · Menu · ContextMenu (Menu.Item,
+  Separator, Group, Checkbox, RadioGroup/Radio, Submenu; also as MenuItem…) ·
+  Toaster (`toaster.success(…)` from anywhere)
 - Disclosure: Tabs/Tab (with counts and dots, inline or in the corner)
 
-The rest of svelte-ui's set (Editor, Attachments, menus, navigation, display)
-follows the same pattern.
+Still to come from svelte-ui's set: navigation (AppShell, Sidebar…, Command),
+the rest of display (Avatar, Table, Pagination, DataList, Stats, Timeline,
+Accordion, Collapsible), Attachments, Editor and charts.
 
 ## Every component works the same way
 

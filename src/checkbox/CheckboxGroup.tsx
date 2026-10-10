@@ -49,14 +49,20 @@ export function CheckboxGroup<T, K extends string = 'value'>({
   const part = partsOf('checkbox-group', classes)
   const id = useId()
   const [checked, setChecked] = useControllable<Value<T, K>[]>(value, defaultValue ?? [], onValueChange)
+  // The latest value, so two changes before a render build on each other.
+  const latest = useRef(checked)
+  latest.current = checked
 
   const key = (item: T, k: string) => (item as Record<string, unknown>)[k]
   const isObject = (item: T) => typeof item === 'object' && item !== null
   const labelOf = (item: T) => String(isObject(item) ? key(item, labelKey) : item)
   const valueOf = (item: T) => (isObject(item) ? key(item, valueKey) : item) as Value<T, K>
-  const isSelected = (item: T) => checked.includes(valueOf(item))
+  const isSelected = (item: T) => latest.current.includes(valueOf(item))
   const isLocked = (item: T) => disabled || (isObject(item) && !!key(item, disabledKey))
-  const select = (list: T[]) => setChecked(list.map(valueOf))
+  const select = (list: T[]) => {
+    latest.current = list.map(valueOf)
+    setChecked(latest.current)
+  }
 
   // Checkbox changes don't carry the Shift key, so it's noted on the way in
   // (Shift+mousedown would also select the labels' text between).
