@@ -40,6 +40,7 @@ const all: Group[] = [
     { slug: 'input', title: 'Input', about: 'Text and numbers, with icons and affixes', file: 'input/Input.tsx' },
     { slug: 'password-input', title: 'Password input', about: 'Show or hide what was typed', file: 'password-input/PasswordInput.tsx' },
     { slug: 'number-input', title: 'Number input', about: 'Step buttons, arrow keys, limits and formatting', file: 'number-input/NumberInput.tsx' },
+    { slug: 'editor', form: false, title: 'Editor', about: 'Rich text, on TipTap', file: 'editor/Editor.tsx' },
     { slug: 'textarea', title: 'Textarea', about: 'Grows with its content', file: 'textarea/Textarea.tsx' },
     { slug: 'tags-input', title: 'Tags input', about: 'Type, press Enter, get a tag', file: 'tags-input/TagsInput.tsx' },
     { slug: 'pin-input', title: 'Pin input', about: 'One box per character, for codes', file: 'pin-input/PinInput.tsx' },

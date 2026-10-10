@@ -61,6 +61,7 @@ export { Accordion, AccordionItem, type AccordionEntry } from './accordion/Accor
 export { Collapsible } from './collapsible/Collapsible.js'
 export { Attachments, formatSize, type Attachment, type AttachmentRejection } from './attachments/Attachments.js'
 export { Banner } from './banner/Banner.js'
+export { Editor, defaultTools, type EditorTool, type UploadedImage } from './editor/Editor.js'
 
 // Ark's Portal, for overlays built by hand.
 export { Portal } from '@ark-ui/react/portal'
