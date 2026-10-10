@@ -40,7 +40,7 @@ where one doesn't fit you build from the parts.
 So far:
 
 - Actions: Button · CopyButton
-- Display: Badge · Card (props or composed from Card.Header/Body/Footer)
+- Display: Avatar · AvatarGroup · Badge · Card (props or composed from Card.Header/Body/Footer)
 - Feedback: Alert · Progress · Skeleton · Spinner · EmptyState
 - Inputs: Input · Textarea · NumberInput · PasswordInput · PinInput · TagsInput ·
   Slider · FileUpload
@@ -54,10 +54,16 @@ So far:
   Separator, Group, Checkbox, RadioGroup/Radio, Submenu; also as MenuItem…) ·
   Toaster (`toaster.success(…)` from anywhere)
 - Disclosure: Tabs/Tab (with counts and dots, inline or in the corner)
+- Navigation: AppShell (flat or inset; the sidebar collapses to a rail with ⌘B
+  and is a drawer on phones) · Topbar · Sidebar (NavSection, NavGroup, NavItem,
+  SidebarUser; also Sidebar.Section…) · Page · Breadcrumbs · Command (⌘K)
 
-Still to come from svelte-ui's set: navigation (AppShell, Sidebar…, Command),
-the rest of display (Avatar, Table, Pagination, DataList, Stats, Timeline,
-Accordion, Collapsible), Attachments, Editor and charts.
+Still to come from svelte-ui's set: the rest of display (Table, Pagination,
+DataList, Stats, Timeline, Accordion, Collapsible), Attachments, Editor and
+charts.
+
+The playground runs on the library's own AppShell, Sidebar, Topbar, Page,
+Breadcrumbs and Command.
 
 ## Every component works the same way
 

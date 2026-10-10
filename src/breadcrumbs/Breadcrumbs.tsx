@@ -1,0 +1,66 @@
+/**
+ * Where the page sits: links from the top down to the current page.
+ *
+ *   <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Students' }]} />
+ *
+ * - `items`: `{ label, href, icon }`; the last is the current page
+ * - `separator`: text between crumbs ('/', '›'); a chevron by default
+ * - `max`: with more items than this, the middle ones fold into a "…" button
+ *   that shows them
+ * - `label`: what assistive tech calls the nav ('Breadcrumb')
+ * - `renderLink`: draws a crumb's link yourself (your router's Link), given
+ *   the crumb and the props to spread on it: `(item, props) => <Link to={item.href} {...props} />`
+ */
+import { useState, type HTMLAttributes, type ReactNode } from 'react'
+import 'iconify-icon'
+import { cx, partsOf, type Classes } from '../utils.js'
+import '../theme.css'
+import './breadcrumbs.css'
+
+export type Crumb = { label: ReactNode, href?: string | null, icon?: string | null }
+type CrumbLinkProps = { 'data-scope': string, 'data-part': string, className?: string, children: ReactNode }
+
+export type BreadcrumbsProps = HTMLAttributes<HTMLElement> & {
+  items?: Crumb[]
+  separator?: ReactNode
+  max?: number | null
+  label?: string
+  renderLink?: (item: Crumb, props: CrumbLinkProps) => ReactNode
+  classes?: Classes<'root' | 'list' | 'crumb' | 'separator' | 'link' | 'more' | 'icon' | 'text'>
+}
+
+export function Breadcrumbs({
+  items = [], separator = null, max = null, label = 'Breadcrumb', renderLink, className, classes, ...rest
+}: BreadcrumbsProps) {
+  const part = partsOf('breadcrumbs', classes)
+  const [unfolded, setUnfolded] = useState(false)
+
+  // The first crumb, a "…" for the folded middle, and the last max - 1.
+  const folded = !!max && !unfolded && items.length > max
+  const shown: (Crumb | 'fold')[] = folded ? [items[0], 'fold', ...items.slice(items.length - (max - 1))] : items
+
+  return (
+    <nav {...rest} {...part('root')} className={cx(className, classes?.root)} aria-label={label}>
+      <ol {...part('list')}>
+        {shown.map((item, i) => {
+          const current = i === shown.length - 1
+          const content = item !== 'fold' && <>
+            {item.icon && <iconify-icon {...part('icon')} icon={item.icon} aria-hidden="true" />}<span {...part('text')}>{item.label}</span>
+          </>
+          return (
+            <li key={i} {...part('crumb')}>
+              {i > 0 && (separator
+                ? <span {...part('separator')} aria-hidden="true">{separator}</span>
+                : <iconify-icon {...part('separator')} icon="lucide:chevron-right" aria-hidden="true" />)}
+              {item === 'fold'
+                ? <button {...part('more')} type="button" aria-label={`Show ${items.length - max! + 1} more`} onClick={() => setUnfolded(true)}>…</button>
+                : item.href && !current
+                  ? renderLink ? renderLink(item, { ...part('link'), children: content }) : <a {...part('link')} href={item.href}>{content}</a>
+                  : <span {...part('link')} data-current={current || undefined} aria-current={current ? 'page' : undefined}>{content}</span>}
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
+  )
+}

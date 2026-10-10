@@ -114,6 +114,15 @@ look. Read `README.md` first.
 - Components that build a new value from the current one (CheckboxGroup)
   read it from a ref of the latest, so two changes before a render stack.
 - Ark renders Separator as an <hr>: CSS clears its border.
+- AppShell shares its state (rail, mobile, drawer, toggle) through
+  ShellContext (`useShell()`); Page resets it to null for its content, so a
+  Sidebar shown inside a page isn't the app's. Our own components without Ark
+  parts (Sidebar's NavSection…) hang off the shortcut as Sidebar.Section….
+- Zag's dialog calls onOpenChange only for its own opens (trigger, Escape):
+  an `open` changed from outside (or our hotkey) doesn't, so work done on
+  opening (Command's reset) runs in an effect on `open`.
+- Command keeps Ark's Listbox parts under their own scope (`listbox`); its
+  CSS targets them inside the command's content.
 - Ark's Progress.ValueText shows the percentage whatever formatOptions or
   translations say; the shortcut renders Zag's valueAsString instead.
 - Zag won't clear a disabled item (hideSelected disables picks): remove picks

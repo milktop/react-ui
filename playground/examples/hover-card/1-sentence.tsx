@@ -1,5 +1,5 @@
 /* In a sentence */
-import { HoverCard, Button } from '@milktop/react-ui'
+import { HoverCard, Button, Avatar } from '@milktop/react-ui'
 
 export default function Example() {
   return (
@@ -7,7 +7,7 @@ export default function Example() {
       Next lesson: GCSE Maths with{' '}
       <HoverCard trigger={<a href="#/hover-card" className="text-(--ui-accent) underline underline-offset-2">Ada Lovelace</a>}>
         <div className="flex gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-(--ui-accent-soft) text-sm font-semibold text-(--ui-accent-soft-text)">AL</span>
+          <Avatar name="Ada Lovelace" />
           <div>
             <div className="font-semibold">Ada Lovelace</div>
             <div className="text-xs text-(--ui-muted)">Year 11 · ada@example.com</div>

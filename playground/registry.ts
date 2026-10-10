@@ -19,6 +19,7 @@ const all: Group[] = [
     { slug: 'copy-button', title: 'Copy button', about: 'Copy text with feedback', file: 'copy-button/CopyButton.tsx' },
   ] },
   { heading: 'Display', icon: 'lucide:layout-grid', pages: [
+    { slug: 'avatar', title: 'Avatar', about: 'Images with initials fallback, and stacks', file: 'avatar/Avatar.tsx' },
     { slug: 'badge', title: 'Badge', about: 'Statuses and counts', file: 'badge/Badge.tsx' },
     { slug: 'card', title: 'Card', about: 'A surface with a header and footer', file: 'card/Card.tsx' },
   ] },
@@ -52,6 +53,13 @@ const all: Group[] = [
   ] },
   { heading: 'Forms', icon: 'lucide:clipboard-list', pages: [
     { slug: 'field', title: 'Field', about: 'Labels, hints and errors, on a grid', file: 'field/Field.tsx' },
+  ] },
+  { heading: 'Navigation', icon: 'lucide:compass', pages: [
+    { slug: 'app-shell', title: 'App shell', about: 'Sidebar, top bar and page, flat or inset', file: 'app-shell/AppShell.tsx' },
+    { slug: 'sidebar', title: 'Sidebar', about: 'Sections, groups and items', file: 'sidebar/Sidebar.tsx' },
+    { slug: 'page', title: 'Page', about: 'A heading, actions and content', file: 'page/Page.tsx' },
+    { slug: 'breadcrumbs', title: 'Breadcrumbs', about: 'Where the page sits, with folding', file: 'breadcrumbs/Breadcrumbs.tsx' },
+    { slug: 'command', title: 'Command menu', about: '⌘K search and actions', file: 'command/Command.tsx' },
   ] },
   { heading: 'Overlays', icon: 'lucide:layers', pages: [
     { slug: 'tooltip', title: 'Tooltip', about: 'Hints on hover and focus', file: 'tooltip/Tooltip.tsx' },
