@@ -61,12 +61,12 @@ So far:
   and is a drawer on phones) · Topbar · Sidebar (NavSection, NavGroup, NavItem,
   SidebarUser; also Sidebar.Section…) · Page · Breadcrumbs · Command (⌘K)
 
-That's all of svelte-ui's components. Its playground also has guides
-(Theming, Installation), blocks (page and section layouts) and a demo app
-page, not yet ported.
+That's all of svelte-ui's components.
 
 The playground runs on the library's own AppShell, Sidebar, Topbar, Page,
-Breadcrumbs and Command.
+Breadcrumbs and Command, with an Appearance panel (accent, font, radius,
+density, layout), Theming and Installation guides, and blocks: whole pages
+(dashboard, students, profile, inbox, settings, sign-in) and sections.
 
 ## Every component works the same way
 

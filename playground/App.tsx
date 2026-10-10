@@ -7,6 +7,14 @@ import {
 } from '@milktop/react-ui'
 import { Demo, Toggle, Backticked } from './lib/Demo'
 import { groups, pages, examplesOf, docOf, type Group, type Page as PageEntry } from './registry'
+import { blocks } from './blocks/registry'
+import { BlockPage } from './lib/BlockPage'
+import { AppearancePanel } from './lib/AppearancePanel'
+import { useAppearance } from './lib/appearance'
+import { Theming } from './pages/Theming'
+import { Installation } from './pages/Installation'
+
+const guides: Record<string, string> = { '#/theming': 'Theming', '#/installation': 'Installation' }
 
 function useHash() {
   const [hash, setHash] = useState(location.hash)
@@ -21,6 +29,9 @@ function useHash() {
 // ⌘K: every page, then a few actions.
 const commands: CommandItem[] = [
   ...pages.map((p) => ({ label: p.title, description: p.about, href: `#/${p.slug}`, icon: p.group.icon, group: p.group.heading })),
+  ...blocks.map((b) => ({ label: b.title, description: b.about, href: `#/blocks/${b.slug}`, icon: b.icon, group: `Blocks: ${b.group}` })),
+  { label: 'Theming', description: 'Tokens and overrides', href: '#/theming', icon: 'lucide:palette', group: 'Guides' },
+  { label: 'Installation', description: 'Install, set up the CSS layers, import', href: '#/installation', icon: 'lucide:download', group: 'Guides' },
   { label: 'Toggle sidebar', value: 'sidebar', icon: 'lucide:panel-left', shortcut: '⌘B', group: 'Playground' },
   { label: 'Light theme', value: 'light', icon: 'lucide:sun', group: 'Playground', keywords: ['appearance', 'mode'] },
   { label: 'Dark theme', value: 'dark', icon: 'lucide:moon', group: 'Playground', keywords: ['appearance', 'mode'] },
@@ -34,20 +45,26 @@ function run(command: unknown) {
 export function App() {
   const hash = useHash()
   const page = pages.find((p) => hash === `#/${p.slug}`)
+  const block = blocks.find((b) => hash === `#/blocks/${b.slug}`)
+  const appearance = useAppearance()
   const { scheme, setScheme } = useColorScheme()
   // The open group (one at a time): the current page's, whenever the page changes.
-  const [opened, setOpened] = useState(page?.group.heading ?? null)
-  const [shownPage, setShownPage] = useState(page)
-  if (page !== shownPage) {
-    setShownPage(page)
-    if (page) setOpened(page.group.heading)
+  const [opened, setOpened] = useState<string | null>(page?.group.heading ?? (block ? `blocks:${block.group}` : null))
+  const [shownHash, setShownHash] = useState(hash)
+  if (hash !== shownHash) {
+    setShownHash(hash)
+    const current = pages.find((p) => hash === `#/${p.slug}`)
+    const currentBlock = blocks.find((b) => hash === `#/blocks/${b.slug}`)
+    if (current) setOpened(current.group.heading)
+    else if (currentBlock) setOpened(`blocks:${currentBlock.group}`)
   }
   const trail = page
     ? [{ label: 'React UI', href: '#/' }, { label: page.group.heading }, { label: page.title }]
-    : [{ label: 'React UI', href: '#/' }, { label: 'Overview' }]
+    : block ? [{ label: 'React UI', href: '#/' }, { label: 'Blocks' }, { label: block.group }, { label: block.title }]
+    : [{ label: 'React UI', href: '#/' }, { label: guides[hash] ?? 'Overview' }]
 
   return (
-    <AppShell persist="react-ui:sidebar">
+    <AppShell persist="react-ui:sidebar" inset={appearance.layout === 'inset'}>
       <Sidebar
         logoCollapsed={<a href="#/" aria-label="React UI" className={mark}>UI</a>}
         logo={<a href="#/" className="flex items-center gap-2 text-(--ui-text) no-underline"><span className={mark}>UI</span>React UI</a>}
@@ -67,13 +84,25 @@ export function App() {
           </SidebarUser>
         }>
         <NavSection>
-          <NavItem icon="lucide:house" href="#/" active={!page}>Overview</NavItem>
+          <NavItem icon="lucide:house" href="#/" active={!page && !block && !guides[hash]}>Overview</NavItem>
+          <NavItem icon="lucide:palette" href="#/theming" active={hash === '#/theming'}>Theming</NavItem>
+          <NavItem icon="lucide:download" href="#/installation" active={hash === '#/installation'}>Installation</NavItem>
         </NavSection>
         <NavSection heading="Components">
           {groups.map((group) => (
             <NavGroup key={group.heading} label={group.heading} icon={group.icon}
               open={opened === group.heading} onOpenChange={(open) => setOpened(open ? group.heading : null)}>
               {group.pages.map((p) => <NavItem key={p.slug} href={`#/${p.slug}`} active={p.slug === page?.slug}>{p.title}</NavItem>)}
+            </NavGroup>
+          ))}
+        </NavSection>
+        <NavSection heading="Blocks">
+          {(['Pages', 'Sections'] as const).map((group) => (
+            <NavGroup key={group} label={group} icon={group === 'Pages' ? 'lucide:app-window' : 'lucide:layout-panel-top'}
+              open={opened === `blocks:${group}`} onOpenChange={(open) => setOpened(open ? `blocks:${group}` : null)}>
+              {blocks.filter((b) => b.group === group).map((b) => (
+                <NavItem key={b.slug} href={`#/blocks/${b.slug}`} active={b === block}>{b.title}</NavItem>
+              ))}
             </NavGroup>
           ))}
         </NavSection>
@@ -87,13 +116,19 @@ export function App() {
             <kbd className="hidden h-5 items-center rounded border border-(--ui-border) bg-(--ui-hover) px-1.5 font-[inherit] text-[11px] md:inline-flex">{formatHotkey()}</kbd>
           </button>
         } />
-        <ThemeToggle size="sm" />
+        <ThemeToggle size="sm" mobile="menu" iconOnly />
+        <AppearancePanel />
       </>}>
         <Breadcrumbs items={trail} />
       </Topbar>
 
-      <Page>
-        {page ? <ComponentPage key={page.slug} page={page} /> : <Overview />}
+      {/* The appearance panel's width, or by default: blocks wide, the rest default. */}
+      <Page width={block && appearance.width === 'default' ? 'wide' : appearance.width} align={appearance.align}>
+        {page ? <ComponentPage key={page.slug} page={page} />
+          : block ? <BlockPage key={block.slug} block={block} />
+          : hash === '#/theming' ? <Theming />
+          : hash === '#/installation' ? <Installation />
+          : <Overview />}
       </Page>
       <Toaster />
     </AppShell>

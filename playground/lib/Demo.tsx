@@ -12,7 +12,7 @@ export function Demo({ example, form = false }: { example: Example, form?: boole
   return (
     <section className="flex flex-col gap-3 py-5">
       <header className="flex items-center justify-between gap-4">
-        <h2 className="m-0 text-base font-semibold">{example.title}</h2>
+        <h2 className="m-0 text-base font-semibold"><Backticked text={example.title} /></h2>
         <Toggle pressed={showCode} onClick={() => setShowCode(!showCode)} icon="lucide:code">Code</Toggle>
       </header>
       {example.description && <p className="-mt-1 mb-0 text-sm text-(--ui-muted)"><Backticked text={example.description} /></p>}

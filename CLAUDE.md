@@ -22,6 +22,12 @@ look. Read `README.md` first.
   comment. Pages in a `form` group lay examples on a two-column grid (a `<p>`
   readout spans both). Pages without examples are left out of the nav. Show
   a by-hand example (`<n>-by-hand.tsx`) on each page with parts.
+  Guides are `playground/pages/`; blocks are `playground/blocks/pages/<n>-<slug>.tsx`
+  (one page each) and `blocks/sections/<slug>/` (framed variants), listed in
+  `blocks/registry.ts`. The Appearance panel (`lib/appearance.ts`) sets the
+  --ui-* tokens on <html>, as an app would.
+- Tailwind's dev server doesn't always scan new folders: restart it if a new
+  file's classes are missing (a production build has them).
 
 ## Every component
 
@@ -114,6 +120,8 @@ look. Read `README.md` first.
 - Components that build a new value from the current one (CheckboxGroup)
   read it from a ref of the latest, so two changes before a render stack.
 - Ark renders Separator as an <hr>: CSS clears its border.
+- `closest()` walks past the element you mean: Table's row click checks that
+  the control it finds is inside the row (a Card round the table has a scope).
 - AppShell shares its state (rail, mobile, drawer, toggle) through
   ShellContext (`useShell()`); Page resets it to null for its content, so a
   Sidebar shown inside a page isn't the app's. Our own components without Ark
