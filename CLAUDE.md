@@ -134,7 +134,8 @@ look. Read `README.md` first.
   `onValueChange`'s argument isn't inferred.
 - Change handlers get the plain value, typed for what a user can do:
   Checkbox's is a boolean (a click never leaves it indeterminate).
-- Zag's select opens on pointerdown: a script's `.click()` doesn't open it.
+- Zag's select opens on pointerdown: a script's `.click()` doesn't open it;
+  an accordion trigger ignores a script's `.click()` too (use a real click).
 - Ark's Checkbox.Indicator shows for checked only; the dash needs a second
   `<Indicator indeterminate>`, and the CSS hides `[hidden]` ones.
 - Field `required` makes Ark's hidden inputs required, so the browser

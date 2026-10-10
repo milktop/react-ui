@@ -22,6 +22,11 @@ const all: Group[] = [
     { slug: 'avatar', title: 'Avatar', about: 'Images with initials fallback, and stacks', file: 'avatar/Avatar.tsx' },
     { slug: 'badge', title: 'Badge', about: 'Statuses and counts', file: 'badge/Badge.tsx' },
     { slug: 'card', title: 'Card', about: 'A surface with a header and footer', file: 'card/Card.tsx' },
+    { slug: 'table', title: 'Table', about: 'Sorting, selection, loading and custom cells', file: 'table/Table.tsx' },
+    { slug: 'pagination', title: 'Pagination', about: 'Pages, with a summary', file: 'pagination/Pagination.tsx' },
+    { slug: 'data-list', title: 'Data list', about: 'Labels and values', file: 'data-list/DataList.tsx' },
+    { slug: 'stat', title: 'Stat', about: 'Headline numbers, with change', file: 'stat/Stat.tsx' },
+    { slug: 'timeline', title: 'Timeline', about: 'Events down a line', file: 'timeline/Timeline.tsx' },
   ] },
   { heading: 'Feedback', icon: 'lucide:bell', pages: [
     { slug: 'alert', title: 'Alert', about: 'Messages in the page', file: 'alert/Alert.tsx' },
@@ -73,6 +78,8 @@ const all: Group[] = [
   ] },
   { heading: 'Disclosure', icon: 'lucide:chevrons-up-down', pages: [
     { slug: 'tabs', title: 'Tabs', about: 'Panels behind tabs, with counts', file: 'tabs/Tabs.tsx' },
+    { slug: 'accordion', title: 'Accordion', about: 'Sections that expand', file: 'accordion/Accordion.tsx' },
+    { slug: 'collapsible', title: 'Collapsible', about: 'Show more, animated', file: 'collapsible/Collapsible.tsx' },
   ] },
 ]
 

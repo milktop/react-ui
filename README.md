@@ -40,7 +40,9 @@ where one doesn't fit you build from the parts.
 So far:
 
 - Actions: Button · CopyButton
-- Display: Avatar · AvatarGroup · Badge · Card (props or composed from Card.Header/Body/Footer)
+- Display: Avatar · AvatarGroup · Badge · Card (props or composed from Card.Header/Body/Footer) ·
+  Table (sorting, selection with Shift ranges, loading, custom cells; `sortRows`) ·
+  Pagination · DataList · Stat · Stats · Timeline
 - Feedback: Alert · Progress · Skeleton · Spinner · EmptyState
 - Inputs: Input · Textarea · NumberInput · PasswordInput · PinInput · TagsInput ·
   Slider · FileUpload
@@ -53,14 +55,12 @@ So far:
   composed from Header/Body/Footer) · ActionBar · Menu · ContextMenu (Menu.Item,
   Separator, Group, Checkbox, RadioGroup/Radio, Submenu; also as MenuItem…) ·
   Toaster (`toaster.success(…)` from anywhere)
-- Disclosure: Tabs/Tab (with counts and dots, inline or in the corner)
+- Disclosure: Tabs/Tab (with counts and dots, inline or in the corner) · Accordion · Collapsible
 - Navigation: AppShell (flat or inset; the sidebar collapses to a rail with ⌘B
   and is a drawer on phones) · Topbar · Sidebar (NavSection, NavGroup, NavItem,
   SidebarUser; also Sidebar.Section…) · Page · Breadcrumbs · Command (⌘K)
 
-Still to come from svelte-ui's set: the rest of display (Table, Pagination,
-DataList, Stats, Timeline, Accordion, Collapsible), Attachments, Editor and
-charts.
+Still to come from svelte-ui's set: Attachments, Editor and charts.
 
 The playground runs on the library's own AppShell, Sidebar, Topbar, Page,
 Breadcrumbs and Command.
