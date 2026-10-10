@@ -6,13 +6,14 @@
  * - `items`: `{ label, href, icon }`; the last is the current page
  * - `separator`: text between crumbs ('/', '›'); a chevron by default
  * - `max`: with more items than this, the middle ones fold into a "…" button
- *   that shows them
+ *   that lists them in a menu
  * - `label`: what assistive tech calls the nav ('Breadcrumb')
  * - `renderLink`: draws a crumb's link yourself (your router's Link), given
  *   the crumb and the props to spread on it: `(item, props) => <Link to={item.href} {...props} />`
  */
-import { useState, type HTMLAttributes, type ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 import 'iconify-icon'
+import { Menu } from '../menu/Menu.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import '../theme.css'
 import './breadcrumbs.css'
@@ -33,10 +34,9 @@ export function Breadcrumbs({
   items = [], separator = null, max = null, label = 'Breadcrumb', renderLink, className, classes, ...rest
 }: BreadcrumbsProps) {
   const part = partsOf('breadcrumbs', classes)
-  const [unfolded, setUnfolded] = useState(false)
-
   // The first crumb, a "…" for the folded middle, and the last max - 1.
-  const folded = !!max && !unfolded && items.length > max
+  const folded = !!max && items.length > max
+  const hidden = folded ? items.slice(1, items.length - (max - 1)) : []
   const shown: (Crumb | 'fold')[] = folded ? [items[0], 'fold', ...items.slice(items.length - (max - 1))] : items
 
   return (
@@ -53,7 +53,9 @@ export function Breadcrumbs({
                 ? <span {...part('separator')} aria-hidden="true">{separator}</span>
                 : <iconify-icon {...part('separator')} icon="lucide:chevron-right" aria-hidden="true" />)}
               {item === 'fold'
-                ? <button {...part('more')} type="button" aria-label={`Show ${items.length - max! + 1} more`} onClick={() => setUnfolded(true)}>…</button>
+                // The folded crumbs, in a menu of links.
+                ? <Menu items={hidden.map((crumb, j) => ({ label: crumb.label, value: j, href: crumb.href ?? undefined, icon: crumb.icon ?? undefined }))}
+                    trigger={<button {...part('more')} type="button" aria-label={`${hidden.length} more`}>…</button>} />
                 : item.href && !current
                   ? renderLink ? renderLink(item, { ...part('link'), children: content }) : <a {...part('link')} href={item.href}>{content}</a>
                   : <span {...part('link')} data-current={current || undefined} aria-current={current ? 'page' : undefined}>{content}</span>}
