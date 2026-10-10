@@ -27,6 +27,7 @@ const all: Group[] = [
     { slug: 'data-list', title: 'Data list', about: 'Labels and values', file: 'data-list/DataList.tsx' },
     { slug: 'stat', title: 'Stat', about: 'Headline numbers, with change', file: 'stat/Stat.tsx' },
     { slug: 'charts', title: 'Charts', about: 'Area, bar and sparklines', file: 'chart/AreaChart.tsx' },
+    { slug: 'calendar', title: 'Week calendar', about: 'Lessons by the hour: book, open, drag to move', file: 'calendar/WeekCalendar.tsx' },
     { slug: 'sortable-list', title: 'Sortable list', about: 'Drag (or keys) to reorder, on dnd-kit', file: 'sortable-list/SortableList.tsx' },
     { slug: 'timeline', title: 'Timeline', about: 'Events down a line', file: 'timeline/Timeline.tsx' },
   ] },

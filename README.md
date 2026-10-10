@@ -55,7 +55,10 @@ So far:
 - Overlays: Tooltip · Popover · HoverCard · Dialog · Sheet (both: props or
   composed from Header/Body/Footer) · ActionBar · Menu · ContextMenu (Menu.Item,
   Separator, Group, Checkbox, RadioGroup/Radio, Submenu; also as MenuItem…) ·
-  Toaster (`toaster.success(…)` from anywhere)
+  Toaster (`toaster.success(…)` from anywhere) · `confirm()` (`await confirm({ … })`
+  from anywhere, no state or markup)
+- Scheduling and ordering (React only): WeekCalendar (book a slot, drag or
+  arrow-key lessons to reschedule) · SortableList (drag or keyboard, on dnd-kit)
 - Disclosure: Tabs/Tab (with counts and dots, inline or in the corner) · Accordion · Collapsible
 - Navigation: AppShell (flat or inset; the sidebar collapses to a rail with ⌘B
   and is a drawer on phones) · Topbar · Sidebar (NavSection, NavGroup, NavItem,
