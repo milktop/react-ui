@@ -22,7 +22,8 @@
  * Clicking an image opens it large; other files open their `url`, if any, in
  * a new tab. Files with a `url` get a download button.
  */
-import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent, type HTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent, type HTMLAttributes, type ReactNode } from 'react'
+import { createFileTypeValidator, getAcceptAttrString } from '@zag-js/file-utils'
 import 'iconify-icon'
 import { Dialog } from '../dialog/Dialog.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
@@ -94,13 +95,11 @@ function info(item: Attachment): Entry {
   }
 }
 
-// Whether a file matches `accept`: an extension, a type/* or a MIME type.
-function accepts(file: File, accept: string | null) {
-  if (!accept) return true
-  return accept.split(',').map((rule) => rule.trim().toLowerCase()).filter(Boolean).some((rule) =>
-    rule.startsWith('.') ? file.name.toLowerCase().endsWith(rule)
-      : rule.endsWith('/*') ? (file.type ?? '').startsWith(rule.slice(0, -1))
-      : file.type === rule)
+// Whether a file matches `accept` (MIME types, type/* or extensions):
+// Zag's own check, the one FileUpload uses, so both take the same files.
+const typeChecker = (accept: string | null) => {
+  const fits = createFileTypeValidator(getAcceptAttrString(accept ?? undefined))
+  return (file: File) => !accept || fits(file)[0]
 }
 
 export function Attachments({
@@ -119,13 +118,15 @@ export function Attachments({
     onRemove?.(entry.item)
   }
 
+  const fitsType = useMemo(() => typeChecker(accept), [accept])
+
   // Adds what fits (type, size, count); the rest is rejected with a reason.
   const [rejected, setRejected] = useState<AttachmentRejection[]>([])
   function addFiles(files: File[]) {
     const ok: File[] = []
     const bad: AttachmentRejection[] = []
     for (const file of files) {
-      if (!accepts(file, accept)) bad.push({ file, reason: 'not an accepted type' })
+      if (!fitsType(file)) bad.push({ file, reason: 'not an accepted type' })
       else if (maxFileSize && file.size > maxFileSize) bad.push({ file, reason: `over ${formatSize(maxFileSize)}` })
       else if (maxFiles && count + ok.length >= maxFiles) bad.push({ file, reason: `the limit is ${maxFiles} files` })
       else ok.push(file)
