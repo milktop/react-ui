@@ -16,8 +16,15 @@
  *   'success', 'warning', 'danger', 'neutral' or any CSS colour;
  *   `editable: false` fixes one; `blocked` draws it hatched (time taken out,
  *   not an appointment); `pending` faded and fixed (saving)
- * - `resources`: `{ id, title }` (and anything for `renderResource`): a
- *   column each, per day; events go in their `resourceId`'s column
+ * - `resources`: `{ id, title, color, hours, offLabel }` (and anything for
+ *   `renderResource`): a column each, per day; events go in their
+ *   `resourceId`'s column. Change the list to add or remove one (a vet
+ *   present that day). `color` ('accent', 'success', 'warning', 'danger',
+ *   'neutral' or any CSS colour) tints its header, its hover, selections and
+ *   drops, and is its events' colour unless they set their own. `hours`:
+ *   when it's available on each day shown, as `[{ start: '08:00', end: '13:00' }]`
+ *   (a morning; two for a lunch break; `[]` for not at all): the rest is
+ *   shaded and refused, with `offLabel` as the reason
  *
  * What's shown
  * - `view`, `defaultView`: 'day', 'week' (default), 'workweek', or a number
@@ -80,7 +87,7 @@
  * - `actions`: in the toolbar; `toolbar`: false hides it
  */
 import {
-  Fragment, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type KeyboardEvent, type PointerEvent,
+  Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type KeyboardEvent, type PointerEvent,
   type ReactNode,
 } from 'react'
 import 'iconify-icon'
@@ -109,7 +116,13 @@ export type CalendarEvent = {
   blocked?: boolean
   pending?: boolean
 }
-export type CalendarResource = { id: Id, title: ReactNode }
+export type CalendarResource = {
+  id: Id
+  title: ReactNode
+  color?: string
+  hours?: { start: string, end: string }[] | null
+  offLabel?: string
+}
 export type CalendarView = 'day' | 'week' | 'workweek' | number
 export type CalendarChange = { start: string, end: string, resourceId?: Id }
 export type CalendarSelection = { start: string, end: string, resourceId?: Id, allDay: boolean }
@@ -185,10 +198,13 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     locale?: string
     classes?: Classes<'root' | 'toolbar' | 'nav' | 'title' | 'actions' | 'pinned' | 'grid' | 'corner' | 'dayHeader' | 'resourceHeader'
       | 'rowLabel' | 'rowCell' | 'allDayLabel' | 'allDay' | 'allDayEvent' | 'more' | 'gutter' | 'hour' | 'day' | 'unavailable'
-      | 'event' | 'eventTitle' | 'headerButton' | 'eventTime' | 'resize' | 'ghost' | 'selection' | 'now' | 'status'>
+      | 'event' | 'eventTitle' | 'headerButton' | 'hover' | 'eventTime' | 'resize' | 'ghost' | 'selection' | 'now' | 'status'>
   }
 
 const named = ['accent', 'success', 'warning', 'danger', 'neutral']
+// A named colour as its token, or a CSS colour as it is.
+const cssColor = (color: string) => color === 'accent' ? 'var(--ui-accent)' : color === 'success' ? 'var(--ui-success)'
+  : color === 'warning' ? '#d97706' : color === 'danger' ? 'var(--ui-danger)' : color === 'neutral' ? 'var(--ui-muted)' : color
 // The menu's hidden trigger (Zag marks it as its context trigger, so no part of ours).
 const menuAnchorStyle: CSSProperties = { position: 'fixed', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }
 
@@ -333,7 +349,20 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   })
 
   // ---- Availability: true, or the reason it isn't (false gives the default).
+  const resourceOf = (id: Id | undefined) => (id === undefined ? undefined : resources?.find((r) => r.id === id))
+  const clock = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5))
+  // Outside a resource's `hours` (timed only): its offLabel.
+  const hoursReason = (query: CalendarQuery<E>) => {
+    const hours = resourceOf(query.resourceId)?.hours
+    if (!hours || query.allDay) return null
+    const from = clock(query.start.slice(11))
+    const to = query.end.slice(0, 10) === query.start.slice(0, 10) ? clock(query.end.slice(11)) : 24 * 60
+    const fits = hours.some((h) => from >= clock(h.start) && to <= clock(h.end))
+    return fits ? null : resourceOf(query.resourceId)?.offLabel ?? t.unavailable
+  }
   const reasonFor = (query: CalendarQuery<E>): string | null => {
+    const off = hoursReason(query)
+    if (off) return off
     const answer = isAvailable?.(query) ?? true
     return answer === true ? null : answer === false ? t.unavailable : answer
   }
@@ -343,7 +372,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   })
   // A column's unavailable time, slot by slot, merged into runs with one reason.
   const unavailableRuns = (column: Column<R>) => {
-    if (!isAvailable) return []
+    if (!isAvailable && !column.resource?.hours) return []
     const runs: { from: number, to: number, reason: string }[] = []
     for (let from = startHour * 60; from < endHour * 60; from += slotMinutes) {
       const reason = reasonFor({ ...timed(column, from, from + slotMinutes), shading: true })
@@ -354,6 +383,12 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     }
     return runs
   }
+  // Worked out again only when what it depends on changes, not on every
+  // pointer move while dragging (keep `isAvailable` stable: useCallback).
+  const shadingKey = columns.map((c) => `${c.iso}:${c.resource?.id ?? ''}:${JSON.stringify(c.resource?.hours ?? null)}:${c.resource?.offLabel ?? ''}`).join('|')
+  const shading = useMemo(() => columns.map(unavailableRuns),
+    [shadingKey, isAvailable, startHour, endHour, slotMinutes, t.unavailable]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const refuse = (reason: string, attempt: CalendarQuery<E>) => {
     setStatus(reason)
     onUnavailable?.(reason, attempt)
@@ -521,11 +556,20 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     else change(event, 'move', move[0], move[1])
   }
 
-  // Placing a pinned event: the slot under the pointer previews it; Escape stops.
+  // The slot under the pointer: tinted (in its resource's colour) when it can
+  // be selected; when placing a pinned event, its preview. Escape stops placing.
+  const [hoverSlot, setHoverSlotState] = useState<{ column: number, from: number } | null>(null)
+  const setHoverSlot = (next: { column: number, from: number } | null) => {
+    if (next?.column !== hoverSlot?.column || next?.from !== hoverSlot?.from) setHoverSlotState(next)
+  }
   function hover(e: PointerEvent<HTMLElement>, column: number) {
-    if (!pinned || gesture.current) return
+    if (gesture.current) return setHoverSlot(null)
     const box = e.currentTarget.closest('[data-part=day]')!.getBoundingClientRect()
-    setPreview({ kind: 'place', column, from: minuteAt(e.clientY, box) })
+    const from = minuteAt(e.clientY, box)
+    if (pinned) return setPreview({ kind: 'place', column, from })
+    // Over the empty column (or its shading), not an event.
+    const over = e.target as HTMLElement
+    setHoverSlot(onSelect && (over === e.currentTarget || over.dataset.part === 'unavailable') ? { column, from } : null)
   }
   useEffect(() => {
     if (!pinned) return
@@ -619,6 +663,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   }
   const hiddenIn = (i: number) => hiddenCount[i]
 
+  const barColor = (event: E) => event.color ?? resourceOf(event.resourceId)?.color ?? 'accent'
   const twoRows = !!resources?.length && count > 1
   const editable = (event: E) => !!onEventChange && event.editable !== false && !event.pending
   const pinnedMinutes = pinned ? minutesBetween(parse(pinned.start), parse(pinned.end)) || slotMinutes : 0
@@ -697,8 +742,8 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
           </div>
         ))}
         {resourceRow >= 0 && columns.map((c) => (
-          <div key={`${c.iso}-${c.resource!.id}`} {...part('resource-header')} role="columnheader"
-            data-sticky-row={resourceRow} style={{ top: `var(--sticky-${resourceRow})` }}>
+          <div key={`${c.iso}-${c.resource!.id}`} {...part('resource-header')} role="columnheader" data-colored={c.resource!.color ? '' : undefined}
+            data-sticky-row={resourceRow} style={{ top: `var(--sticky-${resourceRow})`, ...(c.resource!.color && { '--resource-color': cssColor(c.resource!.color) }) } as CSSProperties}>
             {onResourceClick
               ? <button type="button" {...part('header-button')} onClick={() => onResourceClick(c.resource!, c.iso)}>
                   {renderResource ? renderResource(c.resource!) : c.resource!.title}
@@ -750,10 +795,10 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
             ))}
             {shownBars.map(({ event, first, length: covers, lane, continued }) => (
               <button key={`${event.id}-${first}`} type="button" {...part('all-day-event')} data-continued={continued || undefined}
-                data-color={named.includes(event.color ?? 'accent') ? event.color ?? 'accent' : 'custom'} data-blocked={event.blocked || undefined}
+                data-color={named.includes(barColor(event)) ? barColor(event) : 'custom'} data-blocked={event.blocked || undefined}
                 style={{
                   left: `${(first / columns.length) * 100}%`, width: `${(covers / columns.length) * 100}%`, top: `calc(${lane} * 1.625rem + 0.25rem)`,
-                  ...(event.color && !named.includes(event.color) && { '--event-color': event.color }),
+                  ...(!named.includes(barColor(event)) && { '--event-color': barColor(event) }),
                 } as CSSProperties}
                 onClick={() => onEventClick?.(event)}
                 onContextMenu={(e) => { if (openMenu(e.clientX, e.clientY, eventMenu?.(event))) e.preventDefault() }}>
@@ -788,10 +833,10 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
               aria-label={`${longDay.format(column.date)}${resourceName(column)}`}
               data-today={isToday || undefined} data-selectable={onSelect || pinned ? '' : undefined}
               data-first={(!!resources?.length && column.resource === lanes[0]) || undefined}
-              style={{ '--hours': hours.length } as CSSProperties}
+              style={{ '--hours': hours.length, ...(column.resource?.color && { '--resource-color': cssColor(column.resource.color) }) } as CSSProperties}
               onPointerDown={(e) => { if (e.target === e.currentTarget) press(e) }}
               onPointerMove={(e) => { track(e); hover(e, index) }} onPointerUp={end} onPointerCancel={cancel}
-              onPointerLeave={() => { if (pinned && !gesture.current) setPreview(null) }}
+              onPointerLeave={() => { setHoverSlot(null); if (pinned && !gesture.current) setPreview(null) }}
               onContextMenu={(e) => {
                 // An empty time (or its unavailable shading), not an event.
                 if (e.target !== e.currentTarget && (e.target as HTMLElement).dataset.part !== 'unavailable') return
@@ -799,7 +844,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                 const { event: _none, ...slot } = timed(column, from, from + slotMinutes)
                 if (openMenu(e.clientX, e.clientY, slotMenu?.(slot))) e.preventDefault()
               }}>
-              {unavailableRuns(column).map((run) => (
+              {shading[index].map((run) => (
                 <div key={run.from} {...part('unavailable')} title={run.reason}
                   style={{ top: top(run.from), height: length(run.to - run.from) }} onPointerDown={press} />
               ))}
@@ -808,7 +853,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                 const resizing = preview?.kind === 'resize' && preview.id === event.id ? preview : null
                 const shownEnd = resizing ? addMinutes(finish, resizing.minutes) : finish
                 const minutes = minutesBetween(start, shownEnd)
-                const color = event.color ?? 'accent'
+                const color = event.color ?? column.resource?.color ?? 'accent'
                 const time = `${timeFormat.format(start)} – ${timeFormat.format(shownEnd)}`
                 const box = { top: top(minutesOfDay(start)), left: `${(sub / subs) * 100}%`, width: `${100 / subs}%` }
                 return (
@@ -849,6 +894,11 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                   </Fragment>
                 )
               })}
+              {hoverSlot?.column === index && !preview && (() => {
+                const off = shading[index].find((run) => hoverSlot.from >= run.from && hoverSlot.from < run.to)
+                return <div {...part('hover')} data-invalid={off ? '' : undefined} aria-hidden="true"
+                  style={{ top: top(hoverSlot.from), height: length(slotMinutes) }} />
+              })()}
               {selecting && (
                 <div {...part('selection')} data-invalid={previewReason ? '' : undefined}
                   style={{ top: top(selecting.from), height: length(selecting.to - selecting.from) }}>
