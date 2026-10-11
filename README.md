@@ -42,12 +42,13 @@ So far:
 - Actions: Button · CopyButton
 - Display: Avatar · AvatarGroup · Badge · Card (props or composed from Card.Header/Body/Footer) ·
   Table (sorting, selection with Shift ranges, loading, custom cells; `sortRows`) ·
-  Pagination · DataList · Stat · Stats · Timeline · Attachments (tiles or a list,
-  click-to-enlarge images) · Charts (AreaChart, BarChart, Sparkline; d3 for the maths)
+  Pagination · DataList · Stat · Stats · Timeline · TreeView · Editable (edit in place) · Attachments (tiles or a list,
+  click-to-enlarge images) · Charts (AreaChart, BarChart, DonutChart, Sparkline; d3 for the maths)
+- Text: Kbd · Prose (rich text as the Editor shows it) · Highlight (search matches)
 - Feedback: Alert · Banner · Progress · Skeleton · Spinner · EmptyState
 - Inputs: Input · Textarea · Editor (rich text on TipTap, with image uploads) · NumberInput · PasswordInput · PinInput · TagsInput ·
   Slider · FileUpload
-- Pickers: Select (one component: searchable, server `load`, `onCreate`,
+- Pickers: TimeInput · NativeSelect · SwatchPicker · Select (one component: searchable, server `load`, `onCreate`,
   multiple, tags; Combobox's parts for building one by hand) · DatePicker
 - Choices: Checkbox · CheckboxGroup · Switch · RadioGroup · Segmented ·
   ThemeToggle (`colorScheme`, `useColorScheme`)

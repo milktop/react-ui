@@ -7,6 +7,8 @@
  * - `value`, `defaultValue`: the item's own value; `onValueChange`: called with it
  * - `label`: a label above it (skipped inside a Field)
  * - `orientation`: 'vertical' or 'horizontal'
+ * - `variant`: 'list' (default), or 'cards': each option a bordered card
+ *   (with its `description`, and an `icon` from the item), chosen one outlined
  * - `name`: for plain form posts
  *
  * By hand, with Ark's parts:
@@ -23,6 +25,7 @@
 import type { ReactNode } from 'react'
 import { RadioGroup as Ark, type RadioGroupValueChangeDetails } from '@ark-ui/react/radio-group'
 import { useFieldContext } from '@ark-ui/react/field'
+import 'iconify-icon'
 import { cx, partOf, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './radio-group.css'
@@ -38,11 +41,12 @@ export type RadioGroupProps<T, K extends string = 'value'> = Omit<Ark.RootProps,
   labelKey?: string
   valueKey?: K
   disabledKey?: string
-  classes?: Classes<'root' | 'label' | 'items' | 'item' | 'itemControl' | 'text' | 'itemText' | 'description'>
+  variant?: 'list' | 'cards'
+  classes?: Classes<'root' | 'label' | 'items' | 'item' | 'itemControl' | 'icon' | 'text' | 'itemText' | 'description'>
 }
 
 function RadioGroupShortcut<T, K extends string = 'value'>({
-  items, value, defaultValue, onValueChange, label = null, orientation = 'vertical',
+  items, value, defaultValue, onValueChange, label = null, orientation = 'vertical', variant = 'list',
   labelKey = 'label', valueKey = 'value' as K, disabledKey = 'disabled', className, classes, ...rest
 }: RadioGroupProps<T, K>) {
   const field = useFieldContext()
@@ -54,6 +58,7 @@ function RadioGroupShortcut<T, K extends string = 'value'>({
   const labelOf = (item: T) => String(isObject(item) ? key(item, labelKey) : item)
   const valueOf = (item: T) => (isObject(item) ? key(item, valueKey) : item) as Value<T, K>
   const descriptionOf = (item: T) => (isObject(item) ? key(item, 'description') as ReactNode : null)
+  const iconOf = (item: T) => (isObject(item) ? key(item, 'icon') as string | undefined : undefined)
 
   // Zag's values are strings; map them back to the items' own.
   function change(details: RadioGroupValueChangeDetails) {
@@ -64,7 +69,7 @@ function RadioGroupShortcut<T, K extends string = 'value'>({
   }
 
   return (
-    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)} orientation={orientation}
+    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)} orientation={orientation} data-variant={variant}
       value={current == null ? null : String(current)} onValueChange={change} aria-describedby={field?.ariaDescribedby}
       // Inside a Field, its label names the group.
       {...(field && { ids: { label: field.ids.label }, invalid: field.invalid, disabled: field.disabled })}>
@@ -73,6 +78,7 @@ function RadioGroupShortcut<T, K extends string = 'value'>({
         {items.map((item) => (
           <Ark.Item key={String(valueOf(item))} value={String(valueOf(item))} disabled={isObject(item) && !!key(item, disabledKey)} {...part('item')}>
             <Ark.ItemControl {...part('item-control')} />
+            {iconOf(item) && <iconify-icon {...part('icon')} icon={iconOf(item)!} aria-hidden="true" />}
             <span {...part('text')}>
               <Ark.ItemText {...part('item-text')}>{labelOf(item)}</Ark.ItemText>
               {descriptionOf(item) && <span {...part('description')}>{descriptionOf(item)}</span>}

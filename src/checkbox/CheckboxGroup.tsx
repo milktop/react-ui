@@ -10,11 +10,15 @@
  *   indeterminate when only some are (disabled items keep their state)
  * - `label`: a label above it (skipped inside a Field)
  * - `orientation`: 'vertical' or 'horizontal'
+ * - `variant`: 'list' (default); 'cards': each a bordered card (with the
+ *   item's `description` and `icon`), ticked ones outlined; 'chips': pills
+ *   that toggle, e.g. quick filters above a table
  * - `name`: each checkbox posts its value with plain forms
  *
  * Shift-clicking a checkbox ticks (or clears) every item between it and the
  * last one clicked, as in mail and file lists.
  */
+import 'iconify-icon'
 import { useId, useRef, type ComponentProps, type ReactNode, type SyntheticEvent } from 'react'
 import { useFieldContext } from '@ark-ui/react/field'
 import { Checkbox } from './Checkbox.js'
@@ -32,16 +36,17 @@ export type CheckboxGroupProps<T, K extends string = 'value'> = Omit<ComponentPr
   label?: ReactNode
   selectAll?: ReactNode
   orientation?: 'vertical' | 'horizontal'
+  variant?: 'list' | 'cards' | 'chips'
   labelKey?: string
   valueKey?: K
   disabledKey?: string
   name?: string
   disabled?: boolean
-  classes?: Classes<'root' | 'label' | 'items'>
+  classes?: Classes<'root' | 'label' | 'items' | 'cardText' | 'icon' | 'cardLabel' | 'description'>
 }
 
 export function CheckboxGroup<T, K extends string = 'value'>({
-  items, value, defaultValue, onValueChange, label = null, selectAll = null, orientation = 'vertical',
+  items, value, defaultValue, onValueChange, label = null, selectAll = null, orientation = 'vertical', variant = 'list',
   labelKey = 'label', valueKey = 'value' as K, disabledKey = 'disabled', name, disabled = false,
   className, classes, ...rest
 }: CheckboxGroupProps<T, K>) {
@@ -57,6 +62,16 @@ export function CheckboxGroup<T, K extends string = 'value'>({
   const isObject = (item: T) => typeof item === 'object' && item !== null
   const labelOf = (item: T) => String(isObject(item) ? key(item, labelKey) : item)
   const valueOf = (item: T) => (isObject(item) ? key(item, valueKey) : item) as Value<T, K>
+  // As a card: the item's icon and description with its label.
+  const labelFor = (item: T) => {
+    const icon = isObject(item) ? key(item, 'icon') as string | undefined : undefined
+    const description = isObject(item) ? key(item, 'description') as ReactNode : null
+    if (variant !== 'cards' || (!icon && !description)) return labelOf(item)
+    return <span {...part('card-text')}>
+      {icon && <iconify-icon {...part('icon')} icon={icon} aria-hidden="true" />}
+      <span><span {...part('card-label')}>{labelOf(item)}</span>{description && <span {...part('description')}>{description}</span>}</span>
+    </span>
+  }
   const isSelected = (item: T) => latest.current.includes(valueOf(item))
   const isLocked = (item: T) => disabled || (isObject(item) && !!key(item, disabledKey))
   const select = (list: T[]) => {
@@ -92,14 +107,14 @@ export function CheckboxGroup<T, K extends string = 'value'>({
   const allState = on === 0 ? false : on === open.length ? true : 'indeterminate'
 
   return (
-    <div {...rest} {...part('root')} className={cx(className, classes?.root)} role="group"
+    <div {...rest} {...part('root')} className={cx(className, classes?.root)} role="group" data-variant={variant}
       aria-labelledby={field ? field.ids.label : label ? `${id}-label` : undefined}>
       {label && !field && <span {...part('label')} id={`${id}-label`}>{label}</span>}
       {selectAll && <Checkbox label={selectAll} disabled={disabled} checked={allState} onCheckedChange={toggleAll} />}
       <div {...part('items')} data-orientation={orientation} data-indented={selectAll ? '' : undefined}
         onPointerDownCapture={noteShift} onMouseDownCapture={noteShift} onKeyDownCapture={noteShift}>
         {items.map((item) => (
-          <Checkbox key={String(valueOf(item))} label={labelOf(item)} value={String(valueOf(item))} disabled={isLocked(item)}
+          <Checkbox key={String(valueOf(item))} label={labelFor(item)} value={String(valueOf(item))} disabled={isLocked(item)}
             {...(name && { name })} checked={isSelected(item)} onCheckedChange={(on) => toggle(item, on)} />
         ))}
       </div>

@@ -14,6 +14,8 @@
  * - `color`: 'accent' (default), 'gray', 'red', 'orange', 'amber', 'green',
  *   'teal', 'blue', 'purple' or 'pink'; 'auto' picks one from the name, so the
  *   same person always gets the same colour
+ * - `status`: a dot on its corner: 'online', 'away', 'busy' or 'offline'
+ *   (or any CSS colour); `statusLabel` says it for assistive tech
  * - `tooltip`: true shows the name on hover (handy in a stack), or a string
  *   shows that instead
  *
@@ -43,7 +45,9 @@ export type AvatarProps = Omit<Ark.RootProps, 'color'> & {
   square?: boolean
   color?: AvatarColor | 'auto'
   tooltip?: boolean | string | null
-  classes?: Classes<'root' | 'image' | 'fallback' | 'person' | 'tooltipTarget'>
+  status?: 'online' | 'away' | 'busy' | 'offline' | (string & {}) | null
+  statusLabel?: string
+  classes?: Classes<'root' | 'image' | 'fallback' | 'person' | 'tooltipTarget' | 'status'>
 }
 
 const named = ['sm', 'md', 'lg', 'xl']
@@ -69,7 +73,7 @@ export function colorOf(name: string | null | undefined): AvatarColor {
 }
 
 function AvatarShortcut({
-  src = null, name = null, letters = 2, size = 'md', square = false, color = 'accent', tooltip = null,
+  src = null, name = null, letters = 2, size = 'md', square = false, color = 'accent', tooltip = null, status = null, statusLabel,
   className, classes, style, ...rest
 }: AvatarProps) {
   const part = partsOf('avatar', classes)
@@ -79,7 +83,7 @@ function AvatarShortcut({
 
   return (
     <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)}
-      data-size={custom ? 'custom' : size} data-square={square || undefined} data-color={color === 'auto' ? colorOf(name) : color}
+      data-size={custom ? 'custom' : size} data-square={square || undefined} data-has-status={status ? '' : undefined} data-color={color === 'auto' ? colorOf(name) : color}
       style={{ ...style, ...(custom && { '--avatar-size': custom }) } as CSSProperties}>
       {src && <Ark.Image {...part('image')} src={src} alt={name ?? ''} />}
       <Ark.Fallback {...part('fallback')} aria-hidden={name ? undefined : 'true'}>
@@ -87,6 +91,11 @@ function AvatarShortcut({
       </Ark.Fallback>
       {/* The tooltip's trigger is a layer over the whole avatar. */}
       {tip && <Tooltip content={tip}><span {...part('tooltip-target')} /></Tooltip>}
+      {status && (
+        <span {...part('status')} data-status={['online', 'away', 'busy', 'offline'].includes(status) ? status : 'custom'}
+          role="img" aria-label={statusLabel ?? status}
+          style={['online', 'away', 'busy', 'offline'].includes(status) ? undefined : { background: status }} />
+      )}
     </Ark.Root>
   )
 }

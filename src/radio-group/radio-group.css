@@ -15,4 +15,16 @@
     &[data-invalid] { border-color: var(--ui-danger); } }
   [data-scope=radio-group][data-part=text] { display: flex; flex-direction: column; gap: 0.125rem; }
   [data-scope=radio-group][data-part=description] { color: var(--ui-muted); font-size: 12px; }
+  /* Cards: each option a bordered card, the chosen one outlined in the accent. */
+  [data-scope=radio-group][data-part=icon] { flex-shrink: 0; margin-top: 0.0625rem; color: var(--ui-muted); font-size: 18px; }
+  [data-scope=radio-group][data-variant=cards] {
+    & > [data-part=items] { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 0.5rem; }
+    & [data-part=item] { gap: 0.625rem; padding: 0.75rem; border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) + 2px);
+      background: var(--ui-surface); transition: border-color 120ms, background 120ms;
+      &:hover { border-color: var(--ui-muted); }
+      &[data-state=checked] { border-color: var(--ui-accent); background: color-mix(in srgb, var(--ui-accent-soft) 45%, var(--ui-surface));
+        box-shadow: 0 0 0 1px var(--ui-accent); }
+      &[data-focus-visible] { outline: 2px solid var(--ui-ring-soft); }
+      &[data-state=checked] [data-part=icon] { color: var(--ui-accent); } }
+    & [data-part=item-text] { font-weight: 500; } }
 }
