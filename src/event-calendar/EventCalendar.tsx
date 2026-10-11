@@ -41,6 +41,11 @@
  *   e.g. to book it. `keys` says which of Shift, Alt, Ctrl and ⌘ were held
  *   (say, Shift to block time instead of booking it)
  * - `onEventClick(event)`: an event was clicked (not dragged), e.g. to open it
+ * - `onDayClick(date)`: a day's header was clicked (an ISO date), e.g. to show
+ *   that day; `onResourceClick(resource, date)`: a resource's header
+ * - `onRangeChange({ start, end, view })`: the days shown, as ISO dates (the
+ *   last one included), when it first shows and whenever they change: load
+ *   that range's events from your server
  * - `onEventChange(event, { start, end, resourceId }, { kind })`: makes
  *   events movable and resizable: drag one to another time, day or resource,
  *   or its bottom edge to change its length; or focus it and use ↑↓ (a slot),
@@ -148,6 +153,9 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     allDayMax?: number
     onSelect?: (selection: CalendarSelection, keys: CalendarKeys) => void
     onEventClick?: (event: E) => void
+    onDayClick?: (date: string) => void
+    onResourceClick?: (resource: R, date: string) => void
+    onRangeChange?: (range: { start: string, end: string, view: CalendarView }) => void
     onEventChange?: (event: E, change: CalendarChange, how: { kind: 'move' | 'resize' }) => void
     isAvailable?: (query: CalendarQuery<E>) => boolean | string
     onUnavailable?: (reason: string, attempt: CalendarQuery<E>) => void
@@ -163,7 +171,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     locale?: string
     classes?: Classes<'root' | 'toolbar' | 'nav' | 'title' | 'actions' | 'pinned' | 'grid' | 'corner' | 'dayHeader' | 'resourceHeader'
       | 'rowLabel' | 'rowCell' | 'allDayLabel' | 'allDay' | 'allDayEvent' | 'more' | 'gutter' | 'hour' | 'day' | 'unavailable'
-      | 'event' | 'eventTitle' | 'eventTime' | 'resize' | 'ghost' | 'selection' | 'now' | 'status'>
+      | 'event' | 'eventTitle' | 'headerButton' | 'eventTime' | 'resize' | 'ghost' | 'selection' | 'now' | 'status'>
   }
 
 const named = ['accent', 'success', 'warning', 'danger', 'neutral']
@@ -216,7 +224,7 @@ type Preview = { kind: 'select', column: number, from: number, to: number }
 export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends CalendarResource = CalendarResource>({
   events = [], resources = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
   date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, hourHeight = '3rem',
-  height = null, scrollToTime = null, rows = [], allDayMax = 3, onSelect, onEventClick, onEventChange, isAvailable, onUnavailable,
+  height = null, scrollToTime = null, rows = [], allDayMax = 3, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
   pinned = null, onPinnedChange, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
   locale, className, classes, style, ...rest
 }: EventCalendarProps<E, R>) {
@@ -249,6 +257,13 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const columns: Column<R>[] = dates.flatMap((d) => lanes.map((resource) => ({ date: d, iso: toISODate(d), resource })))
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i)
   const span = (endHour - startHour) * 60
+
+  // The days shown, reported when they change (to load their events).
+  const rangeStart = toISODate(dates[0])
+  const rangeEnd = toISODate(dates[dates.length - 1])
+  const reportRange = useRef(onRangeChange)
+  useEffect(() => { reportRange.current = onRangeChange })
+  useEffect(() => { reportRange.current?.({ start: rangeStart, end: rangeEnd, view }) }, [rangeStart, rangeEnd, view])
 
   // The time now, for the line across today; moved on each minute.
   const [now, setNow] = useState(() => new Date())
@@ -528,7 +543,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
       if (run && run[run.length - 1] === i - 1) run.push(i)
       else runs.push([i])
     }
-    return runs.map((run) => ({ event, first: run[0], length: run.length, lane: 0 }))
+    return runs.map((run) => ({ event, first: run[0], length: run.length, lane: 0, continued: false }))
   })
   allDay.sort((a, b) => a.first - b.first || b.length - a.length)
   const laneEnds: number[] = []
@@ -541,7 +556,27 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   // Past `allDayMax` lanes, the rest fold into a "+2 more" per column (until opened).
   const folding = laneEnds.length > allDayMax && !allDayOpen
   const shownLanes = folding ? allDayMax - 1 : laneEnds.length
-  const hiddenIn = (i: number) => allDay.filter((bar) => bar.lane >= shownLanes && i >= bar.first && i < bar.first + bar.length).length
+  // Folded bars still show in the columns where a shown lane is free there
+  // (a bar starting under two full lanes can show on its later, emptier days):
+  // they're cut into pieces, each in the lowest lane free along it.
+  type Bar = (typeof allDay)[number]
+  const shownBars: Bar[] = allDay.filter((bar) => bar.lane < shownLanes)
+  const hiddenCount = columns.map(() => 0)
+  if (folding) {
+    const taken = columns.map((_, i) => new Set(shownBars.filter((bar) => i >= bar.first && i < bar.first + bar.length).map((bar) => bar.lane)))
+    for (const bar of allDay.filter((b) => b.lane >= shownLanes)) {
+      let piece: Bar | null = null
+      for (let i = bar.first; i < bar.first + bar.length; i++) {
+        const lane = Array.from({ length: shownLanes }, (_, l) => l).find((l) => !taken[i].has(l))
+        if (lane === undefined) { hiddenCount[i]++; piece = null; continue }
+        if (piece && piece.lane === lane && piece.first + piece.length === i) piece.length++
+        // A piece after the bar's start continues it (drawn with a square left end).
+        else shownBars.push(piece = { ...bar, first: i, length: 1, lane, continued: i > bar.first })
+        taken[i].add(lane)
+      }
+    }
+  }
+  const hiddenIn = (i: number) => hiddenCount[i]
 
   const twoRows = !!resources?.length && count > 1
   const editable = (event: E) => !!onEventChange && event.editable !== false && !event.pending
@@ -612,13 +647,22 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
         {dayRow >= 0 && dates.map((d) => (
           <div key={toISODate(d)} {...part('day-header')} role="columnheader" data-today={sameDay(d, now) || undefined}
             data-sticky-row={dayRow} style={{ gridColumn: `span ${lanes.length}`, top: `var(--sticky-${dayRow})` }}>
-            {renderDayHeader ? renderDayHeader(d) : <><span>{dayFormat.format(d)}</span><strong>{d.getDate()}</strong></>}
+            {(() => {
+              const content = renderDayHeader ? renderDayHeader(d) : <><span>{dayFormat.format(d)}</span><strong>{d.getDate()}</strong></>
+              return onDayClick
+                ? <button type="button" {...part('header-button')} onClick={() => onDayClick(toISODate(d))} aria-label={longDay.format(d)}>{content}</button>
+                : content
+            })()}
           </div>
         ))}
         {resourceRow >= 0 && columns.map((c) => (
           <div key={`${c.iso}-${c.resource!.id}`} {...part('resource-header')} role="columnheader"
             data-sticky-row={resourceRow} style={{ top: `var(--sticky-${resourceRow})` }}>
-            {renderResource ? renderResource(c.resource!) : c.resource!.title}
+            {onResourceClick
+              ? <button type="button" {...part('header-button')} onClick={() => onResourceClick(c.resource!, c.iso)}>
+                  {renderResource ? renderResource(c.resource!) : c.resource!.title}
+                </button>
+              : renderResource ? renderResource(c.resource!) : c.resource!.title}
           </div>
         ))}
 
@@ -656,8 +700,8 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
               <div key={i} {...part('selection')} data-all-day="" data-invalid={previewReason ? '' : undefined}
                 style={{ left: `${(i / columns.length) * 100}%`, width: `${100 / columns.length}%` }} />
             ))}
-            {allDay.filter((bar) => bar.lane < shownLanes).map(({ event, first, length: covers, lane }) => (
-              <button key={`${event.id}-${first}`} type="button" {...part('all-day-event')}
+            {shownBars.map(({ event, first, length: covers, lane, continued }) => (
+              <button key={`${event.id}-${first}`} type="button" {...part('all-day-event')} data-continued={continued || undefined}
                 data-color={named.includes(event.color ?? 'accent') ? event.color ?? 'accent' : 'custom'} data-blocked={event.blocked || undefined}
                 style={{
                   left: `${(first / columns.length) * 100}%`, width: `${(covers / columns.length) * 100}%`, top: `calc(${lane} * 1.625rem + 0.25rem)`,

@@ -69,6 +69,7 @@ export default function Example() {
     <EventCalendar events={appointments} resources={vets} defaultView="day" views={['day', 3]} slotMinutes={15} hourHeight="5rem"
       startHour={8} endHour={18} height="34rem" scrollToTime="now"
       onEventChange={update} onSelect={book} isAvailable={isAvailable} onUnavailable={(reason) => toaster.error({ title: reason })}
+      onResourceClick={(vet) => toaster.info({ title: vet.title, description: `${vet.role}: ${appointments.filter((x) => x.resourceId === vet.id && !x.allDay).length} appointments` })}
       pinned={pinned} onPinnedChange={setPinned} eventLabel={(a) => `${a.pet}, ${a.kind}`}
       onEventClick={(a) => !a.blocked && toaster.info({
         title: `${a.pet} (${a.owner})`, description: a.kind, action: { label: 'Move…', onClick: () => setPinned(a) },
