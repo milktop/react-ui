@@ -23,6 +23,7 @@ import { PasswordInput as Ark, usePasswordInput, type PasswordInputVisibilityCha
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './password-input.css'
 
@@ -40,12 +41,14 @@ function PasswordInputShortcut({
   label = null, icon = null, visible, defaultVisible, onVisibilityChange, onValueChange, onChange, disabled,
   className, classes, ...rest
 }: PasswordInputProps) {
+  const t = useMessages()
   const field = useFieldContext()
   const part = partsOf('password-input', classes)
   const password = usePasswordInput({
     ...(visible !== undefined && { visible }),
     ...(defaultVisible !== undefined && { defaultVisible }),
     ...(disabled !== undefined && { disabled }),
+    ...(t.zag.passwordInput && { translations: t.zag.passwordInput }),
     ...(onVisibilityChange && { onVisibilityChange: (details) => onVisibilityChange(details.visible, details) }),
   })
 

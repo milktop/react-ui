@@ -5,20 +5,24 @@ import { Select as Ark, createListCollection, useSelect, type SelectValueChangeD
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { cx, partsOf, slot } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import { useItems } from './items.js'
 import type { InnerProps } from './Select.js'
 import '../theme.css'
 import './select.css'
 
 export function ListSelect<T>({
-  label = null, items = [], placeholder = 'Select…', labelKey, valueKey, disabledKey,
+  label = null, items = [], placeholder: placeholderProp, labelKey, valueKey, disabledKey,
   multiple = false, tags = false, variant = 'subtle', hideSelected = false, deselectable = false, closeOnSelect, clearable = false,
-  emptyText = 'No options', empty, name, size = 'md', placement = 'bottom-start', disabled = false,
+  emptyText: emptyTextProp, empty, name, size = 'md', placement = 'bottom-start', disabled = false,
   value, defaultValue, onValueChange, renderItem, renderValue, start,
   // Search-only props, not for the div.
   searchable: _searchable, load: _load, debounce: _debounce, loadingText: _loadingText, onCreate: _onCreate, renderCreate: _renderCreate,
   className, classes, ...rest
 }: InnerProps<T>) {
+  const t = useMessages()
+  const placeholder = placeholderProp ?? t.select.placeholder
+  const emptyText = emptyTextProp ?? t.select.empty
   const field = useFieldContext()
   const part = partsOf('select', classes)
   const { labelOf, valueOf, keyOf, isDisabled, setCurrent, keys } =
@@ -54,6 +58,7 @@ export function ListSelect<T>({
   const select = useSelect<T>({
     collection, value: keys, onValueChange: change, onOpenChange: openChange, multiple, deselectable, closeOnSelect: closeOnSelect ?? !multiple, disabled,
     positioning: { placement, sameWidth: true }, ...(name && { name }),
+    ...(t.zag.select && { translations: t.zag.select }),
   })
   // The latest api, for the timers below.
   const api = useRef(select)

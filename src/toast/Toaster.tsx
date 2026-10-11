@@ -21,6 +21,7 @@ import { Toaster as ArkToaster, Toast, createToaster, type CreateToasterReturn, 
 import { Portal } from '@ark-ui/react/portal'
 import 'iconify-icon'
 import { cx, partsOf, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './toast.css'
 
@@ -44,7 +45,9 @@ const icons: Record<string, string> = {
   info: 'lucide:info', success: 'lucide:circle-check', warning: 'lucide:triangle-alert', error: 'lucide:circle-alert',
 }
 
-export function Toaster({ store = toaster, label = 'Notifications', render, className, classes }: ToasterProps) {
+export function Toaster({ store = toaster, label: labelProp, render, className, classes }: ToasterProps) {
+  const t = useMessages()
+  const label = labelProp ?? t.toaster.label
   const part = partsOf('toast', classes)
   return (
     <Portal>
@@ -59,7 +62,7 @@ export function Toaster({ store = toaster, label = 'Notifications', render, clas
             </div>
             {/* Zag calls action.onClick and dismisses the toast. */}
             {toast.action && <Toast.ActionTrigger {...part('action-trigger')}>{toast.action.label}</Toast.ActionTrigger>}
-            <Toast.CloseTrigger {...part('close-trigger')}><iconify-icon icon="lucide:x" /></Toast.CloseTrigger>
+            <Toast.CloseTrigger {...part('close-trigger')} aria-label={t.common.dismiss}><iconify-icon icon="lucide:x" /></Toast.CloseTrigger>
           </Toast.Root>
         )}
       </ArkToaster>

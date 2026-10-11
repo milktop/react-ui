@@ -25,6 +25,7 @@ import { RadioGroup as Ark, type RadioGroupValueChangeDetails } from '@ark-ui/re
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './swatch-picker.css'
 
@@ -52,14 +53,16 @@ const capital = (name: string) => name.charAt(0).toUpperCase() + name.slice(1)
 
 export function SwatchPicker({
   items = Object.keys(swatches), value, defaultValue = null, onValueChange, label = null, size = 'md', variant = 'inline',
-  placeholder = 'Choose a colour', className, classes, ...rest
+  placeholder: placeholderProp, className, classes, ...rest
 }: SwatchPickerProps) {
+  const t = useMessages()
+  const placeholder = placeholderProp ?? t.swatchPicker.placeholder
   const id = useId()
   const [open, setOpen] = useState(false)
   const field = useFieldContext()
   const part = partsOf('swatch-picker', classes)
   const [current, setCurrent] = useControllable(value, defaultValue, onValueChange)
-  const list: Swatch[] = items.map((item) => (typeof item === 'string' ? { value: item, color: swatches[item] ?? item, label: capital(item) } : item))
+  const list: Swatch[] = items.map((item) => (typeof item === 'string' ? { value: item, color: swatches[item] ?? item, label: t.swatchPicker.colors[item] ?? capital(item) } : item))
 
   const chosen = list.find((swatch) => swatch.value === current)
   const popover = variant === 'popover'

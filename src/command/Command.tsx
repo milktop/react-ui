@@ -31,6 +31,7 @@ import { Listbox, createListCollection, useListbox, type ListboxScrollToIndexDet
 import { Portal } from '@ark-ui/react/portal'
 import 'iconify-icon'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './command.css'
 
@@ -90,9 +91,14 @@ function go(href: string) {
 
 export function Command({
   items = [], load = null, debounce = 200, onSelect, trigger = null, open: openProp, defaultOpen = false, onOpenChange,
-  hotkey = 'k', navigate = null, label = 'Command menu', placeholder = 'Type a command or search…',
-  emptyText = 'No results', loadingText = 'Searching…', hints = true, className, classes, ...rest
+  hotkey = 'k', navigate = null, label: labelProp, placeholder: placeholderProp,
+  emptyText: emptyTextProp, loadingText: loadingTextProp, hints = true, className, classes, ...rest
 }: CommandProps) {
+  const t = useMessages()
+  const label = labelProp ?? t.command.label
+  const placeholder = placeholderProp ?? t.command.placeholder
+  const emptyText = emptyTextProp ?? t.command.empty
+  const loadingText = loadingTextProp ?? t.command.loading
   const part = partsOf('command', classes)
   const [open, setOpen] = useControllable(openProp, defaultOpen, onOpenChange)
   const [query, setQuery] = useState('')
@@ -206,7 +212,7 @@ export function Command({
                 <iconify-icon {...part('search-icon')} icon="lucide:search" aria-hidden="true" />
                 <Listbox.Input ref={input} className={classes?.input} autoHighlight type="text" placeholder={placeholder}
                   value={query} onChange={(e) => search(e.target.value)} />
-                <kbd {...part('key')} data-esc="">Esc</kbd>
+                <kbd {...part('key')} data-esc="">{t.command.esc}</kbd>
               </div>
               <Listbox.Content ref={listEl} className={classes?.list}>
                 {/* Earlier results stay while a search runs. */}
@@ -230,8 +236,8 @@ export function Command({
               </Listbox.Content>
               {hints && (
                 <div {...part('hints')} aria-hidden="true">
-                  <span><kbd {...part('key')}>↑</kbd><kbd {...part('key')}>↓</kbd> to navigate</span>
-                  <span><kbd {...part('key')}>↵</kbd> to select</span>
+                  <span><kbd {...part('key')}>↑</kbd><kbd {...part('key')}>↓</kbd> {t.command.toNavigate}</span>
+                  <span><kbd {...part('key')}>↵</kbd> {t.command.toSelect}</span>
                 </div>
               )}
             </Listbox.RootProvider>

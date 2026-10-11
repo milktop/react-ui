@@ -17,6 +17,7 @@ import type { ComponentProps } from 'react'
 import { Clipboard, useClipboard } from '@ark-ui/react/clipboard'
 import 'iconify-icon'
 import { cx, partsOf, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './copy-button.css'
 
@@ -31,14 +32,18 @@ export type CopyButtonProps = Omit<ComponentProps<'button'>, 'value' | 'onCopy'>
 }
 
 export function CopyButton({
-  value = '', label = 'Copy', copiedLabel = 'Copied', iconOnly = false, timeout = 2000, onCopy = null,
+  value = '', label: labelProp, copiedLabel: copiedLabelProp, iconOnly = false, timeout = 2000, onCopy = null,
   className, classes, ...rest
 }: CopyButtonProps) {
+  const t = useMessages()
+  const label = labelProp ?? t.copyButton.copy
+  const copiedLabel = copiedLabelProp ?? t.copyButton.copied
   // Ark's clipboard stamps data-scope="clipboard"; ours goes last, for copy-button.css.
   const part = partsOf('copy-button', classes)
   const text = String(value ?? '')
   const clipboard = useClipboard({
     value: text, timeout,
+    ...(t.zag.clipboard && { translations: t.zag.clipboard }),
     onStatusChange: (details) => { if (details.copied) onCopy?.(text) },
   })
   const shown = clipboard.copied ? copiedLabel : label

@@ -1,7 +1,7 @@
 /* In French, with a full all-day strip
-  `translations` for its words and `locale` for the dates and times, editable like the others (select, move, resize, right-click). Past `allDayMax` lanes the all-day strip folds into "+3 de plus"; the label opens it. */
+  Inside a `LocaleProvider locale="fr-FR"`: French words (built in) and dates; `translations` changes any word (here "Moins" for "Show less"). Editable like the others (select, move, resize, right-click). Past `allDayMax` lanes the all-day strip folds into "+3 de plus"; the label opens it. */
 import { useState } from 'react'
-import { EventCalendar, confirm, toaster, type CalendarChange, type CalendarSelection } from '@milktop/react-ui'
+import { EventCalendar, LocaleProvider, confirm, toaster, type CalendarChange, type CalendarSelection } from '@milktop/react-ui'
 import { lessons, day, type Lesson } from './lessons'
 
 const busy = [0, 1, 2, 3].map((n) => ({ id: `fete-${n}`, title: ['Formation', 'Inventaire', 'Congrès', 'Portes ouvertes'][n], student: '', subject: '',
@@ -19,7 +19,7 @@ export default function Example() {
       : `${slot.start.slice(0, 10)}, de ${time(slot.start)} à ${time(slot.end)}`
     const ok = await confirm({
       heading: slot.allDay ? 'Bloquer ces journées ?' : 'Ajouter un cours ?', description: when,
-      confirmLabel: slot.allDay ? 'Bloquer' : 'Ajouter', cancelLabel: 'Annuler',
+      confirmLabel: slot.allDay ? 'Bloquer' : 'Ajouter',
     })
     if (ok) add(slot)
   }
@@ -27,20 +27,16 @@ export default function Example() {
   const remove = (event: Lesson) => setEvents(events.filter((e) => e.id !== event.id))
 
   return (
-    <EventCalendar events={events} onSelect={ask} onEventChange={update}
-      onEventClick={(event) => toaster.info({ title: String(event.title) })}
-      eventMenu={(event) => [
-        { label: 'Ouvrir', icon: 'lucide:file-text', onSelect: () => toaster.info({ title: String(event.title) }) },
-        { separator: true },
-        { label: 'Supprimer', icon: 'lucide:trash-2', danger: true, onSelect: () => remove(event) },
-      ]}
-      slotMenu={(slot) => [{ label: slot.allDay ? 'Bloquer la journée' : `Ajouter un cours à ${slot.start.slice(11)}`, icon: 'lucide:plus', onSelect: () => add(slot) }]} locale="fr-FR" views={['day', 'week']} allDayMax={3} startHour={8} endHour={20}
-      translations={{
-        today: "Aujourd'hui", previous: 'Précédent', next: 'Suivant', allDay: 'Journée', view: 'Vue', pickDate: 'choisir une date',
-        day: 'Jour', week: 'Semaine', workweek: 'Semaine de travail', days: (n) => `${n} jours`,
-        more: (n) => `+${n} de plus`, less: 'Moins', unavailable: 'Indisponible', cancel: 'Annuler',
-        placing: (name) => `Déplacement de ${name} : cliquez sur un créneau, ou Échap pour annuler.`,
-        selected: (when) => `Sélectionné : ${when}.`, moved: (name, when) => `${name} déplacé à ${when}.`, resized: (name, time) => `${name} finit maintenant à ${time}.`,
-      }} />
+    <LocaleProvider locale="fr-FR">
+      <EventCalendar events={events} onSelect={ask} onEventChange={update}
+        onEventClick={(event) => toaster.info({ title: String(event.title) })}
+        eventMenu={(event) => [
+          { label: 'Ouvrir', icon: 'lucide:file-text', onSelect: () => toaster.info({ title: String(event.title) }) },
+          { separator: true },
+          { label: 'Supprimer', icon: 'lucide:trash-2', danger: true, onSelect: () => remove(event) },
+        ]}
+        slotMenu={(slot) => [{ label: slot.allDay ? 'Bloquer la journée' : `Ajouter un cours à ${slot.start.slice(11)}`, icon: 'lucide:plus', onSelect: () => add(slot) }]} views={['day', 'week']} allDayMax={3} startHour={8} endHour={20}
+        translations={{ less: 'Moins' }} />
+    </LocaleProvider>
   )
 }

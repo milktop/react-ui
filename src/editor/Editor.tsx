@@ -36,6 +36,7 @@ import { Popover } from '../popover/Popover.js'
 import { Input } from '../input/Input.js'
 import { Button } from '../button/Button.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './editor.css'
 
@@ -94,6 +95,7 @@ export function Editor({
   minHeight = '8rem', maxHeight = null, disabled = false, uploadImage = null, onError, editorRef,
   className, classes, ...rest
 }: EditorProps) {
+  const t = useMessages()
   const field = useFieldContext()
   const part = partsOf('editor', classes)
   const id = useId()
@@ -238,33 +240,33 @@ export function Editor({
     <div {...rest} {...part('root')} className={cx(className, classes?.root)} data-focused={focused || undefined}
       data-disabled={disabled || undefined} data-invalid={field?.invalid || undefined}>
       {toolbar && !disabled && (
-        <div {...part('toolbar')} role="toolbar" aria-label="Formatting">
+        <div {...part('toolbar')} role="toolbar" aria-label={t.editor.toolbar}>
           {tools.map((name, i) => {
             if (name === '|') return <span key={`d${i}`} {...part('divider')} />
             if (name === 'link') return (
               <Popover key={name} placement="bottom-start" open={linkOpen} onOpenChange={openLink} trigger={
-                <button {...part('tool')} type="button" aria-label="Link" aria-pressed={linkActive} onMouseDown={keepFocus}>
+                <button {...part('tool')} type="button" aria-label={t.editor.link} aria-pressed={linkActive} onMouseDown={keepFocus}>
                   <iconify-icon icon="lucide:link" aria-hidden="true" />
                 </button>
               }>
                 <form {...part('link-form')} onSubmit={applyLink}>
-                  <Input size="sm" icon="lucide:link" placeholder="https://…" value={linkUrl} onValueChange={setLinkUrl} />
+                  <Input size="sm" icon="lucide:link" placeholder={t.editor.linkPlaceholder} value={linkUrl} onValueChange={setLinkUrl} />
                   <div {...part('link-actions')}>
-                    {linkActive && <Button size="sm" variant="ghost" onClick={removeLink}>Remove</Button>}
-                    <Button size="sm" variant="primary" type="submit">Apply</Button>
+                    {linkActive && <Button size="sm" variant="ghost" onClick={removeLink}>{t.editor.remove}</Button>}
+                    <Button size="sm" variant="primary" type="submit">{t.editor.apply}</Button>
                   </div>
                 </form>
               </Popover>
             )
             if (name === 'image') return uploadImage && (
-              <label key={name} {...part('tool')} aria-label="Image" onMouseDown={keepFocus}>
+              <label key={name} {...part('tool')} aria-label={t.editor.image} onMouseDown={keepFocus}>
                 <input {...part('image-input')} type="file" accept="image/*" multiple onChange={pickedImages} />
                 <iconify-icon icon="lucide:image" aria-hidden="true" />
               </label>
             )
             const tool = toolDefs[name]
             return tool && (
-              <button key={name} {...part('tool')} type="button" aria-label={tool.label} aria-pressed={tool.active ? isActive(tool) : undefined}
+              <button key={name} {...part('tool')} type="button" aria-label={(t.editor.tools as Record<string, string>)[name] ?? tool.label} aria-pressed={tool.active ? isActive(tool) : undefined}
                 disabled={!canRun(tool)} onMouseDown={keepFocus} onClick={() => run(tool)}>
                 <iconify-icon icon={tool.icon} aria-hidden="true" />
               </button>
@@ -274,7 +276,7 @@ export function Editor({
       )}
       <div {...part('content')} ref={contentEl}
         style={{ '--min-height': minHeight, '--max-height': maxHeight ?? 'none' } as CSSProperties} />
-      {uploading > 0 && <div {...part('uploading')}>Uploading…</div>}
+      {uploading > 0 && <div {...part('uploading')}>{t.editor.uploading}</div>}
       {maxLength && <div {...part('count')} data-over={characters >= maxLength || undefined}>{characters} / {maxLength}</div>}
     </div>
   </>

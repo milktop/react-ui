@@ -82,7 +82,8 @@
  * - `renderEvent(event, { start, end, resource, compact })`, `renderResource(resource)`,
  *   `renderDayHeader(date)`: draw those yourself
  * - `eventLabel(event)`: what screen readers call an event (its title, if text)
- * - `translations`: its words (Today, All day, the views, the announcements…);
+ * - `translations`: its words (Today, All day, the views, the announcements…),
+ *   over the LocaleProvider's (English and French are built in);
  *   `locale`: for the dates and times (the LocaleProvider's by default)
  * - `actions`: in the toolbar; `toolbar`: false hides it
  */
@@ -96,7 +97,8 @@ import { Popover } from '../popover/Popover.js'
 import { DatePicker } from '../date-picker/DatePicker.js'
 import { Segmented } from '../segment-group/Segmented.js'
 import { Menu, type MenuEntry } from '../menu/Menu.js'
-import { useLocale } from '../format/LocaleProvider.js'
+import { useLocale, useMessages } from '../format/LocaleProvider.js'
+import type { CalendarMessages } from '../format/messages.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import { addDays, addMinutes, minutesOfDay, parse, sameDay, startOfWeek, toISODate, toISODateTime } from './dates.js'
 import '../theme.css'
@@ -142,20 +144,7 @@ export type CalendarMenuItem = {
   separator?: boolean, group?: ReactNode, onSelect?: () => void,
 }
 
-export type CalendarTranslations = {
-  today: string, previous: string, next: string, allDay: string, view: string, pickDate: string,
-  day: string, week: string, workweek: string, days: (count: number) => string,
-  more: (count: number) => string, less: string, unavailable: string, cancel: string,
-  placing: (name: string) => string,
-  selected: (when: string) => string, moved: (name: string, when: string) => string, resized: (name: string, time: string) => string,
-}
-const english: CalendarTranslations = {
-  today: 'Today', previous: 'Previous', next: 'Next', allDay: 'All day', view: 'View', pickDate: 'pick a date',
-  day: 'Day', week: 'Week', workweek: 'Work week', days: (count) => `${count} days`,
-  more: (count) => `+${count} more`, less: 'Show less', unavailable: 'Not available', cancel: 'Cancel',
-  placing: (name) => `Placing ${name}: click a time, or press Escape to cancel.`,
-  selected: (when) => `Selected ${when}.`, moved: (name, when) => `${name} moved to ${when}.`, resized: (name, time) => `${name} now ends at ${time}.`,
-}
+export type CalendarTranslations = CalendarMessages
 
 export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extends CalendarResource = CalendarResource> =
   Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'onSelect'> & {
@@ -264,7 +253,8 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const app = useLocale()
   const locale = localeProp ?? app
   const part = partsOf('event-calendar', classes)
-  const t = { ...english, ...translations }
+  const messages = useMessages()
+  const t = { ...messages.calendar, ...translations }
   const [today] = useState(() => toISODate(new Date()))
   const [date, setDate] = useControllable(dateProp, defaultDate ?? today, onDateChange)
   const [chosenView, setView] = useControllable<CalendarView>(viewProp, defaultView, onViewChange)

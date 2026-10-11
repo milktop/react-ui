@@ -20,6 +20,7 @@ import type { CSSProperties, HTMLAttributes } from 'react'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { Avatar, customSize, type AvatarColor, type AvatarSize } from './Avatar.js'
 import { cx, partsOf, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './avatar.css'
 
@@ -42,6 +43,7 @@ export function AvatarGroup({
   items = null, max = null, size = 'md', color = 'accent', square = false, letters = 2, tooltip = false,
   spacing = 'normal', label = null, className, classes, children, ...rest
 }: AvatarGroupProps) {
+  const t = useMessages()
   const part = partsOf('avatar-group', classes)
   const people = (items ?? []).map((item) => (typeof item === 'string' ? { name: item } : item))
   const shown = max && people.length > max ? people.slice(0, max) : people
@@ -59,7 +61,7 @@ export function AvatarGroup({
       {children}
       {hidden.length > 0 && (
         <Tooltip content={names}>
-          <span {...part('more')} data-square={square || undefined} aria-label={`${hidden.length} more: ${names}`}
+          <span {...part('more')} data-square={square || undefined} aria-label={`${t.common.more(hidden.length)}: ${names}`}
             style={custom ? { '--avatar-size': custom } as CSSProperties : undefined}>+{hidden.length}</span>
         </Tooltip>
       )}

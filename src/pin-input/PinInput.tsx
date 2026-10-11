@@ -24,6 +24,7 @@ import type { ReactNode } from 'react'
 import { PinInput as Ark, type PinInputValueChangeDetails } from '@ark-ui/react/pin-input'
 import { useFieldContext } from '@ark-ui/react/field'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './pin-input.css'
 
@@ -40,12 +41,13 @@ function PinInputShortcut({
   label = null, count = 4, type = 'numeric', placeholder = '', value, defaultValue, onValueChange, onComplete,
   className, classes, ...rest
 }: PinInputProps) {
+  const t = useMessages()
   const field = useFieldContext()
   const part = partsOf('pin-input', classes)
   const boxes = (text: string) => text.split('').slice(0, count)
 
   return (
-    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)} count={count} type={type} placeholder={placeholder}
+    <Ark.Root {...(t.zag.pinInput && { translations: t.zag.pinInput })} {...rest} {...part('root')} className={cx(className, classes?.root)} count={count} type={type} placeholder={placeholder}
       {...(value !== undefined && { value: boxes(value) })}
       {...(defaultValue !== undefined && { defaultValue: boxes(defaultValue) })}
       {...(onValueChange && { onValueChange: (details) => onValueChange(details.valueAsString, details) })}

@@ -16,6 +16,7 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import 'iconify-icon'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './banner.css'
 
@@ -36,6 +37,7 @@ export function Banner({
   variant = 'accent', icon = null, actions = null, dismissible = false, onDismiss, open: openProp, defaultOpen = true, onOpenChange,
   full = false, className, classes, children, ...rest
 }: BannerProps) {
+  const t = useMessages()
   const part = partsOf('banner', classes)
   const [open, setOpen] = useControllable(openProp, defaultOpen, onOpenChange)
   if (!open) return null
@@ -46,7 +48,7 @@ export function Banner({
       <div {...part('description')}>{children}</div>
       {actions && <div {...part('actions')}>{actions}</div>}
       {dismissible && (
-        <button {...part('close')} type="button" aria-label="Dismiss" onClick={() => { setOpen(false); onDismiss?.() }}>
+        <button {...part('close')} type="button" aria-label={t.common.dismiss} onClick={() => { setOpen(false); onDismiss?.() }}>
           <iconify-icon icon="lucide:x" />
         </button>
       )}

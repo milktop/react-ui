@@ -41,6 +41,7 @@ import 'iconify-icon'
 import { Checkbox } from '../checkbox/Checkbox.js'
 import { Skeleton } from '../skeleton/Skeleton.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './table.css'
 
@@ -108,9 +109,11 @@ export function sortRows<T extends object>(list: T[] | null | undefined, columns
 export function Table<T extends object = Row>({
   columns = [], rows = [], rowKey = 'id', selectable = false, selected: selectedProp, defaultSelected = [], onSelectedChange,
   sort: sortProp, defaultSort = null, onSortChange, manualSort = false, loading = false, loadingRows = 5,
-  emptyText = 'Nothing here yet', empty = null, maxHeight = null, label = null, size = 'md', flush = false, onRowClick,
+  emptyText: emptyTextProp, empty = null, maxHeight = null, label = null, size = 'md', flush = false, onRowClick,
   className, classes, children, ...rest
 }: TableProps<T>) {
+  const t = useMessages()
+  const emptyText = emptyTextProp ?? t.table.empty
   const part = partsOf('table', classes)
   const [sort, setSort] = useControllable<TableSort>(sortProp, defaultSort, onSortChange)
   const [selected, setSelected] = useControllable<Key[]>(selectedProp, defaultSelected, onSelectedChange)
@@ -190,7 +193,7 @@ export function Table<T extends object = Row>({
               <tr>
                 {selectable && (
                   <th {...part('select-cell')} scope="col">
-                    <Checkbox label="Select all rows" labelHidden disabled={!rows.length} checked={allState}
+                    <Checkbox label={t.table.selectAll} labelHidden disabled={!rows.length} checked={allState}
                       onCheckedChange={(on) => toggleAll(on)} />
                   </th>
                 )}
@@ -223,7 +226,7 @@ export function Table<T extends object = Row>({
                         aria-selected={selectable ? isSelected(row) : undefined} onClick={(e) => rowClicked(e, row)}>
                         {selectable && (
                           <td {...part('select-cell')}>
-                            <Checkbox label={<>Select {display(row, columns[0])}</>} labelHidden checked={isSelected(row)}
+                            <Checkbox label={<>{t.table.selectRow} {display(row, columns[0])}</>} labelHidden checked={isSelected(row)}
                               onCheckedChange={(on) => toggleRow(row, on)} />
                           </td>
                         )}

@@ -22,6 +22,8 @@ import { useEffect } from 'react'
 import { Pagination as Ark, usePagination } from '@ark-ui/react/pagination'
 import 'iconify-icon'
 import { cx, partsOf, useControllable, withParts, type Classes } from '../utils.js'
+import { useLocale, useMessages } from '../format/LocaleProvider.js'
+import { formatNumber } from '../format/format.js'
 import '../theme.css'
 import './pagination.css'
 
@@ -40,9 +42,14 @@ export type PaginationProps = Omit<Ark.RootProviderProps, 'value' | 'children'> 
 }
 
 function PaginationShortcut({
-  count = 0, pageSize = 10, page: pageProp, defaultPage = 1, onPageChange, siblingCount = 1, summary = false, noun = 'items',
-  firstLast = true, label = 'Pagination', className, classes, ...rest
+  count = 0, pageSize = 10, page: pageProp, defaultPage = 1, onPageChange, siblingCount = 1, summary = false, noun: nounProp,
+  firstLast = true, label: labelProp, className, classes, ...rest
 }: PaginationProps) {
+  const t = useMessages()
+  const locale = useLocale()
+  const noun = nounProp ?? t.pagination.noun
+  const label = labelProp ?? t.pagination.label
+  const fmt = (n: number) => formatNumber(n, { locale })
   const part = partsOf('pagination', classes)
   const [current, setPage] = useControllable(pageProp, defaultPage, onPageChange)
   const totalPages = Math.max(1, Math.ceil(count / pageSize))
@@ -51,7 +58,10 @@ function PaginationShortcut({
   // Past the last page (the list shrank): move to it.
   useEffect(() => { if (current > totalPages) setPage(totalPages) }, [current, totalPages, setPage])
 
-  const api = usePagination({ count, pageSize, siblingCount, page, type: 'button', onPageChange: (details) => setPage(details.page) })
+  const api = usePagination({
+    count, pageSize, siblingCount, page, type: 'button', onPageChange: (details) => setPage(details.page),
+    ...(t.zag.pagination && { translations: t.zag.pagination }),
+  })
   const from = count ? (page - 1) * pageSize + 1 : 0
   const to = Math.min(page * pageSize, count)
   // First and last only help when some page numbers are hidden.
@@ -59,7 +69,7 @@ function PaginationShortcut({
 
   return (
     <Ark.RootProvider value={api} {...rest} {...part('root')} className={cx(className, classes?.root)} aria-label={label}>
-      {summary && <span {...part('summary')}>Showing {from}–{to} of {count}{noun ? ` ${noun}` : ''}</span>}
+      {summary && <span {...part('summary')}>{t.pagination.showing(fmt(from), fmt(to), fmt(count), noun)}</span>}
       <div {...part('pages')}>
         {edges && <Ark.FirstTrigger {...part('first-trigger')}><iconify-icon icon="lucide:chevrons-left" /></Ark.FirstTrigger>}
         <Ark.PrevTrigger {...part('prev-trigger')}><iconify-icon icon="lucide:chevron-left" /></Ark.PrevTrigger>

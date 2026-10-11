@@ -26,6 +26,7 @@ import { useMemo, type ReactNode } from 'react'
 import { TreeView as Ark, createTreeCollection, useTreeViewNodeContext, type TreeViewSelectionChangeDetails } from '@ark-ui/react/tree-view'
 import 'iconify-icon'
 import { cx, on, partsOf, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './tree-view.css'
 
@@ -57,6 +58,7 @@ function TreeViewShortcut({
   items, selected, defaultSelected, onSelectedChange, onSelect, expanded, defaultExpanded, onExpandedChange,
   checkable = false, checked, defaultChecked, onCheckedChange, renderItem, label = null, className, classes, ...rest
 }: TreeViewProps) {
+  const t = useMessages()
   const part = partsOf('tree-view', classes)
   const collection = useMemo(() => createTreeCollection<TreeItem>({
     nodeToValue: (node) => node.value,
@@ -66,7 +68,7 @@ function TreeViewShortcut({
   }), [items])
 
   return (
-    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)} collection={collection}
+    <Ark.Root {...(t.zag.treeView && { translations: t.zag.treeView })} {...rest} {...part('root')} className={cx(className, classes?.root)} collection={collection}
       {...(selected !== undefined && { selectedValue: selected })} {...(defaultSelected && { defaultSelectedValue: defaultSelected })}
       {...(expanded !== undefined && { expandedValue: expanded })} {...(defaultExpanded && { defaultExpandedValue: defaultExpanded })}
       {...(checked !== undefined && { checkedValue: checked })} {...(defaultChecked && { defaultCheckedValue: defaultChecked })}

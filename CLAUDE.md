@@ -70,6 +70,11 @@ look. Read `README.md` first.
 - Overlays: Ark's `Portal`, and `lazyMount unmountOnExit` on the root; Ark's
   presence waits for the CSS exit animation.
 - Imports its CSS and `../theme.css` itself.
+- Words: none hardcoded. They live in `src/format/messages.ts` (`en` and `fr`,
+  by component); call `const t = useMessages()` unconditionally and default
+  the prop from it (`label: labelProp` … `labelProp ?? t.x.label`). Zag's own
+  labels go through `t.zag.<machine>`, spread only when set (English leaves
+  them to Zag).
 
 ## Checks
 

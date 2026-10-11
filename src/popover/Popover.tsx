@@ -28,6 +28,7 @@ import type { ReactElement, ReactNode } from 'react'
 import { Popover as Ark, type PopoverOpenChangeDetails } from '@ark-ui/react/popover'
 import 'iconify-icon'
 import { cx, on, partOf, partsOf, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './popover.css'
 
@@ -50,6 +51,7 @@ function PopoverShortcut({
   trigger = null, heading = null, description = null, closable = false, arrow = false, modal = false,
   open, defaultOpen, onOpenChange, placement = 'bottom', className, classes, children, ...rest
 }: PopoverProps) {
+  const t = useMessages()
   const part = partsOf('popover', classes)
   return (
     // Mounted (hidden) from the start, as in svelte-ui; fixed, so a scrolling
@@ -68,7 +70,7 @@ function PopoverShortcut({
             </div>
           )}
           {children}
-          {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label="Close"><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
+          {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label={t.common.close}><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
         </Ark.Content>
       </Ark.Positioner>
     </Ark.Root>

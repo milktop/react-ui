@@ -8,6 +8,7 @@ import {
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { cx, partOf, partsOf, slot } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import { useItems } from './items.js'
 import type { InnerProps } from './Select.js'
 import '../theme.css'
@@ -19,15 +20,19 @@ type Creating = { [CREATE]: true, label: string }
 const isCreating = (entry: unknown): entry is Creating => typeof entry === 'object' && entry !== null && CREATE in entry
 
 export function SearchSelect<T>({
-  label = null, items = [], placeholder = 'Search…', labelKey, valueKey, disabledKey,
+  label = null, items = [], placeholder: placeholderProp, labelKey, valueKey, disabledKey,
   multiple = false, variant = 'subtle', hideSelected = false, closeOnSelect, clearable = false,
-  load, debounce = 200, loadingText = 'Loading…', onCreate,
-  emptyText = 'No matches', empty, name, size = 'md', placement = 'bottom-start', disabled = false,
+  load, debounce = 200, loadingText: loadingTextProp, onCreate,
+  emptyText: emptyTextProp, empty, name, size = 'md', placement = 'bottom-start', disabled = false,
   value, defaultValue, onValueChange, renderItem, renderValue, start, renderCreate,
   // ListSelect-only props, not for the div.
   searchable: _searchable, tags: _tags, deselectable: _deselectable,
   className, classes, ...rest
 }: InnerProps<T>) {
+  const t = useMessages()
+  const placeholder = placeholderProp ?? t.select.searchPlaceholder
+  const loadingText = loadingTextProp ?? t.select.loading
+  const emptyText = emptyTextProp ?? t.select.noMatches
   const field = useFieldContext()
   // Ark stamps data-scope="combobox" on its parts; ours match, for search-select.css.
   const part = partsOf('combobox', classes)
@@ -128,6 +133,7 @@ export function SearchSelect<T>({
   const combobox = useCombobox<Entry>({
     collection, value: keys, onValueChange: change, onInputValueChange: inputChange,
     multiple, disabled, placeholder, openOnClick: true, inputBehavior: 'autohighlight',
+    ...(t.zag.combobox && { translations: t.zag.combobox }),
     closeOnSelect: closeOnSelect ?? !multiple, selectionBehavior: multiple ? 'clear' : 'replace',
     positioning: { placement, sameWidth: true }, ...(name && { name }),
   })
@@ -198,7 +204,7 @@ export function SearchSelect<T>({
           {picked.map((item) => (
             <span key={keyOf(item)} {...part('tag')}>
               <span {...part('tag-text')}>{renderValue ? renderValue(item) : labelOf(item)}</span>
-              <button {...part('tag-remove')} type="button" tabIndex={-1} aria-label={`Remove ${labelOf(item)}`}
+              <button {...part('tag-remove')} type="button" tabIndex={-1} aria-label={t.common.remove(labelOf(item))}
                 onClick={(e) => { e.stopPropagation(); unpick(keyOf(item)) }}><iconify-icon icon="lucide:x" /></button>
             </span>
           ))}
@@ -224,7 +230,7 @@ export function SearchSelect<T>({
           {creating && (
             <Ark.Item item={creating} {...part('create')}>
               {renderCreate ? renderCreate(creating.label)
-                : <><iconify-icon icon="lucide:plus" aria-hidden="true" /><span>Create “{creating.label}”</span></>}
+                : <><iconify-icon icon="lucide:plus" aria-hidden="true" /><span>{t.select.create(creating.label)}</span></>}
             </Ark.Item>
           )}
         </Ark.Content>

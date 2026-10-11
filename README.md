@@ -81,6 +81,18 @@ Wrap the app in `<LocaleProvider locale="fr-FR">` and formatting, DatePicker,
 EventCalendar, Progress, Slider and the charts follow it (each still takes its
 own `locale`). `useLocale()` gives it to your own code.
 
+The components' own words (placeholders, empty states, "Showing 1–10 of 95",
+screen-reader labels, Zag's included) follow it too: English and French are
+built in, in `src/format/messages.ts`. Change any of them with `messages`,
+merged over the built-in list:
+
+    <LocaleProvider locale="fr-FR" messages={{ table: { empty: 'Aucun patient' } }}>
+
+For another language, give a whole list (start from the exported `en`). A
+prop given to a component (`placeholder`, `emptyText`, EventCalendar's
+`translations`) still wins. `confirm()`, which renders in its own root, uses
+the words of the app's provider.
+
 ## Every component works the same way
 
 - One package and namespace: `import { Button, Select } from '@milktop/react-ui'`.

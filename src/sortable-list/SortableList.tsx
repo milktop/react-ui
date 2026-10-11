@@ -28,6 +28,7 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from '@dnd-kit/utilities'
 import 'iconify-icon'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './sortable-list.css'
 
@@ -55,6 +56,7 @@ export function SortableList<T>({
   items: itemsProp, defaultItems = [], onItemsChange, itemKey = 'id', renderItem, itemLabel, handle = true, variant = 'card',
   disabled = false, label, className, classes, ...rest
 }: SortableListProps<T>) {
+  const t = useMessages()
   const part = partsOf('sortable-list', classes)
   const [items, setItems] = useControllable(itemsProp, defaultItems, onItemsChange)
   const keyOf = (item: T): Key => typeof itemKey === 'function' ? itemKey(item)
@@ -70,22 +72,22 @@ export function SortableList<T>({
     return String(fields.label ?? fields.title ?? fields.name ?? id)
   }
   const moved = useRef(false)
-  const place = (id: Key | undefined) => `position ${keys.indexOf(id as Key) + 1} of ${keys.length}`
+  const place = (id: Key | undefined) => t.sortableList.position(keys.indexOf(id as Key) + 1, keys.length)
   const announcements: Announcements = {
     onDragStart: ({ active }) => {
       moved.current = false
-      return `Picked up ${nameOf(active.id)}, at ${place(active.id)}.`
+      return t.sortableList.pickedUp(nameOf(active.id), place(active.id))
     },
     // dnd-kit reports the item over its own place as it's picked up: not a move yet.
     onDragOver: ({ active, over }) => {
       if (!over || (over.id === active.id && !moved.current)) return undefined
       moved.current = true
-      return `${nameOf(active.id)} moved to ${place(over.id)}.`
+      return t.sortableList.movedTo(nameOf(active.id), place(over.id))
     },
-    onDragEnd: ({ active, over }) => (over ? `${nameOf(active.id)} dropped at ${place(over.id)}.` : `${nameOf(active.id)} dropped.`),
-    onDragCancel: ({ active }) => `Reordering cancelled: ${nameOf(active.id)} is back at ${place(active.id)}.`,
+    onDragEnd: ({ active, over }) => t.sortableList.dropped(nameOf(active.id), over ? place(over.id) : null),
+    onDragCancel: ({ active }) => t.sortableList.cancelled(nameOf(active.id), place(active.id)),
   }
-  const screenReaderInstructions = { draggable: 'Press Space to pick this up. While dragging, use the arrow keys to move it, Space to drop it, or Escape to cancel.' }
+  const screenReaderInstructions = { draggable: t.sortableList.instructions }
 
   // A small move before a drag starts, so clicks on the row still work.
   const sensors = useSensors(
@@ -120,12 +122,13 @@ function Row({ id, part, handle, disabled, children }: {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled })
   const style: CSSProperties = { transform: CSS.Translate.toString(transform), transition }
   const drag = { ...attributes, ...listeners }
+  const t = useMessages()
 
   return (
     <li ref={setNodeRef} {...part('item')} style={style} data-dragging={isDragging || undefined} data-disabled={disabled || undefined}
       {...(!handle && drag)}>
       {handle && !disabled && (
-        <button ref={setActivatorNodeRef} {...part('handle')} type="button" aria-label="Drag to reorder" {...drag}>
+        <button ref={setActivatorNodeRef} {...part('handle')} type="button" aria-label={t.sortableList.handle} {...drag}>
           <iconify-icon icon="lucide:grip-vertical" aria-hidden="true" />
         </button>
       )}

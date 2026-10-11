@@ -19,6 +19,7 @@
 import type { ComponentProps } from 'react'
 import 'iconify-icon'
 import { cx, partsOf, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './button.css'
 
@@ -41,10 +42,12 @@ export type ButtonProps = ComponentProps<'button'> & {
 
 export function Button({
   variant = 'default', size = 'md', icon = null, iconEnd = null, loading = false,
-  round = false, block = false, count = null, max = 99, dot = false, pulse = false, countColor = 'danger', countLabel = 'new',
+  round = false, block = false, count = null, max = 99, dot = false, pulse = false, countColor = 'danger', countLabel: countLabelProp,
   type = 'button', disabled = false,
   className, classes, children, ...rest
 }: ButtonProps) {
+  const t = useMessages()
+  const countLabel = countLabelProp ?? t.button.countLabel
   const part = partsOf('button', classes)
   const badge = count && count > 0 ? (count > max ? `${max}+` : String(count)) : dot ? '' : null
   // Read after the label by assistive tech: "Inbox, 3 new".

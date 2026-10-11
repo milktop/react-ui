@@ -21,6 +21,7 @@ import { Editable as Ark } from '@ark-ui/react/editable'
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './editable.css'
 
@@ -37,6 +38,7 @@ function EditableShortcut({
   value, defaultValue = '', onValueChange, label = null, controls = true, activationMode = 'click', placeholder,
   className, classes, ...rest
 }: EditableProps) {
+  const t = useMessages()
   const field = useFieldContext()
   const part = partsOf('editable', classes)
   // The saved text (ours, or the caller's), and the draft being typed.
@@ -52,7 +54,7 @@ function EditableShortcut({
   }
 
   return (
-    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)} activationMode={activationMode}
+    <Ark.Root {...(t.zag.editable && { translations: t.zag.editable })} {...rest} {...part('root')} className={cx(className, classes?.root)} activationMode={activationMode}
       {...(placeholder !== undefined && { placeholder })}
       value={draft} onValueChange={(d) => setDraft(d.value)} edit={editing} onEditChange={(d) => setEditing(d.edit)}
       onValueCommit={(d) => { if (value === undefined) setOwn(d.value); if (d.value !== saved) onValueChange?.(d.value) }}
@@ -66,9 +68,9 @@ function EditableShortcut({
         {controls && (
           <Ark.Control {...part('control')}>
             {editing ? <>
-              <Ark.SubmitTrigger {...part('submit-trigger')} aria-label="Save"><iconify-icon icon="lucide:check" /></Ark.SubmitTrigger>
-              <Ark.CancelTrigger {...part('cancel-trigger')} aria-label="Cancel"><iconify-icon icon="lucide:x" /></Ark.CancelTrigger>
-            </> : <Ark.EditTrigger {...part('edit-trigger')} aria-label="Edit"><iconify-icon icon="lucide:pencil" /></Ark.EditTrigger>}
+              <Ark.SubmitTrigger {...part('submit-trigger')} aria-label={t.common.save}><iconify-icon icon="lucide:check" /></Ark.SubmitTrigger>
+              <Ark.CancelTrigger {...part('cancel-trigger')} aria-label={t.common.cancel}><iconify-icon icon="lucide:x" /></Ark.CancelTrigger>
+            </> : <Ark.EditTrigger {...part('edit-trigger')} aria-label={t.common.edit}><iconify-icon icon="lucide:pencil" /></Ark.EditTrigger>}
           </Ark.Control>
         )}
       </div>

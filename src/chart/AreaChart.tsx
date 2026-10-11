@@ -11,7 +11,7 @@
  * - `height` (240 px), `format(value)` for ticks and tooltips, `grid` (lines; true)
  * - `label`: what it shows, for assistive tech (a hidden table of the data)
  */
-import { useLocale } from '../format/LocaleProvider.js'
+import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { useId, useState, type HTMLAttributes, type PointerEvent } from 'react'
 import { scalePoint } from 'd3-scale'
 import { area, line, curveMonotoneX, curveLinear } from 'd3-shape'
@@ -37,9 +37,11 @@ export type AreaChartProps = ChartProps & { curve?: 'smooth' | 'linear' }
 type Band = [number, number]
 
 export function AreaChart({
-  data = [], x = 'label', y = null, series = null, height = 240, format = null, label = 'Chart', grid = true,
+  data = [], x = 'label', y = null, series = null, height = 240, format = null, label: labelProp, grid = true,
   curve = 'smooth', stacked = false, classes, ...rest
 }: AreaChartProps) {
+  const t = useMessages()
+  const label = labelProp ?? t.chart.label
   const part = partsOf('chart', classes)
   // Safe inside url(#…), whatever React's ids look like.
   const id = useId().replace(/[^\w-]/g, '')

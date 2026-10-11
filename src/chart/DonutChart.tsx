@@ -13,7 +13,7 @@
  * - `format(value)`, for the total, legend and tooltip
  * - `label`: what it shows, for assistive tech (a hidden table of the data)
  */
-import { useLocale } from '../format/LocaleProvider.js'
+import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { useState, type HTMLAttributes, type ReactNode } from 'react'
 import { arc, pie } from 'd3-shape'
 import { seriesColor, formatter } from './chart.js'
@@ -35,8 +35,10 @@ export type DonutChartProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> &
 }
 
 export function DonutChart({
-  data = [], size = 160, thickness = 0.32, center, legend = 'right', format = null, label = 'Chart', className, classes, ...rest
+  data = [], size = 160, thickness = 0.32, center, legend = 'right', format = null, label: labelProp, className, classes, ...rest
 }: DonutChartProps) {
+  const t = useMessages()
+  const label = labelProp ?? t.chart.label
   const part = partsOf('donut', classes)
   const [hover, setHover] = useState<number | null>(null)
   const fmt = formatter(format, useLocale())
@@ -64,7 +66,7 @@ export function DonutChart({
           <div {...part('center')}>
             {shown
               ? <><strong>{fmt(shown.value)}</strong><span>{shown.label}</span></>
-              : center ?? <><strong>{fmt(total)}</strong><span>Total</span></>}
+              : center ?? <><strong>{fmt(total)}</strong><span>{t.chart.total}</span></>}
           </div>
         )}
       </div>

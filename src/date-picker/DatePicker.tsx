@@ -31,7 +31,7 @@ import { DatePicker as Ark, parseDate, useDatePicker, type DatePickerValueChange
 import { useFieldContext } from '@ark-ui/react/field'
 import { getLocalTimeZone, today } from '@internationalized/date'
 import 'iconify-icon'
-import { useLocale } from '../format/LocaleProvider.js'
+import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { cx, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './date-picker.css'
@@ -67,6 +67,7 @@ function DatePickerInner(props: DatePickerProps) {
   } = props as DatePickerProps & { value?: string | string[] | null, defaultValue?: string | string[] | null,
     onValueChange?: (value: string | string[] | null, details: DatePickerValueChangeDetails) => void }
   const field = useFieldContext()
+  const t = useMessages()
   // Its own, the LocaleProvider's, or British (for day-month order and a Monday start).
   const locale = localeProp ?? 'en-GB'
   const part = partsOf('date-picker', classes)
@@ -87,6 +88,7 @@ function DatePickerInner(props: DatePickerProps) {
     ...(min && { min: parseDate(min) }), ...(max && { max: parseDate(max) }),
     ...(unavailable && { isDateUnavailable: unavailable }),
     positioning: { placement },
+    ...(t.zag.datePicker && { translations: t.zag.datePicker }),
     ...(inline && { inline: true }),
     // Inside a Field, its label points at the first input.
     ...(field && { ids: { label: () => field.ids.label, input: (index: number) => (index === 0 ? field.ids.control : `${field.ids.control}-${index}`) }, invalid: field.invalid }),

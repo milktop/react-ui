@@ -21,7 +21,7 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import 'iconify-icon'
 import { formatNumber } from '../format/format.js'
-import { useLocale } from '../format/LocaleProvider.js'
+import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { RollingNumber } from '../rolling-number/RollingNumber.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import '../theme.css'
@@ -48,6 +48,7 @@ export function Stat({
   label = null, value = null, format, animate = false, unit = null, change = null, changeUnit = '%', changeLabel = null, invert = false,
   help = null, icon = null, variant = 'plain', size = 'md', className, classes, children, ...rest
 }: StatProps) {
+  const t = useMessages()
   const part = partsOf('stat', classes)
   const direction = change == null || change === 0 ? 'flat' : change > 0 ? 'up' : 'down'
   const good = direction === 'flat' ? null : (direction === 'up') !== invert
@@ -72,7 +73,7 @@ export function Stat({
         <div {...part('footer')}>
           {change != null && (
             <span {...part('change')} data-good={good === true || undefined} data-bad={good === false || undefined}
-              aria-label={`${direction === 'up' ? 'Up' : direction === 'down' ? 'Down' : 'No change'} ${changeText}`}>
+              aria-label={`${direction === 'up' ? t.stat.up : direction === 'down' ? t.stat.down : t.stat.same} ${changeText}`}>
               {direction !== 'flat' && <iconify-icon icon={direction === 'down' ? 'lucide:trending-down' : 'lucide:trending-up'} />}
               {changeText}
             </span>

@@ -15,6 +15,7 @@
 import type { ComponentProps, ReactNode } from 'react'
 import 'iconify-icon'
 import { cx, partsOf, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './alert.css'
 
@@ -32,6 +33,7 @@ const icons = { info: 'lucide:info', success: 'lucide:circle-check', warning: 'l
 export function Alert({
   variant = 'info', heading = null, icon = true, onDismiss = null, actions = null, className, classes, children, ...rest
 }: AlertProps) {
+  const t = useMessages()
   const part = partsOf('alert', classes)
   return (
     <div {...rest} {...part('root')} className={cx(className, classes?.root)} data-variant={variant}
@@ -43,7 +45,7 @@ export function Alert({
         {actions && <div {...part('actions')}>{actions}</div>}
       </div>
       {onDismiss && (
-        <button {...part('close')} type="button" aria-label="Dismiss" onClick={onDismiss}><iconify-icon icon="lucide:x" /></button>
+        <button {...part('close')} type="button" aria-label={t.common.dismiss} onClick={onDismiss}><iconify-icon icon="lucide:x" /></button>
       )}
     </div>
   )

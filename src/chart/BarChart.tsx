@@ -8,7 +8,7 @@
  * - `data`, `x`, `y`, `series`, `height`, `format`, `grid`, `label`: as for AreaChart
  * - `stacked`: series sit on top of one another instead of side by side
  */
-import { useLocale } from '../format/LocaleProvider.js'
+import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { useState, type PointerEvent } from 'react'
 import { scaleBand } from 'd3-scale'
 import { ChartFrame } from './ChartFrame.js'
@@ -19,9 +19,11 @@ import { partsOf } from '../utils.js'
 export type BarChartProps = ChartProps
 
 export function BarChart({
-  data = [], x = 'label', y = null, series = null, height = 240, format = null, label = 'Chart', grid = true,
+  data = [], x = 'label', y = null, series = null, height = 240, format = null, label: labelProp, grid = true,
   stacked = false, classes, ...rest
 }: BarChartProps) {
+  const t = useMessages()
+  const label = labelProp ?? t.chart.label
   const part = partsOf('chart', classes)
   const [hover, setHover] = useState<number | null>(null)
   const [width, setWidth] = useState(0)

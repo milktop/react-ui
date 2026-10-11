@@ -11,6 +11,7 @@ import { useMemo, useRef, useState, type HTMLAttributes, type ReactNode } from '
 import 'iconify-icon'
 import { useShell } from '../app-shell/shell.js'
 import { cx, partsOf, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import { SectionContext, type SectionState } from './context.js'
 import '../theme.css'
 import './sidebar.css'
@@ -22,6 +23,7 @@ export type NavSectionProps = HTMLAttributes<HTMLDivElement> & {
 }
 
 export function NavSection({ heading = null, collapsible = false, className, classes, children, ...rest }: NavSectionProps) {
+  const t = useMessages()
   const shell = useShell()
   const part = partsOf('nav-section', classes)
   const setters = useRef(new Map<string, (open: boolean) => void>())
@@ -45,7 +47,7 @@ export function NavSection({ heading = null, collapsible = false, className, cla
     for (const setOpen of setters.current.values()) setOpen(!anyOpen)
   }
 
-  const toggleLabel = anyOpen ? 'Collapse all' : 'Expand all'
+  const toggleLabel = anyOpen ? t.shell.collapseAll : t.shell.expandAll
   return (
     <SectionContext value={section}>
       <div {...rest} {...part('root')} className={cx(className, classes?.root)} role="group"

@@ -25,6 +25,7 @@ import { Dialog as Ark, type DialogOpenChangeDetails } from '@ark-ui/react/dialo
 import { Portal } from '@ark-ui/react/portal'
 import 'iconify-icon'
 import { cx, on, partOf, partsOf, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './sheet.css'
 
@@ -72,6 +73,7 @@ function SheetShortcut({
   open, defaultOpen, onOpenChange, side = 'right', size = 'md', heading = null, description = null, alert = false,
   closable = true, trigger = null, footer = null, className, classes, children, ...rest
 }: SheetProps) {
+  const t = useMessages()
   const part = partsOf('sheet', classes)
   const nodes = Children.toArray(children)
   const composed = nodes.some((node) => isValidElement(node) && layout.includes(node.type))
@@ -88,7 +90,7 @@ function SheetShortcut({
         <Ark.Backdrop {...part('backdrop')} />
         <Ark.Positioner {...part('positioner')} data-side={side}>
           <Ark.Content {...rest} {...part('content')} className={cx(className, classes?.content)} data-side={side} data-size={size}>
-            {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label="Close"><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
+            {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label={t.common.close}><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
             {composed ? content : <>
               {(heading || description) && (
                 <div {...part('header')}>

@@ -32,6 +32,8 @@ import { createFileTypeValidator, getAcceptAttrString, getFileKey, isValidFileSi
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { cx, partsOf, useControllable, withParts, type Classes } from '../utils.js'
+import { useLocale, useMessages } from '../format/LocaleProvider.js'
+import { formatBytes } from '../format/format.js'
 import '../theme.css'
 import './file-upload.css'
 
@@ -45,11 +47,6 @@ export type FileUploadProps = Omit<Ark.RootProps, 'acceptedFiles' | 'defaultAcce
     | 'itemPreview' | 'itemName' | 'size' | 'reason' | 'itemDeleteTrigger'>
 }
 
-const size = (bytes: number) =>
-  bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${Math.round(bytes / 1024)} KB` : `${(bytes / 1048576).toFixed(1)} MB`
-const reasons: Record<string, string> = {
-  FILE_INVALID_TYPE: 'Not an allowed type', FILE_TOO_LARGE: 'Too large', TOO_MANY_FILES: 'Too many files', FILE_TOO_SMALL: 'Too small',
-}
 
 // Object URLs for image previews, revoked when the files go.
 function usePreviews(files: File[]) {
@@ -64,6 +61,8 @@ function FileUploadShortcut({
   label = null, files, defaultFiles, onFilesChange, maxFiles = 1, accept, minFileSize, maxFileSize, validate,
   hint = null, className, classes, ...rest
 }: FileUploadProps) {
+  const t = useMessages()
+  const locale = useLocale()
   const field = useFieldContext()
   const part = partsOf('file-upload', classes)
   const [accepted, setAccepted] = useControllable<File[]>(files, defaultFiles ?? [], undefined)
@@ -100,7 +99,7 @@ function FileUploadShortcut({
   }
 
   return (
-    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)}
+    <Ark.Root {...(t.zag.fileUpload && { translations: t.zag.fileUpload })} {...rest} {...part('root')} className={cx(className, classes?.root)}
       maxFiles={maxFiles > 1 ? Number.MAX_SAFE_INTEGER : maxFiles} validate={limit}
       {...(accept !== undefined && { accept })} {...(minFileSize !== undefined && { minFileSize })}
       {...(maxFileSize !== undefined && { maxFileSize })}
@@ -109,7 +108,7 @@ function FileUploadShortcut({
       <Ark.Dropzone {...part('dropzone')}>
         <iconify-icon {...part('icon')} icon="lucide:upload" aria-hidden="true" />
         <span {...part('prompt')}>
-          Drop {maxFiles > 1 ? 'files' : 'a file'} here or <Ark.Trigger {...part('trigger')}>browse</Ark.Trigger>
+          {t.fileUpload.prompt(maxFiles > 1)} <Ark.Trigger {...part('trigger')}>{t.fileUpload.browse}</Ark.Trigger>
         </span>
         {hint && <span {...part('hint')}>{hint}</span>}
       </Ark.Dropzone>
@@ -124,7 +123,7 @@ function FileUploadShortcut({
                 {previews.has(file) ? <img src={previews.get(file)} alt="" /> : <iconify-icon icon="lucide:file" aria-hidden="true" />}
               </Ark.ItemPreview>
               <Ark.ItemName {...part('item-name')} />
-              <span {...part('size')}>{size(file.size)}</span>
+              <span {...part('size')}>{formatBytes(file.size, { locale })}</span>
               <Ark.ItemDeleteTrigger {...part('item-delete-trigger')}><iconify-icon icon="lucide:x" /></Ark.ItemDeleteTrigger>
             </Ark.Item>
           ))}
@@ -134,7 +133,7 @@ function FileUploadShortcut({
             <Ark.Item key={`${file.name}:${file.lastModified}`} file={file} {...part('item')} data-rejected="">
               <Ark.ItemPreview type=".*" {...part('item-preview')}><iconify-icon icon="lucide:file-x" aria-hidden="true" /></Ark.ItemPreview>
               <Ark.ItemName {...part('item-name')} />
-              <span {...part('reason')}>{errors.map((e) => reasons[e] ?? e).join(', ')}</span>
+              <span {...part('reason')}>{errors.map((e) => (t.fileUpload.reasons as Record<string, string>)[e] ?? e).join(', ')}</span>
               <Ark.ItemDeleteTrigger {...part('item-delete-trigger')}><iconify-icon icon="lucide:x" /></Ark.ItemDeleteTrigger>
             </Ark.Item>
           ))}

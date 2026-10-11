@@ -53,6 +53,7 @@ import { Dialog as Ark, type DialogOpenChangeDetails } from '@ark-ui/react/dialo
 import { Portal } from '@ark-ui/react/portal'
 import 'iconify-icon'
 import { cx, on, partOf, partsOf, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './dialog.css'
 
@@ -93,6 +94,7 @@ function DialogShortcut({
   open, defaultOpen, onOpenChange, onExitComplete, heading = null, description = null, alert = false, size = 'md', closable = true,
   trigger = null, footer = null, className, classes, children, ...rest
 }: DialogProps) {
+  const t = useMessages()
   const part = partsOf('dialog', classes)
   // Composed from Dialog.Header, Body and Footer: they go straight into the
   // dialog (not wrapped as its body), and a Dialog.Trigger goes before it.
@@ -113,7 +115,7 @@ function DialogShortcut({
         <Ark.Backdrop {...part('backdrop')} />
         <Ark.Positioner {...part('positioner')}>
           <Ark.Content {...rest} {...part('content')} className={cx(className, classes?.content)} data-size={size}>
-            {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label="Close"><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
+            {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label={t.common.close}><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
             {(heading || description) && (
               <div {...part('header')}>
                 {heading && <Ark.Title {...part('title')}>{heading}</Ark.Title>}

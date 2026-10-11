@@ -42,7 +42,7 @@ import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { Dialog } from '../dialog/Dialog.js'
 import { formatBytes } from '../format/format.js'
-import { useLocale } from '../format/LocaleProvider.js'
+import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { Segmented } from '../segment-group/Segmented.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import '../theme.css'
@@ -98,7 +98,6 @@ function iconFor(type: string, name: string) {
 
 const fileKey = (file: File) => getFileKey(file)
 
-const layouts = [{ value: 'grid', label: 'Grid', icon: 'lucide:layout-grid' }, { value: 'list', label: 'List', icon: 'lucide:list' }]
 
 function saved(key: string | null): AttachmentsLayout | null {
   try {
@@ -142,9 +141,12 @@ const typeChecker = (accept: string | null) => {
 export function Attachments({
   items: itemsProp, defaultItems = [], onItemsChange, layout: layoutProp, defaultLayout = 'grid', onLayoutChange,
   switchable = false, persist = null, columns = null, removable = false, addable = false,
-  accept = null, maxFiles = null, maxFileSize = null, addLabel = 'Add files', emptyText = null, onRemove, onAdd, onReject,
+  accept = null, maxFiles = null, maxFileSize = null, addLabel: addLabelProp, emptyText = null, onRemove, onAdd, onReject,
   label = null, name, keptName, disabled: disabledProp = false, className, classes, style, ...rest
 }: AttachmentsProps) {
+  const t = useMessages()
+  const addLabel = addLabelProp ?? t.attachments.add
+  const layouts = [{ value: 'grid', label: t.attachments.grid, icon: 'lucide:layout-grid' }, { value: 'list', label: t.attachments.list, icon: 'lucide:list' }]
   const part = partsOf('attachments', classes)
   const field = useFieldContext()
   const id = useId()
@@ -194,9 +196,9 @@ export function Attachments({
     const ok: File[] = []
     const bad: AttachmentRejection[] = []
     for (const file of files) {
-      if (!fitsType(file)) bad.push({ file, reason: 'not an accepted type' })
-      else if (maxFileSize && file.size > maxFileSize) bad.push({ file, reason: `over ${formatSize(maxFileSize, locale)}` })
-      else if (maxFiles && count + ok.length >= maxFiles) bad.push({ file, reason: `the limit is ${maxFiles} files` })
+      if (!fitsType(file)) bad.push({ file, reason: t.attachments.notType })
+      else if (maxFileSize && file.size > maxFileSize) bad.push({ file, reason: t.attachments.over(formatSize(maxFileSize, locale)) })
+      else if (maxFiles && count + ok.length >= maxFiles) bad.push({ file, reason: t.attachments.limit(maxFiles) })
       else ok.push(file)
     }
     setRejected(bad)
@@ -271,7 +273,7 @@ export function Attachments({
           {label && !field && <span {...part('label')} id={labelId}>{label}</span>}
           {switchable && (
             // Segmented keeps its own scope (its CSS); `classes.switch` still applies.
-            <Segmented className={classes?.switch} size="sm" iconOnly aria-label="Layout" items={layouts} value={layout}
+            <Segmented className={classes?.switch} size="sm" iconOnly aria-label={t.attachments.layout} items={layouts} value={layout}
               onValueChange={(next) => next && setLayout(next as AttachmentsLayout)} />
           )}
         </div>
@@ -282,7 +284,7 @@ export function Attachments({
       <ul {...part('files')} ref={filesEl}>
         {list.map((entry, i) => (
           <li key={i} {...part('file')}>
-            <button {...part('open')} type="button" aria-label={`Open ${entry.name}`} onClick={() => open(entry)}>
+            <button {...part('open')} type="button" aria-label={t.attachments.open(entry.name)} onClick={() => open(entry)}>
               <span {...part('thumb')}>
                 {entry.thumb ? <img src={entry.thumb} alt="" loading="lazy" /> : <>
                   <iconify-icon {...part('icon')} icon={entry.icon} aria-hidden="true" />
@@ -296,10 +298,10 @@ export function Attachments({
             </button>
             <span {...part('actions')}>
               {entry.url && (
-                <a {...part('action')} href={entry.url} download={entry.name} aria-label={`Download ${entry.name}`}><iconify-icon icon="lucide:download" /></a>
+                <a {...part('action')} href={entry.url} download={entry.name} aria-label={t.attachments.downloadFile(entry.name)}><iconify-icon icon="lucide:download" /></a>
               )}
               {removable && (
-                <button {...part('action')} type="button" aria-label={`Remove ${entry.name}`} onClick={() => remove(entry)}><iconify-icon icon="lucide:x" /></button>
+                <button {...part('action')} type="button" aria-label={t.common.remove(entry.name)} onClick={() => remove(entry)}><iconify-icon icon="lucide:x" /></button>
               )}
             </span>
           </li>
@@ -311,8 +313,8 @@ export function Attachments({
               <span {...part('add-icon')}><iconify-icon icon="lucide:plus" /></span>
               <span {...part('add-text')}>
                 <span {...part('add-label')}>{addLabel}</span>
-                {!list.length && <span {...part('limit')}>or drop files here</span>}
-                {maxFiles && list.length > 0 && <span {...part('limit')}>{count} of {maxFiles}</span>}
+                {!list.length && <span {...part('limit')}>{t.attachments.orDrop}</span>}
+                {maxFiles && list.length > 0 && <span {...part('limit')}>{t.attachments.count(count, maxFiles)}</span>}
               </span>
             </label>
           </li>
@@ -320,18 +322,18 @@ export function Attachments({
       </ul>
       {rejected.length > 0 && (
         <ul {...part('rejected')} role="alert">
-          {rejected.map((item, i) => <li key={i}>{item.file.name} wasn’t added: {item.reason}.</li>)}
+          {rejected.map((item, i) => <li key={i}>{t.attachments.notAdded(item.file.name, item.reason)}</li>)}
         </ul>
       )}
       {dragging && (
         <div {...part('drop-hint')} aria-hidden="true">
           <iconify-icon icon="lucide:upload" />
-          <span>{atMax ? `The limit is ${maxFiles} files` : 'Drop to add'}</span>
+          <span>{atMax && maxFiles ? t.attachments.limit(maxFiles) : t.attachments.dropToAdd}</span>
         </div>
       )}
 
       <Dialog size="lg" heading={previewing?.name} open={previewOpen} onOpenChange={setPreviewOpen}
-        footer={previewing && <a {...part('download-link')} href={previewing.url} download={previewing.name}>Download</a>}>
+        footer={previewing && <a {...part('download-link')} href={previewing.url} download={previewing.name}>{t.attachments.download}</a>}>
         {previewing && <img {...part('preview')} src={previewing.url} alt={previewing.name} />}
       </Dialog>
     </div>

@@ -28,6 +28,7 @@ import { NumberInput as Ark, type NumberInputValueChangeDetails } from '@ark-ui/
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './number-input.css'
 
@@ -50,6 +51,7 @@ function NumberInputShortcut({
   label = null, value, defaultValue, onValueChange, prefix = null, suffix = null, icon = null, steppers = true, placeholder = '',
   className, classes, ...rest
 }: NumberInputProps) {
+  const t = useMessages()
   const field = useFieldContext()
   const part = partsOf('number-input', classes)
 
@@ -69,7 +71,7 @@ function NumberInputShortcut({
   }
 
   return (
-    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)} value={text} onValueChange={change}>
+    <Ark.Root {...(t.zag.numberInput && { translations: t.zag.numberInput })} {...rest} {...part('root')} className={cx(className, classes?.root)} value={text} onValueChange={change}>
       {label && !field && <Ark.Label {...part('label')}>{label}</Ark.Label>}
       <Ark.Control {...part('control')}>
         {icon ? <iconify-icon {...part('icon')} icon={icon} aria-hidden="true" />

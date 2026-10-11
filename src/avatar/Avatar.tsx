@@ -31,6 +31,7 @@ import { Avatar as Ark } from '@ark-ui/react/avatar'
 import 'iconify-icon'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './avatar.css'
 
@@ -76,6 +77,7 @@ function AvatarShortcut({
   src = null, name = null, letters = 2, size = 'md', square = false, color = 'accent', tooltip = null, status = null, statusLabel,
   className, classes, style, ...rest
 }: AvatarProps) {
+  const t = useMessages()
   const part = partsOf('avatar', classes)
   const custom = customSize(size)
   const initials = initialsOf(name, letters)
@@ -93,7 +95,7 @@ function AvatarShortcut({
       {tip && <Tooltip content={tip}><span {...part('tooltip-target')} /></Tooltip>}
       {status && (
         <span {...part('status')} data-status={['online', 'away', 'busy', 'offline'].includes(status) ? status : 'custom'}
-          role="img" aria-label={statusLabel ?? status}
+          role="img" aria-label={statusLabel ?? t.avatar.status[status as keyof typeof t.avatar.status] ?? status}
           style={['online', 'away', 'busy', 'offline'].includes(status) ? undefined : { background: status }} />
       )}
     </Ark.Root>

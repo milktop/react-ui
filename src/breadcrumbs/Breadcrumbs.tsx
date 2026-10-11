@@ -15,6 +15,7 @@ import type { HTMLAttributes, ReactNode } from 'react'
 import 'iconify-icon'
 import { Menu } from '../menu/Menu.js'
 import { cx, partsOf, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './breadcrumbs.css'
 
@@ -31,8 +32,10 @@ export type BreadcrumbsProps = HTMLAttributes<HTMLElement> & {
 }
 
 export function Breadcrumbs({
-  items = [], separator = null, max = null, label = 'Breadcrumb', renderLink, className, classes, ...rest
+  items = [], separator = null, max = null, label: labelProp, renderLink, className, classes, ...rest
 }: BreadcrumbsProps) {
+  const t = useMessages()
+  const label = labelProp ?? t.breadcrumbs.label
   const part = partsOf('breadcrumbs', classes)
   // The first crumb, a "…" for the folded middle, and the last max - 1.
   const folded = !!max && items.length > max
@@ -55,7 +58,7 @@ export function Breadcrumbs({
               {item === 'fold'
                 // The folded crumbs, in a menu of links.
                 ? <Menu items={hidden.map((crumb, j) => ({ label: crumb.label, value: j, href: crumb.href ?? undefined, icon: crumb.icon ?? undefined }))}
-                    trigger={<button {...part('more')} type="button" aria-label={`${hidden.length} more`}>…</button>} />
+                    trigger={<button {...part('more')} type="button" aria-label={t.common.more(hidden.length)}>…</button>} />
                 : item.href && !current
                   ? renderLink ? renderLink(item, { ...part('link'), children: content }) : <a {...part('link')} href={item.href}>{content}</a>
                   : <span {...part('link')} data-current={current || undefined} aria-current={current ? 'page' : undefined}>{content}</span>}

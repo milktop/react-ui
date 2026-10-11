@@ -29,6 +29,7 @@ import { Segmented } from '../segment-group/Segmented.js'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { useColorScheme, type Scheme } from '../color-scheme.js'
 import { cx, partsOf, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './theme-toggle.css'
 
@@ -68,9 +69,12 @@ function useNarrow(on: boolean, breakpoint: number) {
 
 export function ThemeToggle({
   variant = 'segmented', mobile = null, breakpoint = 768, options = ['system', 'light', 'dark'], system = true,
-  labels = { light: 'Light', dark: 'Dark', system: 'System' }, label = 'Colour scheme', placement = null,
+  labels: labelsProp, label: labelProp, placement = null,
   size = 'md', keepOpen = false, iconOnly = false, onChange, className, classes, ...rest
 }: ThemeToggleProps) {
+  const t = useMessages()
+  const labels = labelsProp ?? t.themeToggle
+  const label = labelProp ?? t.themeToggle.label
   const part = partsOf('theme-toggle', classes)
   const { scheme, dark, setScheme } = useColorScheme()
   const narrow = useNarrow(!!mobile, breakpoint)

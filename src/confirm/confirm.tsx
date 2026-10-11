@@ -32,6 +32,7 @@ import { Button } from '../button/Button.js'
 import { Input } from '../input/Input.js'
 import { Alert } from '../alert/Alert.js'
 import { partsOf } from '../utils.js'
+import { AmbientLocale, useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './confirm.css'
 
@@ -86,14 +87,17 @@ function remove(request: Request) {
 function ConfirmHost() {
   const current = useSyncExternalStore(subscribe, () => queue[0] ?? null, () => null)
   // A new dialog per request, so each starts with its own state.
-  return current ? <ConfirmDialog key={current.id} request={current} /> : null
+  return current ? <AmbientLocale><ConfirmDialog key={current.id} request={current} /></AmbientLocale> : null
 }
 
 function ConfirmDialog({ request }: { request: Request }) {
   const {
-    heading, description = null, content = null, confirmLabel = 'Confirm', cancelLabel = 'Cancel', danger = false,
+    heading, description = null, content = null, confirmLabel: confirmLabelProp, cancelLabel: cancelLabelProp, danger = false,
     typeToConfirm = null, onConfirm = null, size = 'sm',
   } = request
+  const t = useMessages()
+  const confirmLabel = confirmLabelProp ?? t.common.confirm
+  const cancelLabel = cancelLabelProp === undefined ? t.common.cancel : cancelLabelProp
   const part = partsOf('confirm')
   const [typed, setTyped] = useState('')
   const [busy, setBusy] = useState(false)
@@ -137,8 +141,8 @@ function ConfirmDialog({ request }: { request: Request }) {
           {content}
           {typeToConfirm && (
             <form {...part('type')} onSubmit={(e) => { e.preventDefault(); yes() }}>
-              <span {...part('type-label')}>Type <strong>{typeToConfirm}</strong> to confirm</span>
-              <Input value={typed} onValueChange={setTyped} autoFocus autoComplete="off" aria-label={`Type ${typeToConfirm} to confirm`} />
+              <span {...part('type-label')}>{t.confirm.typePrefix} <strong>{typeToConfirm}</strong> {t.confirm.typeSuffix}</span>
+              <Input value={typed} onValueChange={setTyped} autoFocus autoComplete="off" aria-label={t.confirm.typeToConfirm(typeToConfirm)} />
             </form>
           )}
           {error && <Alert variant="danger">{error}</Alert>}

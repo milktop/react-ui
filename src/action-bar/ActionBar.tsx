@@ -21,6 +21,7 @@ import { useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 import { Portal } from '@ark-ui/react/portal'
 import 'iconify-icon'
 import { cx, partsOf, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './action-bar.css'
 
@@ -34,9 +35,11 @@ export type ActionBarProps = ComponentProps<'div'> & {
 }
 
 export function ActionBar({
-  open = false, closable = true, label = 'Selection actions', onClose = null, selection = null,
+  open = false, closable = true, label: labelProp, onClose = null, selection = null,
   className, classes, children, ...rest
 }: ActionBarProps) {
+  const t = useMessages()
+  const label = labelProp ?? t.actionBar.label
   const part = partsOf('action-bar', classes)
   // Kept in the page until its closing animation ends (or 300 ms, if none
   // runs, as with reduced motion).
@@ -58,7 +61,7 @@ export function ActionBar({
           onKeyDown={(e) => { if (e.key === 'Escape') onClose?.() }}>
           {selection != null && <><div {...part('selection')}>{selection}</div><span {...part('separator')} aria-hidden="true" /></>}
           <div {...part('actions')}>{children}</div>
-          {closable && <button {...part('close')} type="button" aria-label="Close" onClick={() => onClose?.()}><iconify-icon icon="lucide:x" /></button>}
+          {closable && <button {...part('close')} type="button" aria-label={t.common.close} onClick={() => onClose?.()}><iconify-icon icon="lucide:x" /></button>}
         </div>
       </div>
     </Portal>

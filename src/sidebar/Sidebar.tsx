@@ -29,6 +29,7 @@ import 'iconify-icon'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { useShell } from '../app-shell/shell.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import { SidebarContext, type SidebarState } from './context.js'
 import { NavSection } from './NavSection.js'
 import { NavGroup } from './NavGroup.js'
@@ -52,9 +53,11 @@ export type SidebarProps = HTMLAttributes<HTMLElement> & {
 }
 
 function SidebarShortcut({
-  logo = null, logoCollapsed = null, footer = null, accordion = false, items = null, edge = 'rail', label = 'Main',
+  logo = null, logoCollapsed = null, footer = null, accordion = false, items = null, edge = 'rail', label: labelProp,
   className, classes, children, ...rest
 }: SidebarProps) {
+  const t = useMessages()
+  const label = labelProp ?? t.shell.nav
   const shell = useShell()
   const part = partsOf('sidebar', classes)
   const rail = !!shell?.rail
@@ -64,8 +67,8 @@ function SidebarShortcut({
   const sidebar = useMemo<SidebarState>(() => ({ accordion, openGroup, setOpenGroup }), [accordion, openGroup])
 
   const toggleButton = (expand: boolean) => (
-    <Tooltip content={expand ? 'Expand sidebar (⌘B)' : 'Collapse sidebar (⌘B)'} placement="right">
-      <button {...part('toggle')} type="button" onClick={shell?.toggle} aria-label={expand ? 'Expand sidebar' : 'Collapse sidebar'}>
+    <Tooltip content={`${expand ? t.shell.expandSidebar : t.shell.collapseSidebar} (⌘B)`} placement="right">
+      <button {...part('toggle')} type="button" onClick={shell?.toggle} aria-label={expand ? t.shell.expandSidebar : t.shell.collapseSidebar}>
         <iconify-icon icon={expand ? 'lucide:panel-left-open' : 'lucide:panel-left-close'} aria-hidden="true" />
       </button>
     </Tooltip>
@@ -82,7 +85,7 @@ function SidebarShortcut({
               : <>
                   {logo && <div {...part('logo')}>{logo}</div>}
                   {shell?.mobile
-                    ? <button {...part('toggle')} type="button" onClick={shell.toggle} aria-label="Close menu">
+                    ? <button {...part('toggle')} type="button" onClick={shell.toggle} aria-label={t.shell.closeMenu}>
                         <iconify-icon icon="lucide:x" aria-hidden="true" />
                       </button>
                     : shell && toggleButton(false)}
@@ -112,7 +115,7 @@ function SidebarShortcut({
         {/* Mouse only: keyboard users have the buttons above and ⌘B. It never
             takes focus (mousedown is prevented), so no focus ring is left behind. */}
         {shell && !shell.mobile && (edge === 'rail' ? rail : edge) && (
-          <button {...part('edge')} type="button" tabIndex={-1} aria-hidden="true" title={rail ? 'Expand sidebar' : 'Collapse sidebar'}
+          <button {...part('edge')} type="button" tabIndex={-1} aria-hidden="true" title={rail ? t.shell.expandSidebar : t.shell.collapseSidebar}
             onMouseDown={(e) => e.preventDefault()} onClick={shell.toggle} />
         )}
       </aside>

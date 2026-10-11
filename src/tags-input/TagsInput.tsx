@@ -36,6 +36,7 @@ import { TagsInput as Ark, useTagsInput, type TagsInputValueChangeDetails } from
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { cx, partOf, partsOf, useControllable, withParts, type Classes } from '../utils.js'
+import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './tags-input.css'
 
@@ -52,9 +53,11 @@ export type TagsInputProps = Omit<Ark.RootProps, 'value' | 'defaultValue' | 'onV
 }
 
 function TagsInputShortcut({
-  label = null, value, defaultValue, onValueChange, placeholder = 'Add…', variant = 'subtle', max = Infinity, delimiter = ',',
+  label = null, value, defaultValue, onValueChange, placeholder: placeholderProp, variant = 'subtle', max = Infinity, delimiter = ',',
   validate, allowDuplicates = false, addOnPaste = true, editable = true, name, disabled, className, classes, ...rest
 }: TagsInputProps) {
+  const t = useMessages()
+  const placeholder = placeholderProp ?? t.tagsInput.placeholder
   const field = useFieldContext()
   const part = partsOf('tags-input', classes)
   const [tags, setTags] = useControllable<string[]>(value, defaultValue ?? [], undefined)
@@ -66,6 +69,7 @@ function TagsInputShortcut({
   const props: Machine = {
     value: tags, max, delimiter, allowDuplicates, addOnPaste, editable, blurBehavior: 'add',
     ...(validate && { validate }), ...(name && { name }), ...(disabled !== undefined && { disabled }),
+    ...(t.zag.tagsInput && { translations: t.zag.tagsInput }),
     onInputValueChange: (details) => { if (details.inputValue) typed.current = details.inputValue },
     onValueInvalid: () => {
       const text = typed.current
