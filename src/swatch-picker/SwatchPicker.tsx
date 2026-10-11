@@ -12,11 +12,15 @@
  *   (the default: every colour in `swatches`)
  * - `value`, `defaultValue`; `onValueChange`: called with the chosen value
  * - `label`: a label above it (skipped inside a Field); `size`: 'sm', 'md' or 'lg'
+ * - `variant`: 'inline' (default: the swatches in the page) or 'popover': a
+ *   field showing the chosen colour and its name, opening the swatches
+ *   (closed once one's chosen); `placeholder` shows while none is
  *
  * `swatches` is the palette by name (Tailwind's 500s), e.g. for the
  * CSS colour of a chosen name: `swatches.teal`.
  */
-import type { CSSProperties, ReactNode } from 'react'
+import { useId, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react'
+import { Popover } from '../popover/Popover.js'
 import { RadioGroup as Ark, type RadioGroupValueChangeDetails } from '@ark-ui/react/radio-group'
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
@@ -39,25 +43,35 @@ export type SwatchPickerProps = Omit<Ark.RootProps, 'value' | 'defaultValue' | '
   onValueChange?: (value: string | null) => void
   label?: ReactNode
   size?: 'sm' | 'md' | 'lg'
-  classes?: Classes<'root' | 'label' | 'items' | 'item' | 'swatch'>
+  variant?: 'inline' | 'popover'
+  placeholder?: string
+  classes?: Classes<'root' | 'label' | 'items' | 'item' | 'swatch' | 'trigger' | 'value' | 'indicator' | 'field' | 'chip'>
 }
 
 const capital = (name: string) => name.charAt(0).toUpperCase() + name.slice(1)
 
 export function SwatchPicker({
-  items = Object.keys(swatches), value, defaultValue = null, onValueChange, label = null, size = 'md', className, classes, ...rest
+  items = Object.keys(swatches), value, defaultValue = null, onValueChange, label = null, size = 'md', variant = 'inline',
+  placeholder = 'Choose a colour', className, classes, ...rest
 }: SwatchPickerProps) {
+  const id = useId()
+  const [open, setOpen] = useState(false)
   const field = useFieldContext()
   const part = partsOf('swatch-picker', classes)
   const [current, setCurrent] = useControllable(value, defaultValue, onValueChange)
   const list: Swatch[] = items.map((item) => (typeof item === 'string' ? { value: item, color: swatches[item] ?? item, label: capital(item) } : item))
 
-  return (
-    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)} orientation="horizontal" data-size={size}
-      value={current} onValueChange={(d: RadioGroupValueChangeDetails) => setCurrent(d.value)}
+  const chosen = list.find((swatch) => swatch.value === current)
+  const popover = variant === 'popover'
+
+  const grid = (
+    <Ark.Root {...(!popover && rest)} {...part('root')} className={popover ? classes?.root : cx(className, classes?.root)}
+      orientation="horizontal" data-size={size} data-variant={variant}
+      value={current} onValueChange={(d: RadioGroupValueChangeDetails) => { setCurrent(d.value); setOpen(false) }}
       aria-describedby={field?.ariaDescribedby}
+      {...(popover && { 'aria-labelledby': field ? field.ids.label : label ? `${id}-label` : undefined })}
       {...(field && { ids: { label: field.ids.label }, invalid: field.invalid, disabled: field.disabled })}>
-      {label && !field && <Ark.Label {...part('label')}>{label}</Ark.Label>}
+      {label && !field && !popover && <Ark.Label {...part('label')}>{label}</Ark.Label>}
       <div {...part('items')}>
         {list.map((swatch) => (
           <Ark.Item key={swatch.value} value={swatch.value} {...part('item')} title={swatch.label ?? swatch.value}
@@ -69,5 +83,24 @@ export function SwatchPicker({
         ))}
       </div>
     </Ark.Root>
+  )
+  if (!popover) return grid
+
+  // A field (like an input) showing the colour, opening the swatches.
+  return (
+    <div {...(rest as HTMLAttributes<HTMLDivElement>)} {...part('field')} className={cx(className, classes?.field)} data-size={size}>
+      {label && !field && <span {...part('label')} id={`${id}-label`}>{label}</span>}
+      <Popover placement="bottom-start" open={open} onOpenChange={setOpen} data-swatches="" trigger={
+        <button type="button" {...part('trigger')} id={field?.ids.control} aria-haspopup="dialog"
+          aria-labelledby={field || label ? `${field ? field.ids.label : `${id}-label`} ${id}-value` : undefined}
+          aria-invalid={field?.invalid || undefined} disabled={field?.disabled}>
+          <span {...part('chip')} style={{ '--swatch': chosen?.color ?? 'transparent' } as CSSProperties} data-empty={!chosen || undefined} />
+          <span {...part('value')} id={`${id}-value`} data-placeholder={!chosen || undefined}>{chosen ? chosen.label ?? chosen.value : placeholder}</span>
+          <iconify-icon {...part('indicator')} icon="lucide:chevron-down" aria-hidden="true" />
+        </button>
+      }>
+        {grid}
+      </Popover>
+    </div>
   )
 }
