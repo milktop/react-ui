@@ -62,7 +62,8 @@ export { Accordion, AccordionItem, type AccordionEntry } from './accordion/Accor
 export { Collapsible } from './collapsible/Collapsible.js'
 export { SortableList } from './sortable-list/SortableList.js'
 export {
-  EventCalendar, type CalendarEvent, type CalendarResource, type CalendarView, type CalendarChange,
+  EventCalendar, type CalendarEvent, type CalendarResource, type CalendarView, type CalendarChange, type CalendarSelection,
+  type CalendarKeys, type CalendarRow,
 } from './event-calendar/EventCalendar.js'
 export { Attachments, formatSize, type Attachment, type AttachmentRejection } from './attachments/Attachments.js'
 export { Banner } from './banner/Banner.js'

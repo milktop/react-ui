@@ -22,7 +22,9 @@
 
   /* Zag copies the content's z-index onto its positioner. */
   [data-scope=date-picker][data-part=content] { z-index: 50; padding: 0.75rem; background: var(--ui-surface); outline: none;
-    border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) + 2px); box-shadow: var(--ui-shadow); }
+    border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) + 2px); box-shadow: var(--ui-shadow);
+    /* An inline calendar in a popover (EventCalendar's date jump): the popover is the card. */
+    [data-scope=popover] & { padding: 0; border: none; border-radius: 0; box-shadow: none; background: transparent; } }
   [data-scope=date-picker][data-part=view-control] { display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 0.5rem; }
   [data-scope=date-picker][data-part=view-trigger] { font-weight: 600; font-size: 14px; border: none; background: transparent;

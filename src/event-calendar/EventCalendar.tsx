@@ -23,20 +23,28 @@
  * - `weekStartsOn`: 1 (Monday, default) or 0; `startHour`, `endHour` (7, 21);
  *   `slotMinutes`: what selecting, moving and resizing snap to (30);
  *   `hourHeight`: a CSS length ('3rem')
- * - `onSelect({ start, end, resourceId })`: an empty slot was clicked, or a
- *   time dragged out, e.g. to book it
+ * - `onSelect({ start, end, resourceId, allDay }, keys)`: an empty slot was
+ *   clicked or a time dragged out, or (`allDay`) days in the all-day strip,
+ *   e.g. to book it. `keys` says which of Shift, Alt, Ctrl and ⌘ were held
+ *   (say, Shift to block time instead of booking it)
  * - `onEventClick(event)`
- * - `onEventChange(event, { start, end, resourceId })`: makes events movable
- *   and resizable: drag one to another time, day or resource, or its bottom
- *   edge to change its length; or focus it and use ↑↓ (a slot), ←→ (a
- *   column), Shift+↑↓ (its length). Update your events in response
+ * - `onEventChange(event, { start, end, resourceId }, { kind })`: makes
+ *   events movable and resizable: drag one to another time, day or resource,
+ *   or its bottom edge to change its length; or focus it and use ↑↓ (a slot),
+ *   ←→ (a column), Shift+↑↓ (its length). The change spreads straight into
+ *   the event (`{ ...event, ...change }`); `kind` is 'move' or 'resize', and
+ *   comparing `resourceId` with the event's shows a change of resource.
+ *   Update your events in response (or don't, and it stays where it was)
+ * - `rows`: extra rows above the all-day strip, a cell per day (or per
+ *   column with `perColumn`), e.g. the day's messages:
+ *   `[{ key, label, render: (date, resource) => …, onClick: (date, resource) => … }]`
  * - `renderEvent(event, { start, end, resource, compact })`, `renderResource(resource)`,
  *   `renderDayHeader(date)`: draw those yourself
  * - `eventLabel(event)`: what screen readers call an event (its title, if text)
  * - `actions`: in the toolbar; `toolbar`: false hides it; `locale`
  */
 import {
-  useEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type KeyboardEvent, type PointerEvent, type ReactNode,
+  Fragment, useEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type KeyboardEvent, type PointerEvent, type ReactNode,
 } from 'react'
 import 'iconify-icon'
 import { Button } from '../button/Button.js'
@@ -64,6 +72,15 @@ export type CalendarEvent = {
 export type CalendarResource = { id: Id, title: ReactNode }
 export type CalendarView = 'day' | 'week' | 'workweek' | number
 export type CalendarChange = { start: string, end: string, resourceId?: Id }
+export type CalendarSelection = { start: string, end: string, resourceId?: Id, allDay: boolean }
+export type CalendarKeys = { shiftKey: boolean, altKey: boolean, ctrlKey: boolean, metaKey: boolean }
+export type CalendarRow<R extends CalendarResource = CalendarResource> = {
+  key: string
+  label: ReactNode
+  render?: (date: Date, resource: R | null) => ReactNode
+  onClick?: (date: Date, resource: R | null) => void
+  perColumn?: boolean
+}
 
 export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extends CalendarResource = CalendarResource> =
   Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'onSelect'> & {
@@ -81,9 +98,10 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     endHour?: number
     slotMinutes?: number
     hourHeight?: string
-    onSelect?: (slot: CalendarChange) => void
+    onSelect?: (selection: CalendarSelection, keys: CalendarKeys) => void
+    rows?: CalendarRow<R>[]
     onEventClick?: (event: E) => void
-    onEventChange?: (event: E, change: CalendarChange) => void
+    onEventChange?: (event: E, change: CalendarChange, how: { kind: 'move' | 'resize' }) => void
     renderEvent?: (event: E, state: { start: Date, end: Date, resource: R | null, compact: boolean }) => ReactNode
     renderResource?: (resource: R) => ReactNode
     renderDayHeader?: (date: Date) => ReactNode
@@ -92,7 +110,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     toolbar?: boolean
     locale?: string
     classes?: Classes<'root' | 'toolbar' | 'nav' | 'title' | 'grid' | 'corner' | 'dayHeader' | 'resourceHeader' | 'allDayLabel'
-      | 'allDay' | 'allDayEvent' | 'gutter' | 'hour' | 'day' | 'event' | 'eventTitle' | 'eventTime' | 'resize' | 'selection' | 'now' | 'status'>
+      | 'allDay' | 'allDayEvent' | 'gutter' | 'hour' | 'day' | 'event' | 'eventTitle' | 'eventTime' | 'resize' | 'selection' | 'now' | 'status' | 'rowLabel' | 'rowCell'>
   }
 
 const named = ['accent', 'success', 'warning', 'danger', 'neutral']
@@ -133,17 +151,18 @@ function place<E extends CalendarEvent>(events: E[]): Placed<E>[] {
 
 // What a pointer is doing: drawing out a selection, or moving or resizing an event.
 type Gesture<E> = {
-  kind: 'select' | 'move' | 'resize', column: number, x: number, y: number, top: number, height: number, width: number,
-  from: number, moved: boolean, event?: E,
+  kind: 'select' | 'move' | 'resize' | 'all-day', column: number, x: number, y: number, top: number, height: number, width: number,
+  left: number, from: number, moved: boolean, keys: CalendarKeys, event?: E,
 }
 type Preview = { kind: 'select', column: number, from: number, to: number }
+  | { kind: 'all-day', columns: number[] }
   | { kind: 'move', id: Id, columns: number, minutes: number, x: number, y: number }
   | { kind: 'resize', id: Id, minutes: number }
 
 export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends CalendarResource = CalendarResource>({
   events = [], resources = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
   date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, hourHeight = '3rem',
-  onSelect, onEventClick, onEventChange, renderEvent, renderResource, renderDayHeader, eventLabel, actions = null, toolbar = true,
+  onSelect, rows = [], onEventClick, onEventChange, renderEvent, renderResource, renderDayHeader, eventLabel, actions = null, toolbar = true,
   locale, className, classes, style, ...rest
 }: EventCalendarProps<E, R>) {
   const part = partsOf('event-calendar', classes)
@@ -199,7 +218,13 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   // ---- Changing events: by pointer (previewed until it's dropped) or by keyboard.
   const grid = useRef<HTMLDivElement>(null)
   const gesture = useRef<Gesture<E> | null>(null)
-  const [preview, setPreview] = useState<Preview | null>(null)
+  const [preview, setPreviewState] = useState<Preview | null>(null)
+  // Also kept in a ref: a quick click ends before React renders the preview it set.
+  const latestPreview = useRef<Preview | null>(null)
+  const setPreview = (next: Preview | null) => {
+    latestPreview.current = next
+    setPreviewState(next)
+  }
   const refocus = useRef<Id | null>(null)
   const suppressClick = useRef(false)
 
@@ -227,17 +252,34 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     onEventChange?.(event, {
       start: toISODateTime(next.start), end: toISODateTime(next.end),
       ...(next.column?.resource && { resourceId: next.column.resource.id }),
-    })
+    }, { kind })
   }
 
   function begin(e: PointerEvent<HTMLElement>, kind: Gesture<E>['kind'], column: number, event?: E) {
     if (e.button !== 0) return
     e.stopPropagation()
-    const box = e.currentTarget.closest('[data-part=day]')!.getBoundingClientRect()
+    const keys = { shiftKey: e.shiftKey, altKey: e.altKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey }
     try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* not a live pointer */ }
+    if (kind === 'all-day') {
+      // The strip spans every column: which one is under the pointer.
+      const box = e.currentTarget.getBoundingClientRect()
+      const width = box.width / columns.length
+      const at = Math.max(0, Math.min(columns.length - 1, Math.floor((e.clientX - box.left) / width)))
+      gesture.current = { kind, column: at, x: e.clientX, y: e.clientY, top: box.top, height: box.height, width, left: box.left, from: at, moved: false, keys }
+      setPreview({ kind: 'all-day', columns: [at] })
+      return
+    }
+    const box = e.currentTarget.closest('[data-part=day]')!.getBoundingClientRect()
     const from = startHour * 60 + snap(((e.clientY - box.top) / box.height) * span)
-    gesture.current = { kind, column, x: e.clientX, y: e.clientY, top: box.top, height: box.height, width: box.width, from, moved: false, event }
+    gesture.current = { kind, column, x: e.clientX, y: e.clientY, top: box.top, height: box.height, width: box.width, left: box.left, from, moved: false, keys, event }
     if (kind === 'select') setPreview({ kind: 'select', column, from, to: from + slotMinutes })
+  }
+
+  // The columns from one to another (with resources, only the first one's resource).
+  const columnRange = (a: number, b: number) => {
+    const lo = Math.min(a, b)
+    const hi = Math.max(a, b)
+    return columns.map((_, i) => i).filter((i) => i >= lo && i <= hi && columns[i].resource === columns[a].resource)
   }
 
   function track(e: PointerEvent) {
@@ -248,7 +290,10 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     if (!g.moved && Math.hypot(dx, dy) < 4) return
     g.moved = true
     const perMinute = g.height / span
-    if (g.kind === 'select') {
+    if (g.kind === 'all-day') {
+      const at = Math.max(0, Math.min(columns.length - 1, Math.floor((e.clientX - g.left) / g.width)))
+      setPreview({ kind: 'all-day', columns: columnRange(g.from, at) })
+    } else if (g.kind === 'select') {
       const at = startHour * 60 + snap(Math.max(0, Math.min(span - 1, ((e.clientY - g.top) / g.height) * span)))
       setPreview({ kind: 'select', column: g.column, from: Math.min(g.from, at), to: Math.max(g.from, at) + slotMinutes })
     } else if (g.kind === 'move') {
@@ -263,7 +308,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   function end() {
     const g = gesture.current
     gesture.current = null
-    const p = preview
+    const p = latestPreview.current
     setPreview(null)
     if (!g) return
     if (g.kind === 'select' && p?.kind === 'select') {
@@ -271,7 +316,16 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
       const start = addMinutes(column.date, p.from)
       const finish = addMinutes(column.date, p.to)
       setStatus(`Selected ${longDay.format(start)}, ${timeFormat.format(start)} to ${timeFormat.format(finish)}.`)
-      onSelect?.({ start: toISODateTime(start), end: toISODateTime(finish), ...(column.resource && { resourceId: column.resource.id }) })
+      onSelect?.({ start: toISODateTime(start), end: toISODateTime(finish), allDay: false, ...(column.resource && { resourceId: column.resource.id }) }, g.keys)
+      return
+    }
+    if (g.kind === 'all-day' && p?.kind === 'all-day') {
+      const first = columns[p.columns[0]]
+      const last = columns[p.columns[p.columns.length - 1]]
+      setStatus(p.columns.length > 1
+        ? `Selected ${longDay.format(first.date)} to ${longDay.format(last.date)}, all day.`
+        : `Selected ${longDay.format(first.date)}, all day.`)
+      onSelect?.({ start: first.iso, end: last.iso, allDay: true, ...(first.resource && { resourceId: first.resource.id }) }, g.keys)
       return
     }
     if (!g.moved || !g.event) return
@@ -373,9 +427,31 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
           </div>
         ))}
 
-        {allDay.length > 0 && <>
+        {rows.map((row) => <Fragment key={row.key}>
+          <div {...part('row-label')}>{row.label}</div>
+          {(row.perColumn ? columns : dates.map((d) => ({ date: d, iso: toISODate(d), resource: null }))).map((cell) => {
+            const content = row.render?.(cell.date, cell.resource as R | null)
+            const key = `${cell.iso}-${cell.resource?.id ?? ''}`
+            const style = { gridColumn: row.perColumn ? undefined : `span ${lanes.length}` }
+            return row.onClick
+              // The whole cell adds (say, a message); what's in it opens its own (stopPropagation in your render).
+              ? <div key={key} {...part('row-cell')} style={style} data-clickable="" role="button" tabIndex={0}
+                  aria-label={`${typeof row.label === 'string' ? row.label : ''} ${longDay.format(cell.date)}`}
+                  onClick={() => row.onClick!(cell.date, cell.resource as R | null)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); row.onClick!(cell.date, cell.resource as R | null) } }}>{content}</div>
+              : <div key={key} {...part('row-cell')} style={style}>{content}</div>
+          })}
+        </Fragment>)}
+
+        {(allDay.length > 0 || onSelect) && <>
           <div {...part('all-day-label')}>All day</div>
-          <div {...part('all-day')} style={{ '--lanes': laneEnds.length } as CSSProperties}>
+          <div {...part('all-day')} style={{ '--lanes': Math.max(1, laneEnds.length) } as CSSProperties}
+            data-selectable={onSelect ? '' : undefined}
+            onPointerDown={(e) => { if (onSelect && e.target === e.currentTarget) begin(e, 'all-day', 0) }}
+            onPointerMove={track} onPointerUp={end} onPointerCancel={cancel}>
+            {preview?.kind === 'all-day' && preview.columns.map((i) => (
+              <div key={i} {...part('selection')} data-all-day="" style={{ left: `${(i / columns.length) * 100}%`, width: `${100 / columns.length}%` }} />
+            ))}
             {allDay.map(({ event, first, length, lane }) => (
               <button key={`${event.id}-${first}`} type="button" {...part('all-day-event')} data-color={named.includes(event.color ?? 'accent') ? event.color ?? 'accent' : 'custom'}
                 style={{
