@@ -63,7 +63,7 @@ export { Collapsible } from './collapsible/Collapsible.js'
 export { SortableList } from './sortable-list/SortableList.js'
 export {
   EventCalendar, type CalendarEvent, type CalendarResource, type CalendarView, type CalendarChange, type CalendarSelection,
-  type CalendarKeys, type CalendarRow,
+  type CalendarKeys, type CalendarRow, type CalendarQuery, type CalendarTranslations,
 } from './event-calendar/EventCalendar.js'
 export { Attachments, formatSize, type Attachment, type AttachmentRejection } from './attachments/Attachments.js'
 export { Banner } from './banner/Banner.js'
