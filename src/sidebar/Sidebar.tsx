@@ -10,7 +10,7 @@
  *   </Sidebar>
  *
  * - `logo`; `logoCollapsed`: shown instead in the rail (a mark)
- * - `footer`
+ * - `footer`: along the bottom (a SidebarUser)
  * - `accordion`: one NavGroup open at a time
  * - `items`: the nav as data, in place of (or before) the content:
  *   `[{ heading, items: [{ label, icon, href, active, badge, items }] }]`

@@ -8,7 +8,8 @@ const sources = import.meta.glob<string>('../src/**/*.tsx', { query: '?raw', imp
 const modules = import.meta.glob<{ default: ComponentType }>('./examples/**/*.tsx', { eager: true })
 const raws = import.meta.glob<string>('./examples/**/*.tsx', { query: '?raw', import: 'default', eager: true })
 
-export type Page = { slug: string, title: string, about: string, file: string, form?: boolean }
+// `more`: other components the page covers (AvatarGroup on Avatar's), shown after `file`'s.
+export type Page = { slug: string, title: string, about: string, file: string, more?: string[], form?: boolean }
 export type Group = { heading: string, icon: string, form?: boolean, pages: Page[] }
 export type Example = ReturnType<typeof examplesOf>[number]
 
@@ -19,13 +20,13 @@ const all: Group[] = [
     { slug: 'copy-button', title: 'Copy button', about: 'Copy text with feedback', file: 'copy-button/CopyButton.tsx' },
   ] },
   { heading: 'Display', icon: 'lucide:layout-grid', pages: [
-    { slug: 'avatar', title: 'Avatar', about: 'Images with initials fallback, and stacks', file: 'avatar/Avatar.tsx' },
+    { slug: 'avatar', title: 'Avatar', about: 'Images with initials fallback, and stacks', file: 'avatar/Avatar.tsx', more: ['avatar/AvatarGroup.tsx'] },
     { slug: 'badge', title: 'Badge', about: 'Statuses and counts', file: 'badge/Badge.tsx' },
     { slug: 'card', title: 'Card', about: 'A surface with a header and footer', file: 'card/Card.tsx' },
-    { slug: 'table', title: 'Table', about: 'Sorting, selection, loading and custom cells', file: 'table/Table.tsx' },
+    { slug: 'table', title: 'Table', about: 'Sorting, selection, loading and custom cells', file: 'table/Table.tsx', more: ['pagination/Pagination.tsx'] },
     { slug: 'pagination', title: 'Pagination', about: 'Pages, with a summary', file: 'pagination/Pagination.tsx' },
     { slug: 'data-list', title: 'Data list', about: 'Labels and values', file: 'data-list/DataList.tsx' },
-    { slug: 'stat', title: 'Stat', about: 'Headline numbers, with change', file: 'stat/Stat.tsx' },
+    { slug: 'stat', title: 'Stat', about: 'Headline numbers, with change', file: 'stat/Stat.tsx', more: ['stat/Stats.tsx'] },
     { slug: 'charts', title: 'Charts', about: 'Area, bar and sparklines', file: 'chart/AreaChart.tsx' },
     { slug: 'event-calendar', title: 'Event calendar', about: 'Days or weeks by the hour, with resources: select, move, resize', file: 'event-calendar/EventCalendar.tsx' },
     { slug: 'sortable-list', title: 'Sortable list', about: 'Drag (or keys) to reorder, on dnd-kit', file: 'sortable-list/SortableList.tsx' },
@@ -56,7 +57,7 @@ const all: Group[] = [
     { slug: 'date-picker', title: 'Date picker', about: 'Type a date or pick it from a calendar', file: 'date-picker/DatePicker.tsx' },
   ] },
   { heading: 'Choices', form: true, icon: 'lucide:circle-check', pages: [
-    { slug: 'checkbox', title: 'Checkbox', about: 'On its own or in a group', file: 'checkbox/Checkbox.tsx' },
+    { slug: 'checkbox', title: 'Checkbox', about: 'On its own or in a group', file: 'checkbox/Checkbox.tsx', more: ['checkbox/CheckboxGroup.tsx'] },
     { slug: 'radio-group', title: 'Radio group', about: 'Pick one, with descriptions', file: 'radio-group/RadioGroup.tsx' },
     { slug: 'switch', title: 'Switch', about: 'On or off', file: 'switch/Switch.tsx' },
     { slug: 'segment-group', title: 'Segmented', about: 'A row of options with a sliding indicator', file: 'segment-group/Segmented.tsx' },
@@ -66,8 +67,8 @@ const all: Group[] = [
     { slug: 'field', title: 'Field', about: 'Labels, hints and errors, on a grid', file: 'field/Field.tsx' },
   ] },
   { heading: 'Navigation', icon: 'lucide:compass', pages: [
-    { slug: 'app-shell', title: 'App shell', about: 'Sidebar, top bar and page, flat or inset', file: 'app-shell/AppShell.tsx' },
-    { slug: 'sidebar', title: 'Sidebar', about: 'Sections, groups and items', file: 'sidebar/Sidebar.tsx' },
+    { slug: 'app-shell', title: 'App shell', about: 'Sidebar, top bar and page, flat or inset', file: 'app-shell/AppShell.tsx', more: ['app-shell/Topbar.tsx'] },
+    { slug: 'sidebar', title: 'Sidebar', about: 'Sections, groups and items', file: 'sidebar/Sidebar.tsx', more: ['sidebar/NavSection.tsx', 'sidebar/NavGroup.tsx', 'sidebar/NavItem.tsx', 'sidebar/SidebarUser.tsx'] },
     { slug: 'page', title: 'Page', about: 'A heading, actions and content', file: 'page/Page.tsx' },
     { slug: 'breadcrumbs', title: 'Breadcrumbs', about: 'Where the page sits, with folding', file: 'breadcrumbs/Breadcrumbs.tsx' },
     { slug: 'command', title: 'Command menu', about: '⌘K search and actions', file: 'command/Command.tsx' },
@@ -96,6 +97,8 @@ export const groups = all
   .filter((group) => group.pages.length)
 
 export const pages = groups.flatMap((group) => group.pages.map((page) => ({ ...page, group })))
+
+export const sourceOf = (file: string) => sources[`../src/${file}`] ?? ''
 
 // A component's doc comment (the first /** … */ block), without its stars.
 export function docOf(file: string) {

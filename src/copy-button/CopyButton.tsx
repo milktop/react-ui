@@ -4,6 +4,7 @@
  *   <CopyButton value={bookingLink} />
  *   <Input value={bookingLink} readOnly end={<CopyButton value={bookingLink} iconOnly />} />
  *
+ * - `value`: the text it copies
  * - `label`, `copiedLabel`: the text ('Copy' and 'Copied'); `iconOnly` hides
  *   it (it stays the accessible name)
  * - `timeout`: how long it shows "Copied" (2000 ms)

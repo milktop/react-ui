@@ -43,6 +43,12 @@ look. Read `README.md` first.
   and keeping the machinery (portal, backdrop, positioner) to itself.
 - Starts with a `/** */` doc comment: a summary line, a usage example, one
   bullet per prop (``- `name`: what it does``), then a by-hand example.
+  The playground's Props panel (`playground/lib/api.ts`) reads it: the first
+  paragraph is the summary, indented blocks after a blank line are usage,
+  bullets give each prop's notes (a bullet naming several, or mentioning
+  another later on, covers those too), and the defaults come from the
+  `…Shortcut` function's destructured parameters. A prop with no notes shows
+  a blank: document it.
 - Form controls take `label`, skipped inside a Field (`useFieldContext()`).
   Ark's controls wire themselves to an Ark Field: no ids to pass.
 - Props: `className` (outer element), `classes` (per part), `...rest` onto the

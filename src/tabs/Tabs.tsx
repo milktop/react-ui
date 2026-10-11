@@ -54,7 +54,7 @@ export type TabProps = Omit<Ark.ContentProps, 'value'> & {
  * One panel of a Tabs; `label` (and an optional `icon`) make its tab.
  *
  * - `value`: identifies it (the Tabs' value when selected)
- * - `label`, `icon`, `disabled`
+ * - `label`: its text; `icon`: an Iconify name before it; `disabled`
  * - `count`: a small count after the label (hidden at 0 or null); past `max`
  *   it shows e.g. "99+"
  * - `dot`: a dot there instead, for "something to look at"

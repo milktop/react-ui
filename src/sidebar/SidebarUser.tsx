@@ -8,7 +8,9 @@
  * It's a Menu with the user as its trigger: give it `items`, Menu's child
  * components, or both, and `onSelect` (the rest of Menu's props apply too).
  *
- * - `name`, `description`, `src`
+ * - `name`: who's signed in; `description`: a line under it (their email);
+ *   `src`: their photo
+ * - `placement`: where the menu opens ('top-start', or 'right-end' in the rail)
  * - `letters`, `color`: passed to the Avatar
  */
 import type { ReactNode } from 'react'

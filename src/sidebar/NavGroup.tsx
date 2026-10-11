@@ -5,7 +5,7 @@
  *     <NavItem href="/input">Input</NavItem>
  *   </NavGroup>
  *
- * - `label`, `icon`
+ * - `label`: its text; `icon`: an Iconify name
  * - `open`, `defaultOpen`; `onOpenChange`: called with the new open state.
  *   In an `accordion` Sidebar, opening one closes the others.
  *

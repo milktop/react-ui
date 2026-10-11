@@ -19,7 +19,8 @@
  * - `accept` (MIME types or extensions, e.g. 'image/*,.pdf'), `maxFiles` and
  *   `maxFileSize` (bytes) limit what's added; files that don't fit are listed
  *   with the reason, and `onReject` gets `[{ file, reason }]`
- * - `addLabel`, `emptyText`
+ * - `addLabel`: the add tile's text ('Add files'); `emptyText`: shown when
+ *   there are no files and it isn't `addable`
  * - `label`: a label above it (skipped inside a Field, whose label, hint and
  *   error it takes, as the other controls do)
  * - `name`: posts the new Files with a plain <form> (a hidden file input);

@@ -40,7 +40,7 @@
  *   clicked or a time dragged out, or (`allDay`) days in the all-day strip,
  *   e.g. to book it. `keys` says which of Shift, Alt, Ctrl and ⌘ were held
  *   (say, Shift to block time instead of booking it)
- * - `onEventClick(event)`
+ * - `onEventClick(event)`: an event was clicked (not dragged), e.g. to open it
  * - `onEventChange(event, { start, end, resourceId }, { kind })`: makes
  *   events movable and resizable: drag one to another time, day or resource,
  *   or its bottom edge to change its length; or focus it and use ↑↓ (a slot),

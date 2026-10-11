@@ -6,7 +6,7 @@
  *   <NavItem icon="lucide:users" link={<Link to="/students" />}>Students</NavItem>
  *
  * - `icon`: an Iconify name
- * - `href`
+ * - `href`: where it goes (without one it's a button: give it `onClick`)
  * - `link`: your router's link element to render in place of the <a>
  *   (`<Link to="…" />`); it gets the item's props and content
  * - `active`: the current page (sets aria-current)

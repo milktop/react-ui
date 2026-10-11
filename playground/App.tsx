@@ -10,6 +10,7 @@ import { groups, pages, examplesOf, docOf, type Group, type Page as PageEntry } 
 import { blocks } from './blocks/registry'
 import { BlockPage } from './lib/BlockPage'
 import { AppearancePanel } from './lib/AppearancePanel'
+import { ApiPanel } from './lib/ApiPanel'
 import { useAppearance } from './lib/appearance'
 import { Theming } from './pages/Theming'
 import { Installation } from './pages/Installation'
@@ -149,9 +150,9 @@ function ComponentPage({ page }: { page: PageEntry & { group: Group } }) {
       </div>
       <p className="mt-1 mb-0 text-sm text-(--ui-muted)"><Backticked text={doc.summary} /></p>
       {showDoc && (
-        <pre className="mt-5 mb-0 overflow-x-auto rounded-[calc(var(--ui-radius)+6px)] border border-(--ui-border) bg-(--ui-surface) p-4 text-xs leading-relaxed whitespace-pre-wrap">
-          {doc.text}
-        </pre>
+        <div className="mt-5 flex flex-col gap-4">
+          {[page.file, ...(page.more ?? [])].map((file) => <ApiPanel key={file} file={file} />)}
+        </div>
       )}
       {examplesOf(page.slug).map((example) => (
         <Demo key={example.path} example={example} form={page.form ?? !!page.group.form} />

@@ -6,8 +6,10 @@
  * - `files`, `defaultFiles`: the accepted Files; `onFilesChange`: called with them
  * - `accept`: types to allow ('image/*', '.pdf', or an array of them)
  * - `maxFiles`: how many (1); past it, the first that fit are taken and the
- *   rest listed as "Too many files"; `maxFileSize`: in bytes
+ *   rest listed as "Too many files"; `minFileSize`, `maxFileSize`: in bytes
  * - `hint`: text under the prompt
+ * - `validate(file, details)`: your own check, returning error codes for a
+ *   file it refuses (or null), as Ark's
  * - `name`: for plain form posts
  *
  * By hand, with Ark's parts:
