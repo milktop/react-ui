@@ -61,7 +61,9 @@ export { Timeline, TimelineItem } from './timeline/Timeline.js'
 export { Accordion, AccordionItem, type AccordionEntry } from './accordion/Accordion.js'
 export { Collapsible } from './collapsible/Collapsible.js'
 export { SortableList } from './sortable-list/SortableList.js'
-export { WeekCalendar, type CalendarEvent, type CalendarSlot } from './calendar/WeekCalendar.js'
+export {
+  EventCalendar, type CalendarEvent, type CalendarResource, type CalendarView, type CalendarChange,
+} from './event-calendar/EventCalendar.js'
 export { Attachments, formatSize, type Attachment, type AttachmentRejection } from './attachments/Attachments.js'
 export { Banner } from './banner/Banner.js'
 export { Editor, defaultTools, type EditorTool, type UploadedImage } from './editor/Editor.js'

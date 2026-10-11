@@ -11,6 +11,8 @@
  *   be picked (weekends, holidays); they show struck through
  * - `locale`: for formatting and the first day of the week ('en-GB')
  * - `placement`: where the calendar opens ('bottom-start')
+ * - `inline`: just the calendar, always showing (no input or popup), e.g. a
+ *   month beside a schedule
  * - `prev`, `next`: elements to use as those buttons; they get the trigger's
  *   props, so a component must pass them on (as Button does)
  *
@@ -43,6 +45,7 @@ export type DatePickerProps = Omit<Ark.RootProps, 'value' | 'defaultValue' | 'on
   placement?: NonNullable<Ark.RootProps['positioning']>['placement']
   prev?: ReactElement | null
   next?: ReactElement | null
+  inline?: boolean
   classes?: Classes<'root' | 'label' | 'control' | 'input' | 'separator' | 'clearTrigger' | 'trigger' | 'positioner' | 'content'
     | 'view' | 'viewControl' | 'prevTrigger' | 'viewTrigger' | 'nextTrigger' | 'table' | 'tableHeader' | 'tableCell' | 'tableCellTrigger'>
 } & (One | Range)
@@ -50,7 +53,7 @@ export type DatePickerProps = Omit<Ark.RootProps, 'value' | 'defaultValue' | 'on
 function DatePickerShortcut(props: DatePickerProps) {
   const {
     label = null, value, defaultValue, onValueChange, range = false, min = null, max = null, unavailable = null,
-    locale = 'en-GB', placement = 'bottom-start', prev = null, next = null, className, classes, ...rest
+    locale = 'en-GB', placement = 'bottom-start', prev = null, next = null, inline = false, className, classes, ...rest
   } = props as DatePickerProps & { value?: string | string[] | null, defaultValue?: string | string[] | null,
     onValueChange?: (value: string | string[] | null, details: DatePickerValueChangeDetails) => void }
   const field = useFieldContext()
@@ -72,6 +75,7 @@ function DatePickerShortcut(props: DatePickerProps) {
     ...(min && { min: parseDate(min) }), ...(max && { max: parseDate(max) }),
     ...(unavailable && { isDateUnavailable: unavailable }),
     positioning: { placement },
+    ...(inline && { inline: true }),
     // Inside a Field, its label points at the first input.
     ...(field && { ids: { label: () => field.ids.label, input: (index: number) => (index === 0 ? field.ids.control : `${field.ids.control}-${index}`) }, invalid: field.invalid }),
   })
@@ -97,21 +101,7 @@ function DatePickerShortcut(props: DatePickerProps) {
 
   const view = picker.view
 
-  return (
-    <Ark.RootProvider value={picker} {...rest} {...part('root')} className={cx(className, classes?.root)}>
-      {label && !field && <Ark.Label {...part('label')}>{label}</Ark.Label>}
-      <Ark.Control {...part('control')}>
-        {/* Siblings, not wrapped: the CSS grows the last input (:last-of-type). */}
-        {(range ? [0, 1] : [0]).map((index) => <Fragment key={index}>
-          {index === 1 && <span {...part('separator')}>–</span>}
-          <Ark.Input index={index} {...part('input')} size={10} onKeyDownCapture={(e) => step(e, index)}
-            aria-describedby={field?.ariaDescribedby} />
-        </Fragment>)}
-        <Ark.ClearTrigger {...part('clear-trigger')}><iconify-icon icon="lucide:x" /></Ark.ClearTrigger>
-        <Ark.Trigger {...part('trigger')}><iconify-icon icon="lucide:calendar" /></Ark.Trigger>
-      </Ark.Control>
-
-      <Ark.Positioner {...part('positioner')}>
+  const content = (
         <Ark.Content {...part('content')}>
           <Ark.View view={view} {...part('view')}>
             <Ark.ViewControl {...part('view-control')}>
@@ -178,7 +168,23 @@ function DatePickerShortcut(props: DatePickerProps) {
             )}
           </Ark.View>
         </Ark.Content>
-      </Ark.Positioner>
+  )
+
+  return (
+    <Ark.RootProvider value={picker} {...rest} {...part('root')} className={cx(className, classes?.root)}>
+      {label && !field && <Ark.Label {...part('label')}>{label}</Ark.Label>}
+      {!inline && <Ark.Control {...part('control')}>
+        {/* Siblings, not wrapped: the CSS grows the last input (:last-of-type). */}
+        {(range ? [0, 1] : [0]).map((index) => <Fragment key={index}>
+          {index === 1 && <span {...part('separator')}>–</span>}
+          <Ark.Input index={index} {...part('input')} size={10} onKeyDownCapture={(e) => step(e, index)}
+            aria-describedby={field?.ariaDescribedby} />
+        </Fragment>)}
+        <Ark.ClearTrigger {...part('clear-trigger')}><iconify-icon icon="lucide:x" /></Ark.ClearTrigger>
+        <Ark.Trigger {...part('trigger')}><iconify-icon icon="lucide:calendar" /></Ark.Trigger>
+      </Ark.Control>}
+
+      {inline ? content : <Ark.Positioner {...part('positioner')}>{content}</Ark.Positioner>}
     </Ark.RootProvider>
   )
 }

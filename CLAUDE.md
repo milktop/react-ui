@@ -95,6 +95,9 @@ look. Read `README.md` first.
 - Attachments posts with a plain form through a hidden file input whose
   files are set from a DataTransfer (the only way to set them); its CSS has
   rules (label, invalid) svelte-ui's copy doesn't have yet.
+- EventCalendar's pointer gestures (select, move, resize) capture the pointer
+  on the element pressed and preview until it's dropped; a script testing
+  them dispatches PointerEvents (setPointerCapture is guarded for those).
 - FileUpload keeps accepted files from `onFileAccept`: `onFileChange` also
   fires for rejections with the accepted list from before the render, which
   would undo a drop of good and bad files together.
