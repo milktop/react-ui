@@ -101,6 +101,11 @@ look. Read `README.md` first.
 - Attachments posts with a plain form through a hidden file input whose
   files are set from a DataTransfer (the only way to set them); its CSS has
   rules (label, invalid) svelte-ui's copy doesn't have yet.
+- Zag's menu takes an `anchorPoint` prop but doesn't apply it; only a
+  contextmenu event on its context trigger places a menu at a point.
+  EventCalendar's menu opens by sending one to a hidden context trigger.
+  Menus place themselves in an animation frame: in a hidden pane they stay
+  at their offscreen start, so check positions with the pane showing.
 - EventCalendar's pointer gestures (select, move, resize) capture the pointer
   on the element pressed and preview until it's dropped; a script testing
   them dispatches PointerEvents (setPointerCapture is guarded for those).

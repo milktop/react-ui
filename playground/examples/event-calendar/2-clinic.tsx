@@ -1,7 +1,7 @@
 /* A vet clinic's day
-  A column per vet (`resources`), 15-minute slots, inside a fixed `height` that opens at the current time. Each vet's hours, lunch and clashes come from `isAvailable` (hatched, the reason on hover; drops and bookings there are refused). Drag to book; hold Shift to block time; select in the all-day strip to mark a vet away. Moves save for a moment (`pending`). Click an appointment, then Move…, to place it anywhere, even another week (`pinned`). The day's messages are an extra row. */
+  A column per vet (`resources`), 15-minute slots, inside a fixed `height` that opens at the current time. Each vet's hours, lunch and clashes come from `isAvailable` (hatched, the reason on hover; drops and bookings there are refused). Drag to book; hold Shift to block time; select in the all-day strip to mark a vet away. Moves save for a moment (`pending`). Click an appointment, then Move…, to place it anywhere, even another week (`pinned`). Right-click an appointment or an empty time for a menu (`eventMenu`, `slotMenu`). The day's messages are an extra row. */
 import { useState } from 'react'
-import { EventCalendar, Avatar, Badge, toaster, type CalendarChange, type CalendarQuery, type CalendarSelection, type CalendarKeys } from '@milktop/react-ui'
+import { EventCalendar, Avatar, Badge, toaster, confirm, type CalendarChange, type CalendarQuery, type CalendarSelection, type CalendarKeys } from '@milktop/react-ui'
 import { vets, appointments as initial, type Appointment } from './clinic'
 import { day } from './lessons'
 
@@ -65,12 +65,39 @@ export default function Example() {
     toaster.success({ title: `Booked with ${vet?.title}`, description: `${start.slice(11)} to ${end.slice(11)}` })
   }
 
+  const addDay = (iso: string) => {
+    const d = new Date(`${iso.slice(0, 10)}T00:00`)
+    d.setDate(d.getDate() + 1)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}${iso.slice(10)}`
+  }
+
   return (
     <EventCalendar events={appointments} resources={vets} defaultView="day" views={['day', 3]} slotMinutes={15} hourHeight="5rem"
       startHour={8} endHour={18} height="34rem" scrollToTime="now"
       onEventChange={update} onSelect={book} isAvailable={isAvailable} onUnavailable={(reason) => toaster.error({ title: reason })}
       onResourceClick={(vet) => toaster.info({ title: vet.title, description: `${vet.role}: ${appointments.filter((x) => x.resourceId === vet.id && !x.allDay).length} appointments` })}
-      pinned={pinned} onPinnedChange={setPinned} eventLabel={(a) => `${a.pet}, ${a.kind}`}
+      pinned={pinned} onPinnedChange={setPinned}
+      // Right-click (or the Menu key on a focused appointment).
+      eventMenu={(a) => a.blocked
+        ? [{ label: 'Unblock', icon: 'lucide:unlock', onSelect: () => setAppointments((all) => all.filter((x) => x.id !== a.id)) }]
+        : [
+            { group: `${a.pet} (${a.owner})` },
+            { label: 'Open', icon: 'lucide:file-text', onSelect: () => toaster.info({ title: a.pet, description: a.kind }) },
+            { label: 'Move…', icon: 'lucide:move', onSelect: () => setPinned(a) },
+            { label: 'Duplicate tomorrow', icon: 'lucide:copy', onSelect: () => setAppointments((all) => [...all, { ...a, id: `${a.id}-copy-${Date.now()}`, start: addDay(a.start), end: addDay(a.end) }]) },
+            { separator: true },
+            { label: 'Cancel appointment', icon: 'lucide:x', danger: true, onSelect: async () => {
+              if (await confirm({ heading: `Cancel ${a.pet}'s appointment?`, danger: true, confirmLabel: 'Cancel it', cancelLabel: 'Keep' })) {
+                setAppointments((all) => all.filter((x) => x.id !== a.id))
+              }
+            } },
+          ]}
+      slotMenu={(slot) => slot.allDay
+        ? [{ label: 'Mark away all day', icon: 'lucide:plane', onSelect: () => book(slot, { shiftKey: false, altKey: false, ctrlKey: false, metaKey: false }) }]
+        : [
+            { label: `Book ${slot.start.slice(11)}`, icon: 'lucide:calendar-plus', onSelect: () => book(slot, { shiftKey: false, altKey: false, ctrlKey: false, metaKey: false }) },
+            { label: 'Block this time', icon: 'lucide:ban', onSelect: () => book(slot, { shiftKey: true, altKey: false, ctrlKey: false, metaKey: false }) },
+          ]} eventLabel={(a) => `${a.pet}, ${a.kind}`}
       onEventClick={(a) => !a.blocked && toaster.info({
         title: `${a.pet} (${a.owner})`, description: a.kind, action: { label: 'Move…', onClick: () => setPinned(a) },
       })}

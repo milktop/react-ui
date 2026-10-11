@@ -65,6 +65,12 @@
  *   its length); Escape or the bar's Cancel call `onPinnedChange(null)`.
  *   Clear it once you've moved it
  *
+ * - `eventMenu(event)`, `slotMenu(slot)`: items for a menu on right-click
+ *   (or the Menu key, or Shift+F10, on a focused event): of an event, or of
+ *   an empty time or all-day day (`slot` is `{ start, end, resourceId, allDay }`).
+ *   Items are `{ label, icon, shortcut, danger, disabled, onSelect }`, or
+ *   `{ separator: true }`, or `{ group: 'Heading' }`; return nothing for no menu
+ *
  * Drawing and words
  * - `renderEvent(event, { start, end, resource, compact })`, `renderResource(resource)`,
  *   `renderDayHeader(date)`: draw those yourself
@@ -82,6 +88,7 @@ import { Button } from '../button/Button.js'
 import { Popover } from '../popover/Popover.js'
 import { DatePicker } from '../date-picker/DatePicker.js'
 import { Segmented } from '../segment-group/Segmented.js'
+import { Menu, type MenuEntry } from '../menu/Menu.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import { addDays, addMinutes, minutesOfDay, parse, sameDay, startOfWeek, toISODate, toISODateTime } from './dates.js'
 import '../theme.css'
@@ -114,6 +121,11 @@ export type CalendarRow<R extends CalendarResource = CalendarResource> = {
   render?: (date: Date, resource: R | null) => ReactNode
   onClick?: (date: Date, resource: R | null) => void
   perColumn?: boolean
+}
+
+export type CalendarMenuItem = {
+  label?: ReactNode, icon?: string, shortcut?: string, danger?: boolean, disabled?: boolean,
+  separator?: boolean, group?: ReactNode, onSelect?: () => void,
 }
 
 export type CalendarTranslations = {
@@ -160,6 +172,8 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     isAvailable?: (query: CalendarQuery<E>) => boolean | string
     onUnavailable?: (reason: string, attempt: CalendarQuery<E>) => void
     pinned?: E | null
+    eventMenu?: (event: E) => CalendarMenuItem[] | null | undefined
+    slotMenu?: (slot: CalendarSelection) => CalendarMenuItem[] | null | undefined
     onPinnedChange?: (event: E | null) => void
     renderEvent?: (event: E, state: { start: Date, end: Date, resource: R | null, compact: boolean }) => ReactNode
     renderResource?: (resource: R) => ReactNode
@@ -175,6 +189,8 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
   }
 
 const named = ['accent', 'success', 'warning', 'danger', 'neutral']
+// The menu's hidden trigger (Zag marks it as its context trigger, so no part of ours).
+const menuAnchorStyle: CSSProperties = { position: 'fixed', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }
 
 type Column<R> = { date: Date, iso: string, resource: R | null }
 type Placed<E> = { event: E, start: Date, end: Date, column: number, columns: number }
@@ -225,7 +241,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   events = [], resources = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
   date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, hourHeight = '3rem',
   height = null, scrollToTime = null, rows = [], allDayMax = 3, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
-  pinned = null, onPinnedChange, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
+  pinned = null, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
   locale, className, classes, style, ...rest
 }: EventCalendarProps<E, R>) {
   const part = partsOf('event-calendar', classes)
@@ -290,6 +306,31 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const [picking, setPicking] = useState(false)
   const [status, setStatus] = useState('')
   const [allDayOpen, setAllDayOpen] = useState(false)
+
+  // ---- One menu, opened where it's wanted (right-click, or the keyboard).
+  // It opens through a hidden context-menu trigger: a contextmenu event sent to
+  // it at the point is how Zag places a menu there.
+  const [menu, setMenu] = useState<{ entries: MenuEntry[], actions: (() => void)[] }>({ entries: [], actions: [] })
+  const menuAnchor = useRef<HTMLSpanElement>(null)
+  const menuPoint = useRef<{ x: number, y: number } | null>(null)
+  function openMenu(x: number, y: number, items: CalendarMenuItem[] | null | undefined) {
+    if (!items?.length) return false
+    const actions: (() => void)[] = []
+    const entries: MenuEntry[] = items.map((item) => item.separator ? { separator: true } : item.group ? { group: item.group } : {
+      label: item.label, icon: item.icon, shortcut: item.shortcut, danger: item.danger, disabled: item.disabled,
+      value: actions.push(item.onSelect ?? (() => {})) - 1,
+    })
+    setMenu({ entries, actions })
+    menuPoint.current = { x, y }
+    return true
+  }
+  // Once the items have rendered, open it at the point.
+  useEffect(() => {
+    const point = menuPoint.current
+    if (!point || !menuAnchor.current) return
+    menuPoint.current = null
+    menuAnchor.current.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: point.x, clientY: point.y }))
+  })
 
   // ---- Availability: true, or the reason it isn't (false gives the default).
   const reasonFor = (query: CalendarQuery<E>): string | null => {
@@ -695,7 +736,14 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
             style={{ '--lanes': Math.max(1, shownLanes + (folding ? 1 : 0)), top: `var(--sticky-${allDayRow})` } as CSSProperties}
             data-selectable={onSelect ? '' : undefined}
             onPointerDown={(e) => { if (onSelect && e.target === e.currentTarget) begin(e, 'all-day', 0) }}
-            onPointerMove={track} onPointerUp={end} onPointerCancel={cancel}>
+            onPointerMove={track} onPointerUp={end} onPointerCancel={cancel}
+            onContextMenu={(e) => {
+              if (e.target !== e.currentTarget) return
+              const box = e.currentTarget.getBoundingClientRect()
+              const column = columns[Math.max(0, Math.min(columns.length - 1, Math.floor((e.clientX - box.left) / (box.width / columns.length))))]
+              const slot = { start: column.iso, end: column.iso, allDay: true, ...(column.resource && { resourceId: column.resource.id }) }
+              if (openMenu(e.clientX, e.clientY, slotMenu?.(slot))) e.preventDefault()
+            }}>
             {preview?.kind === 'all-day' && preview.columns.map((i) => (
               <div key={i} {...part('selection')} data-all-day="" data-invalid={previewReason ? '' : undefined}
                 style={{ left: `${(i / columns.length) * 100}%`, width: `${100 / columns.length}%` }} />
@@ -707,7 +755,8 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                   left: `${(first / columns.length) * 100}%`, width: `${(covers / columns.length) * 100}%`, top: `calc(${lane} * 1.625rem + 0.25rem)`,
                   ...(event.color && !named.includes(event.color) && { '--event-color': event.color }),
                 } as CSSProperties}
-                onClick={() => onEventClick?.(event)}>
+                onClick={() => onEventClick?.(event)}
+                onContextMenu={(e) => { if (openMenu(e.clientX, e.clientY, eventMenu?.(event))) e.preventDefault() }}>
                 {renderEvent ? renderEvent(event, { start: parse(event.start), end: parse(event.end), resource: null, compact: true }) : event.title}
               </button>
             ))}
@@ -742,7 +791,14 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
               style={{ '--hours': hours.length } as CSSProperties}
               onPointerDown={(e) => { if (e.target === e.currentTarget) press(e) }}
               onPointerMove={(e) => { track(e); hover(e, index) }} onPointerUp={end} onPointerCancel={cancel}
-              onPointerLeave={() => { if (pinned && !gesture.current) setPreview(null) }}>
+              onPointerLeave={() => { if (pinned && !gesture.current) setPreview(null) }}
+              onContextMenu={(e) => {
+                // An empty time (or its unavailable shading), not an event.
+                if (e.target !== e.currentTarget && (e.target as HTMLElement).dataset.part !== 'unavailable') return
+                const from = minuteAt(e.clientY, e.currentTarget.getBoundingClientRect())
+                const { event: _none, ...slot } = timed(column, from, from + slotMinutes)
+                if (openMenu(e.clientX, e.clientY, slotMenu?.(slot))) e.preventDefault()
+              }}>
               {unavailableRuns(column).map((run) => (
                 <div key={run.from} {...part('unavailable')} title={run.reason}
                   style={{ top: top(run.from), height: length(run.to - run.from) }} onPointerDown={press} />
@@ -773,7 +829,13 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                       } as CSSProperties}
                       onPointerDown={(e) => { if (editable(event) && !pinned) begin(e, 'move', index, event); else e.stopPropagation() }}
                       onPointerMove={track} onPointerUp={end} onPointerCancel={cancel}
-                      onKeyDown={(e) => keyDown(e, event)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) {
+                          const box = e.currentTarget.getBoundingClientRect()
+                          if (openMenu(box.left + 8, box.bottom, eventMenu?.(event))) e.preventDefault()
+                        } else keyDown(e, event)
+                      }}
+                      onContextMenu={(e) => { if (openMenu(e.clientX, e.clientY, eventMenu?.(event))) e.preventDefault() }}
                       onClick={() => { if (suppressClick.current) suppressClick.current = false; else onEventClick?.(event) }}>
                       {renderEvent ? renderEvent(event, { start, end: shownEnd, resource: column.resource, compact: minutes <= 30 }) : <>
                         <span {...part('event-title')}>{event.title}</span>
@@ -806,6 +868,8 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
           )
         })}
       </div>
+      <Menu context trigger={<span ref={menuAnchor} aria-hidden="true" style={menuAnchorStyle} />}
+        items={menu.entries} onSelect={(value) => menu.actions[value as number]?.()} />
       <div {...part('status')} aria-live="polite" role="status">{status}</div>
     </div>
   )
