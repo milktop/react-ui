@@ -27,6 +27,12 @@
  * - `name`: for plain form posts
  * - `size`: 'sm' or 'md'; `placement`: where the list opens ('bottom-start')
  * - `renderItem`: an option's content, (item, { selected }) => node
+ * - `renderValue`: the chosen item's content in the closed select (and each
+ *   tag's, picking several), (item) => node; with search, the box holds
+ *   typed text, so use `start` there
+ * - `start`: before the value (or the search box): a node, or (item) => node
+ *   given the chosen item (the first, picking several; null if none), e.g.
+ *   a colour's dot
  * - `renderCreate`: the create option's content, (query) => node
  * - `empty`: shown when nothing matches, a node or ({ query }) => node
  *
@@ -78,7 +84,7 @@ type Several<V> = {
 
 export type SelectPart = 'root' | 'label' | 'control' | 'trigger' | 'valueText' | 'input' | 'tags' | 'tag' | 'tagText'
   | 'tagRemove' | 'indicator' | 'clearTrigger' | 'positioner' | 'content' | 'item' | 'itemText' | 'itemIndicator'
-  | 'empty' | 'create'
+  | 'empty' | 'create' | 'start'
 
 export type SelectProps<T, K extends string = 'value'> = Omit<ComponentProps<'div'>, 'defaultValue' | 'onChange' | 'children'> & {
   items?: readonly T[]
@@ -105,6 +111,8 @@ export type SelectProps<T, K extends string = 'value'> = Omit<ComponentProps<'di
   placement?: NonNullable<Ark.RootProps<T>['positioning']>['placement']
   disabled?: boolean
   renderItem?: (item: T, state: { selected: boolean }) => ReactNode
+  renderValue?: (item: T) => ReactNode
+  start?: ReactNode | ((item: T | null) => ReactNode)
   renderCreate?: (query: string) => ReactNode
   classes?: Classes<SelectPart>
 } & (One<ItemValue<T, K>> | Several<ItemValue<T, K>>)

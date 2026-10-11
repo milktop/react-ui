@@ -1,6 +1,6 @@
 // Select without search: a button that opens the list. Used by Select.tsx,
 // which documents the props.
-import { useMemo, useRef, type KeyboardEvent } from 'react'
+import { Fragment, useMemo, useRef, type KeyboardEvent } from 'react'
 import { Select as Ark, createListCollection, useSelect, type SelectValueChangeDetails } from '@ark-ui/react/select'
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
@@ -14,7 +14,7 @@ export function ListSelect<T>({
   label = null, items = [], placeholder = 'Select…', labelKey, valueKey, disabledKey,
   multiple = false, tags = false, variant = 'subtle', hideSelected = false, deselectable = false, closeOnSelect, clearable = false,
   emptyText = 'No options', empty, name, size = 'md', placement = 'bottom-start', disabled = false,
-  value, defaultValue, onValueChange, renderItem,
+  value, defaultValue, onValueChange, renderItem, renderValue, start,
   // Search-only props, not for the div.
   searchable: _searchable, load: _load, debounce: _debounce, loadingText: _loadingText, onCreate: _onCreate, renderCreate: _renderCreate,
   className, classes, ...rest
@@ -84,14 +84,18 @@ export function ListSelect<T>({
       {label && !field && <Ark.Label {...part('label')}>{label}</Ark.Label>}
       <Ark.Control {...part('control')}>
         <Ark.Trigger {...part('trigger')} onKeyDown={removeLast}>
+          {start != null && <span {...part('start')}>{typeof start === 'function' ? start((select.selectedItems as T[])[0] ?? null) : start}</span>}
           {multiple && tags && select.hasSelectedItems
             // Chips, not buttons (a button can't hold buttons): untick an item to remove it.
             ? <span {...part('tags')}>
                 {(select.selectedItems as T[]).map((item) => (
-                  <span key={keyOf(item)} {...part('tag')}><span {...part('tag-text')}>{labelOf(item)}</span></span>
+                  <span key={keyOf(item)} {...part('tag')}><span {...part('tag-text')}>{renderValue ? renderValue(item) : labelOf(item)}</span></span>
                 ))}
               </span>
-            : <Ark.ValueText {...part('value-text')} placeholder={placeholder} />}
+            : renderValue && select.hasSelectedItems
+              // Your rendering of the chosen item(s), in place of Ark's text.
+              ? <span {...part('value-text')}>{(select.selectedItems as T[]).map((item, i) => <Fragment key={keyOf(item)}>{i > 0 && ', '}{renderValue(item)}</Fragment>)}</span>
+              : <Ark.ValueText {...part('value-text')} placeholder={placeholder} />}
           <Ark.Indicator {...part('indicator')}><iconify-icon icon="lucide:chevron-down" /></Ark.Indicator>
         </Ark.Trigger>
         {clearable && <Ark.ClearTrigger {...part('clear-trigger')}><iconify-icon icon="lucide:x" /></Ark.ClearTrigger>}

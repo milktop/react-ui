@@ -23,7 +23,7 @@ export function SearchSelect<T>({
   multiple = false, variant = 'subtle', hideSelected = false, closeOnSelect, clearable = false,
   load, debounce = 200, loadingText = 'Loading…', onCreate,
   emptyText = 'No matches', empty, name, size = 'md', placement = 'bottom-start', disabled = false,
-  value, defaultValue, onValueChange, renderItem, renderCreate,
+  value, defaultValue, onValueChange, renderItem, renderValue, start, renderCreate,
   // ListSelect-only props, not for the div.
   searchable: _searchable, tags: _tags, deselectable: _deselectable,
   className, classes, ...rest
@@ -193,10 +193,11 @@ export function SearchSelect<T>({
       data-size={size} data-variant={variant} onBlur={revert}>
       {label && !field && <Ark.Label {...part('label')}>{label}</Ark.Label>}
       <Ark.Control {...part('control')} onMouseDown={focusInput}>
+        {start != null && <span {...part('start')}>{typeof start === 'function' ? start((keys[0] !== undefined ? byKey(keys[0]) : undefined) ?? null) : start}</span>}
         <div {...part('tags')}>
           {picked.map((item) => (
             <span key={keyOf(item)} {...part('tag')}>
-              <span {...part('tag-text')}>{labelOf(item)}</span>
+              <span {...part('tag-text')}>{renderValue ? renderValue(item) : labelOf(item)}</span>
               <button {...part('tag-remove')} type="button" tabIndex={-1} aria-label={`Remove ${labelOf(item)}`}
                 onClick={(e) => { e.stopPropagation(); unpick(keyOf(item)) }}><iconify-icon icon="lucide:x" /></button>
             </span>

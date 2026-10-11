@@ -91,7 +91,9 @@ export function SwatchPicker({
     <div {...(rest as HTMLAttributes<HTMLDivElement>)} {...part('field')} className={cx(className, classes?.field)} data-size={size}>
       {label && !field && <span {...part('label')} id={`${id}-label`}>{label}</span>}
       <Popover placement="bottom-start" open={open} onOpenChange={setOpen} data-swatches="" trigger={
-        <button type="button" {...part('trigger')} id={field?.ids.control} aria-haspopup="dialog"
+        // No id of the Field's here: Zag knows its trigger by its own id (with
+        // another, a press on it counts as outside and closes it at once).
+        <button type="button" {...part('trigger')} aria-haspopup="dialog"
           aria-labelledby={field || label ? `${field ? field.ids.label : `${id}-label`} ${id}-value` : undefined}
           aria-invalid={field?.invalid || undefined} disabled={field?.disabled}>
           <span {...part('chip')} style={{ '--swatch': chosen?.color ?? 'transparent' } as CSSProperties} data-empty={!chosen || undefined} />

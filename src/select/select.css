@@ -43,4 +43,10 @@
     &[data-disabled] { opacity: 0.4; cursor: not-allowed; } }
   [data-scope=select][data-part=item-indicator] { display: none; color: var(--ui-accent);
     &[data-state=checked] { display: inline-flex; } }
+  /* `start`: before the value (a colour's dot, an icon). */
+  [data-scope=select][data-part=start] { display: inline-flex; align-items: center; flex-shrink: 0; color: var(--ui-muted);
+    [data-part=control] > & { margin-left: 0.625rem; } }
+  [data-scope=select][data-part=value-text]:not([data-placeholder]) { display: inline-flex; align-items: center; gap: 0.375rem; }
+  /* After a `start`, the value fills the space up to the chevron. */
+  [data-scope=select][data-part=start] + [data-part=value-text] { flex-grow: 1; justify-content: flex-start; text-align: left; }
 }
