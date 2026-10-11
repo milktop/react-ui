@@ -3,7 +3,10 @@
  *
  *   <Stat label="Lessons this month" value={52} change={12.5} changeLabel="vs September" />
  *
- * - `value` (shown as given, so format it first) and an optional `unit`
+ * - `value` and an optional `unit`: text is shown as given; a number is
+ *   formatted (grouped digits, the app's locale), with `format` (Intl's
+ *   options: `{ style: 'currency', currency: 'GBP' }`)
+ * - `animate`: a number's digits roll to a new value when it changes (RollingNumber)
  * - `change`: a number, shown as "+12.5%" with an arrow, green when up and red
  *   when down; `invert` swaps the colours (for things like cancellations);
  *   `changeUnit` replaces the '%'
@@ -17,6 +20,9 @@
  */
 import type { HTMLAttributes, ReactNode } from 'react'
 import 'iconify-icon'
+import { formatNumber } from '../format/format.js'
+import { useLocale } from '../format/LocaleProvider.js'
+import { RollingNumber } from '../rolling-number/RollingNumber.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import '../theme.css'
 import './stat.css'
@@ -24,6 +30,8 @@ import './stat.css'
 export type StatProps = HTMLAttributes<HTMLDivElement> & {
   label?: ReactNode
   value?: ReactNode
+  format?: Intl.NumberFormatOptions
+  animate?: boolean
   unit?: ReactNode
   change?: number | null
   changeUnit?: string
@@ -37,13 +45,18 @@ export type StatProps = HTMLAttributes<HTMLDivElement> & {
 }
 
 export function Stat({
-  label = null, value = null, unit = null, change = null, changeUnit = '%', changeLabel = null, invert = false,
+  label = null, value = null, format, animate = false, unit = null, change = null, changeUnit = '%', changeLabel = null, invert = false,
   help = null, icon = null, variant = 'plain', size = 'md', className, classes, children, ...rest
 }: StatProps) {
   const part = partsOf('stat', classes)
   const direction = change == null || change === 0 ? 'flat' : change > 0 ? 'up' : 'down'
   const good = direction === 'flat' ? null : (direction === 'up') !== invert
-  const changeText = `${change != null && change > 0 ? '+' : ''}${change}${changeUnit}`
+  const locale = useLocale()
+  const changeText = `${change != null && change > 0 ? '+' : ''}${change == null ? '' : formatNumber(change, { locale, maximumFractionDigits: 2 })}${changeUnit}`
+  // A number: formatted, or rolling.
+  const shown = typeof value === 'number'
+    ? animate ? <RollingNumber value={value} format={format} locale={locale} /> : formatNumber(value, { ...format, locale })
+    : value
 
   return (
     <div {...rest} {...part('root')} className={cx(className, classes?.root)} data-variant={variant} data-size={size}>
@@ -52,7 +65,7 @@ export function Stat({
         {icon && <span {...part('icon')} aria-hidden="true"><iconify-icon icon={icon} /></span>}
       </div>
       <div {...part('value')}>
-        <span>{value}</span>
+        <span>{shown}</span>
         {unit && <span {...part('unit')}>{unit}</span>}
       </div>
       {(change != null || changeLabel) && (

@@ -11,6 +11,7 @@
  * - `height` (240 px), `format(value)` for ticks and tooltips, `grid` (lines; true)
  * - `label`: what it shows, for assistive tech (a hidden table of the data)
  */
+import { useLocale } from '../format/LocaleProvider.js'
 import { useId, useState, type HTMLAttributes, type PointerEvent } from 'react'
 import { scalePoint } from 'd3-scale'
 import { area, line, curveMonotoneX, curveLinear } from 'd3-shape'
@@ -47,7 +48,7 @@ export function AreaChart({
 
   const rows = data ?? []
   const list = seriesOf(series, y)
-  const fmt = formatter(format)
+  const fmt = formatter(format, useLocale())
   const innerH = Math.max(0, height - pad.top - pad.bottom)
 
   // Each series' [low, high] per row: from 0, or stacked on the ones before.

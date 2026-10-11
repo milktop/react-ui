@@ -25,6 +25,7 @@
 import { useMemo, type ReactNode } from 'react'
 import { Slider as Ark, type SliderValueChangeDetails } from '@ark-ui/react/slider'
 import { useFieldContext } from '@ark-ui/react/field'
+import { useLocale } from '../format/LocaleProvider.js'
 import { cx, partOf, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './slider.css'
@@ -46,12 +47,14 @@ export type SliderProps = Omit<Ark.RootProps, 'value' | 'defaultValue' | 'onValu
 function SliderShortcut(props: SliderProps) {
   const {
     label = null, value, defaultValue, onValueChange, min = 0, max = 100, step = 1, showValue = true,
-    formatOptions, locale, marks = null, className, classes, ...rest
+    formatOptions, locale: localeProp, marks = null, className, classes, ...rest
   } = props as SliderProps & { value?: number | number[], defaultValue?: number | number[], onValueChange?: (value: number | number[], details: SliderValueChangeDetails) => void }
   const field = useFieldContext()
   const part = partsOf('slider', classes)
   const [own, setOwn] = useControllable<number | number[]>(value, defaultValue ?? min, undefined)
   const range = Array.isArray(own)
+  const app = useLocale()
+  const locale = localeProp ?? app
   const formatter = useMemo(() => new Intl.NumberFormat(locale, formatOptions), [locale, formatOptions])
   const format = (n: number) => formatter.format(n)
   const markOf = (mark: Mark) => (typeof mark === 'object' ? mark : { value: mark, label: format(mark) })

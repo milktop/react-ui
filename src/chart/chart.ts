@@ -17,8 +17,8 @@ export function seriesColor(color: string | null | undefined, index: number) {
 export const seriesOf = (series: ChartSeries[] | null | undefined, y: string | null | undefined): Series[] =>
   (series ?? (y ? [{ key: y, label: y }] : [])).map((s, i) => ({ ...s, label: s.label ?? s.key, color: seriesColor(s.color, i) }))
 
-export const formatter = (format: ((value: number) => string) | null | undefined) => (value: unknown) =>
-  format ? format(value as number) : typeof value === 'number' ? value.toLocaleString() : String(value ?? '')
+export const formatter = (format: ((value: number) => string) | null | undefined, locale?: string) => (value: unknown) =>
+  format ? format(value as number) : typeof value === 'number' ? value.toLocaleString(locale) : String(value ?? '')
 
 // The plot area inside the axes.
 export const pad = { top: 8, bottom: 24, right: 8 }

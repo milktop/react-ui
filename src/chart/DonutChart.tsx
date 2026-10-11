@@ -13,6 +13,7 @@
  * - `format(value)`, for the total, legend and tooltip
  * - `label`: what it shows, for assistive tech (a hidden table of the data)
  */
+import { useLocale } from '../format/LocaleProvider.js'
 import { useState, type HTMLAttributes, type ReactNode } from 'react'
 import { arc, pie } from 'd3-shape'
 import { seriesColor, formatter } from './chart.js'
@@ -38,7 +39,7 @@ export function DonutChart({
 }: DonutChartProps) {
   const part = partsOf('donut', classes)
   const [hover, setHover] = useState<number | null>(null)
-  const fmt = formatter(format)
+  const fmt = formatter(format, useLocale())
   const total = data.reduce((sum, slice) => sum + Math.max(0, slice.value), 0)
   const radius = size / 2
   const inner = thickness >= 1 ? 0 : radius * (1 - thickness)

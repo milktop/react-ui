@@ -44,7 +44,8 @@ So far:
   Table (sorting, selection with Shift ranges, loading, custom cells; `sortRows`) ·
   Pagination · DataList · Stat · Stats · Timeline · TreeView · Editable (edit in place) · Attachments (tiles or a list,
   click-to-enlarge images) · Charts (AreaChart, BarChart, DonutChart, Sparkline; d3 for the maths)
-- Text: Kbd · Prose (rich text as the Editor shows it) · Highlight (search matches)
+- Text and numbers: FormatNumber · FormatBytes · FormatRelative (and `formatNumber`, `formatBytes`,
+  `formatRelative`) · RollingNumber · Divider · Kbd · Prose (rich text as the Editor shows it) · Highlight (search matches)
 - Feedback: Alert · Banner · Progress · Skeleton · Spinner · EmptyState
 - Inputs: Input · Textarea · Editor (rich text on TipTap, with image uploads) · NumberInput · PasswordInput · PinInput · TagsInput ·
   Slider · FileUpload
@@ -73,6 +74,12 @@ The playground runs on the library's own AppShell, Sidebar, Topbar, Page,
 Breadcrumbs and Command, with an Appearance panel (accent, font, radius,
 density, layout), Theming and Installation guides, and blocks: whole pages
 (dashboard, students, profile, inbox, settings, sign-in) and sections.
+
+## Locale
+
+Wrap the app in `<LocaleProvider locale="fr-FR">` and formatting, DatePicker,
+EventCalendar, Progress, Slider and the charts follow it (each still takes its
+own `locale`). `useLocale()` gives it to your own code.
 
 ## Every component works the same way
 

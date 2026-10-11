@@ -9,7 +9,8 @@
  * - `min`, `max`: ISO dates
  * - `unavailable`: function(CalendarDate) returning true for dates that can't
  *   be picked (weekends, holidays); they show struck through
- * - `locale`: for formatting and the first day of the week ('en-GB')
+ * - `locale`: for formatting and the first day of the week (the
+ *   LocaleProvider's, or 'en-GB')
  * - `placement`: where the calendar opens ('bottom-start')
  * - `inline`: just the calendar, always showing (no input or popup), e.g. a
  *   month beside a schedule
@@ -30,6 +31,7 @@ import { DatePicker as Ark, parseDate, useDatePicker, type DatePickerValueChange
 import { useFieldContext } from '@ark-ui/react/field'
 import { getLocalTimeZone, today } from '@internationalized/date'
 import 'iconify-icon'
+import { useLocale } from '../format/LocaleProvider.js'
 import { cx, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './date-picker.css'
@@ -50,13 +52,23 @@ export type DatePickerProps = Omit<Ark.RootProps, 'value' | 'defaultValue' | 'on
     | 'view' | 'viewControl' | 'prevTrigger' | 'viewTrigger' | 'nextTrigger' | 'table' | 'tableHeader' | 'tableCell' | 'tableCellTrigger'>
 } & (One | Range)
 
+// Zag formats the input when the picker starts: a new locale (say, from the
+// LocaleProvider) starts it afresh, so the dates show in the new format.
 function DatePickerShortcut(props: DatePickerProps) {
+  const app = useLocale()
+  const locale = (props as { locale?: string }).locale ?? app ?? 'en-GB'
+  return <DatePickerInner key={locale} {...props} locale={locale} />
+}
+
+function DatePickerInner(props: DatePickerProps) {
   const {
     label = null, value, defaultValue, onValueChange, range = false, min = null, max = null, unavailable = null,
-    locale = 'en-GB', placement = 'bottom-start', prev = null, next = null, inline = false, className, classes, ...rest
+    locale: localeProp, placement = 'bottom-start', prev = null, next = null, inline = false, className, classes, ...rest
   } = props as DatePickerProps & { value?: string | string[] | null, defaultValue?: string | string[] | null,
     onValueChange?: (value: string | string[] | null, details: DatePickerValueChangeDetails) => void }
   const field = useFieldContext()
+  // Its own, the LocaleProvider's, or British (for day-month order and a Monday start).
+  const locale = localeProp ?? 'en-GB'
   const part = partsOf('date-picker', classes)
   const [current, setCurrent] = useControllable<string | string[] | null>(value, defaultValue ?? (range ? [] : null), undefined)
 

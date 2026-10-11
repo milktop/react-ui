@@ -83,7 +83,7 @@
  *   `renderDayHeader(date)`: draw those yourself
  * - `eventLabel(event)`: what screen readers call an event (its title, if text)
  * - `translations`: its words (Today, All day, the views, the announcements…);
- *   `locale`: for the dates and times
+ *   `locale`: for the dates and times (the LocaleProvider's by default)
  * - `actions`: in the toolbar; `toolbar`: false hides it
  */
 import {
@@ -96,6 +96,7 @@ import { Popover } from '../popover/Popover.js'
 import { DatePicker } from '../date-picker/DatePicker.js'
 import { Segmented } from '../segment-group/Segmented.js'
 import { Menu, type MenuEntry } from '../menu/Menu.js'
+import { useLocale } from '../format/LocaleProvider.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import { addDays, addMinutes, minutesOfDay, parse, sameDay, startOfWeek, toISODate, toISODateTime } from './dates.js'
 import '../theme.css'
@@ -258,8 +259,10 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, hourHeight = '3rem',
   height = null, scrollToTime = null, rows = [], allDayMax = 3, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
   pinned = null, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
-  locale, className, classes, style, ...rest
+  locale: localeProp, className, classes, style, ...rest
 }: EventCalendarProps<E, R>) {
+  const app = useLocale()
+  const locale = localeProp ?? app
   const part = partsOf('event-calendar', classes)
   const t = { ...english, ...translations }
   const [today] = useState(() => toISODate(new Date()))

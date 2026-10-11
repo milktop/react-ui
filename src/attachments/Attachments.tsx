@@ -41,6 +41,8 @@ import { createFileTypeValidator, getAcceptAttrString, getFileKey } from '@zag-j
 import { useFieldContext } from '@ark-ui/react/field'
 import 'iconify-icon'
 import { Dialog } from '../dialog/Dialog.js'
+import { formatBytes } from '../format/format.js'
+import { useLocale } from '../format/LocaleProvider.js'
 import { Segmented } from '../segment-group/Segmented.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import '../theme.css'
@@ -80,11 +82,8 @@ export type AttachmentsProps = Omit<HTMLAttributes<HTMLDivElement>, 'onDrop'> & 
 
 type Entry = { item: Attachment, name: string, url?: string, image: boolean, size: string, thumb: string | null, ext: string, icon: string }
 
-export function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
-  return `${Number((bytes / 1024 / 1024).toFixed(1))} MB`
-}
+// A file's size ('2.4 MB'): formatBytes, kept under its old name.
+export const formatSize = (bytes: number, locale?: string) => formatBytes(bytes, { locale })
 
 function iconFor(type: string, name: string) {
   const n = name.toLowerCase()
@@ -118,7 +117,7 @@ function localUrl(file: File) {
 }
 
 // One shape for both plain objects and Files.
-function info(item: Attachment): Entry {
+function info(item: Attachment, locale?: string): Entry {
   const file = typeof File !== 'undefined' && item instanceof File ? item : null
   const url = file ? localUrl(file) : (item as Exclude<Attachment, File>).url
   const type = item.type ?? ''
@@ -126,7 +125,7 @@ function info(item: Attachment): Entry {
   const image = type.startsWith('image/') || /\.(jpe?g|png|gif|webp|avif|svg)$/i.test(name)
   return {
     item, name, url, image,
-    size: typeof item.size === 'number' ? formatSize(item.size) : (item.size ?? ''),
+    size: typeof item.size === 'number' ? formatSize(item.size, locale) : (item.size ?? ''),
     thumb: (!file && (item as Exclude<Attachment, File>).thumb) || (image ? url ?? null : null),
     ext: (name.match(/\.([a-z0-9]+)$/i)?.[1] ?? '').toUpperCase(),
     icon: iconFor(type, name),
@@ -164,7 +163,8 @@ export function Attachments({
     setLayoutValue(next)
     try { if (persist) localStorage.setItem(persist, next) } catch { /* private mode */ }
   }
-  const list = items.map(info)
+  const locale = useLocale()
+  const list = items.map((item) => info(item, locale))
   const count = items.length
   const atMax = !!maxFiles && count >= maxFiles
 
@@ -195,7 +195,7 @@ export function Attachments({
     const bad: AttachmentRejection[] = []
     for (const file of files) {
       if (!fitsType(file)) bad.push({ file, reason: 'not an accepted type' })
-      else if (maxFileSize && file.size > maxFileSize) bad.push({ file, reason: `over ${formatSize(maxFileSize)}` })
+      else if (maxFileSize && file.size > maxFileSize) bad.push({ file, reason: `over ${formatSize(maxFileSize, locale)}` })
       else if (maxFiles && count + ok.length >= maxFiles) bad.push({ file, reason: `the limit is ${maxFiles} files` })
       else ok.push(file)
     }

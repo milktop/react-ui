@@ -8,6 +8,7 @@
  * - `data`, `x`, `y`, `series`, `height`, `format`, `grid`, `label`: as for AreaChart
  * - `stacked`: series sit on top of one another instead of side by side
  */
+import { useLocale } from '../format/LocaleProvider.js'
 import { useState, type PointerEvent } from 'react'
 import { scaleBand } from 'd3-scale'
 import { ChartFrame } from './ChartFrame.js'
@@ -27,7 +28,7 @@ export function BarChart({
 
   const rows = data ?? []
   const list = seriesOf(series, y)
-  const fmt = formatter(format)
+  const fmt = formatter(format, useLocale())
   const innerH = Math.max(0, height - pad.top - pad.bottom)
   const sum = (row: ChartRow) => list.reduce((total, s) => total + num(row[s.key]), 0)
   const max = Math.max(0, ...rows.map((row) => (stacked ? sum(row) : Math.max(0, ...list.map((s) => num(row[s.key]))))))

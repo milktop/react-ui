@@ -21,6 +21,7 @@
  */
 import type { CSSProperties, ReactNode } from 'react'
 import { Progress as Ark } from '@ark-ui/react/progress'
+import { useLocale } from '../format/LocaleProvider.js'
 import { cx, partOf, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './progress.css'
@@ -42,8 +43,10 @@ const ValueText = (props: Ark.ValueTextProps) =>
 
 function ProgressShortcut({
   value = null, min = 0, max = 100, label = null, showValue = false, variant = 'linear', size = 48, thickness = 5,
-  locale = 'en-GB', className, classes, ...rest
+  locale: localeProp, className, classes, ...rest
 }: ProgressProps) {
+  const app = useLocale()
+  const locale = localeProp ?? app ?? 'en-GB'
   const part = partsOf('progress', classes)
   return (
     // Zag treats a missing value as the midpoint, and null as indeterminate.
