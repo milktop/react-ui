@@ -1,7 +1,7 @@
 /* In French, with a full all-day strip
   `translations` for its words and `locale` for the dates and times, editable like the others (select, move, resize, right-click). Past `allDayMax` lanes the all-day strip folds into "+3 de plus"; the label opens it. */
 import { useState } from 'react'
-import { EventCalendar, toaster, type CalendarChange, type CalendarSelection } from '@milktop/react-ui'
+import { EventCalendar, confirm, toaster, type CalendarChange, type CalendarSelection } from '@milktop/react-ui'
 import { lessons, day, type Lesson } from './lessons'
 
 const busy = [0, 1, 2, 3].map((n) => ({ id: `fete-${n}`, title: ['Formation', 'Inventaire', 'Congrès', 'Portes ouvertes'][n], student: '', subject: '',
@@ -11,11 +11,23 @@ export default function Example() {
   const [events, setEvents] = useState<Lesson[]>([...lessons, ...busy])
   const add = ({ start, end, allDay }: CalendarSelection) =>
     setEvents([...events, { id: Date.now(), title: allDay ? 'Journée bloquée' : 'Nouveau cours', student: '', subject: '', start, end, allDay, color: allDay ? 'neutral' : 'accent' }])
+  // Selecting a time asks first (choosing it from the menu already says so).
+  const time = (iso: string) => iso.slice(11)
+  async function ask(slot: CalendarSelection) {
+    const when = slot.allDay
+      ? (slot.start === slot.end ? slot.start : `du ${slot.start} au ${slot.end}`)
+      : `${slot.start.slice(0, 10)}, de ${time(slot.start)} à ${time(slot.end)}`
+    const ok = await confirm({
+      heading: slot.allDay ? 'Bloquer ces journées ?' : 'Ajouter un cours ?', description: when,
+      confirmLabel: slot.allDay ? 'Bloquer' : 'Ajouter', cancelLabel: 'Annuler',
+    })
+    if (ok) add(slot)
+  }
   const update = (event: Lesson, change: CalendarChange) => setEvents(events.map((e) => (e.id === event.id ? { ...e, ...change } : e)))
   const remove = (event: Lesson) => setEvents(events.filter((e) => e.id !== event.id))
 
   return (
-    <EventCalendar events={events} onSelect={add} onEventChange={update}
+    <EventCalendar events={events} onSelect={ask} onEventChange={update}
       onEventClick={(event) => toaster.info({ title: String(event.title) })}
       eventMenu={(event) => [
         { label: 'Ouvrir', icon: 'lucide:file-text', onSelect: () => toaster.info({ title: String(event.title) }) },
