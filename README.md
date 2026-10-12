@@ -150,6 +150,17 @@ npm run build      # the playground as a static site, in playground/dist
 npm run build:lib  # the package: src/ to dist/ (JS, .d.ts, CSS); runs before npm publish
 ```
 
+Releasing (logged in with `npm login`, on a clean main): each runs the checks
+and the build, bumps the version, commits and tags it, pushes with the tag,
+then publishes.
+
+```sh
+npm run release:patch   # 0.1.0 → 0.1.1
+npm run release:minor   # 0.1.0 → 0.2.0
+npm run release:major   # 0.1.0 → 1.0.0
+npm run release:beta    # 0.1.0 → 0.1.1-beta.0, published under the beta tag
+```
+
 Each playground page shows its component's doc comment, and its examples are
 the files in `playground/examples/<component>/`, shown with their code. The
 playground compiles the TSX source directly, so it never needs `build:lib`.
