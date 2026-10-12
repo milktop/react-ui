@@ -75,7 +75,7 @@ export { LocaleProvider, useLocale, useMessages, type LocaleProviderProps } from
 export { en, fr, type Messages, type CalendarMessages, type DeepPartial } from './format/messages.js'
 export { RollingNumber } from './rolling-number/RollingNumber.js'
 export { Prose } from './prose/Prose.js'
-export { Highlight } from './highlight/Highlight.js'
+export { Highlight, type HighlightProps, type HighlightColor } from './highlight/Highlight.js'
 export { NativeSelect } from './native-select/NativeSelect.js'
 export { Editable } from './editable/Editable.js'
 export { TimeInput } from './time-input/TimeInput.js'

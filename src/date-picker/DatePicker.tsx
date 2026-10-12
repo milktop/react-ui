@@ -22,16 +22,24 @@
  * puts in the locale's separators (11102026 → 11/10/2026; 11.10.2026 in
  * German); a separator typed by hand, or a pasted date, works too.
  *
+ * A typed date is taken on Enter or when the input loses focus. One it can't
+ * take (past `min` or `max`, `unavailable`, or not a whole date) stays in the
+ * input, marked invalid with the reason under it, and the value doesn't
+ * change; the input's validity is set too, so a form won't submit with it.
+ * - `onInvalidChange`: called with the reason when that happens, and null
+ *   once the input holds a date it takes (or is cleared)
+ *
  * By hand, with Ark's parts: DatePicker.Root, Control, Input, Trigger,
  * Positioner, Content, View (one per view), ViewControl, PrevTrigger,
  * ViewTrigger, NextTrigger, Table, TableHead, TableHeader, TableBody,
  * TableRow, TableCell, TableCellTrigger, with DatePicker.Context for the
  * weeks, months and years to lay out.
  */
-import { Fragment, useMemo, type FormEvent, type KeyboardEvent, type ReactElement, type ReactNode } from 'react'
+import { Fragment, useId, useMemo, useState, type FocusEvent, type FormEvent, type KeyboardEvent, type ReactElement, type ReactNode } from 'react'
 import { DatePicker as Ark, parseDate, useDatePicker, type DatePickerValueChangeDetails, type DateValue } from '@ark-ui/react/date-picker'
 import { useFieldContext } from '@ark-ui/react/field'
-import { getLocalTimeZone, today } from '@internationalized/date'
+import { DateFormatter, getLocalTimeZone, today } from '@internationalized/date'
+import { parseDateString } from '@zag-js/date-utils'
 import 'iconify-icon'
 import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { cx, partsOf, useControllable, withParts, type Classes } from '../utils.js'
@@ -50,8 +58,9 @@ export type DatePickerProps = Omit<Ark.RootProps, 'value' | 'defaultValue' | 'on
   prev?: ReactElement | null
   next?: ReactElement | null
   inline?: boolean
+  onInvalidChange?: ((reason: string | null) => void) | null
   classes?: Classes<'root' | 'label' | 'control' | 'input' | 'separator' | 'clearTrigger' | 'trigger' | 'positioner' | 'content'
-    | 'view' | 'viewControl' | 'prevTrigger' | 'viewTrigger' | 'nextTrigger' | 'table' | 'tableHeader' | 'tableCell' | 'tableCellTrigger'>
+    | 'view' | 'viewControl' | 'prevTrigger' | 'viewTrigger' | 'nextTrigger' | 'table' | 'tableHeader' | 'tableCell' | 'tableCellTrigger' | 'error'>
 } & (One | Range)
 
 // Zag formats the input when the picker starts: a new locale (say, from the
@@ -100,7 +109,7 @@ function DatePickerShortcut(props: DatePickerProps) {
 function DatePickerInner(props: DatePickerProps) {
   const {
     label = null, value, defaultValue, onValueChange, range = false, min = null, max = null, unavailable = null,
-    locale: localeProp, placement = 'bottom-start', prev = null, next = null, inline = false, className, classes, ...rest
+    locale: localeProp, placement = 'bottom-start', prev = null, next = null, inline = false, onInvalidChange = null, className, classes, ...rest
   } = props as DatePickerProps & { value?: string | string[] | null, defaultValue?: string | string[] | null,
     onValueChange?: (value: string | string[] | null, details: DatePickerValueChangeDetails) => void }
   const field = useFieldContext()
@@ -113,6 +122,7 @@ function DatePickerInner(props: DatePickerProps) {
 
   // CalendarDate#toString is ISO.
   function change(details: DatePickerValueChangeDetails) {
+    report(null)
     const iso = details.value.map(String)
     const next = range ? iso : iso[0] ?? null
     setCurrent(next)
@@ -132,15 +142,55 @@ function DatePickerInner(props: DatePickerProps) {
     ...(field && { ids: { label: () => field.ids.label, input: (index: number) => (index === 0 ? field.ids.control : `${field.ids.control}-${index}`) }, invalid: field.invalid }),
   })
 
+  // A typed date it can't take: the reason, shown under the input and set as
+  // its validity (so a form won't submit), until a date it takes is chosen.
+  const [problem, setProblem] = useState<{ index: number, reason: string } | null>(null)
+  const errorId = useId()
+  function report(next: { index: number, reason: string } | null, input?: HTMLInputElement) {
+    if (next) input?.setCustomValidity(next.reason)
+    else document.querySelectorAll<HTMLInputElement>(`[data-error-for="${errorId}"]`).forEach((el) => el.setCustomValidity(''))
+    if (next?.reason === problem?.reason && next?.index === problem?.index) return
+    setProblem(next)
+    onInvalidChange?.(next?.reason ?? null)
+  }
+
+  // Why a typed date can't be taken, or the date itself.
+  const dateText = (date: DateValue) => new DateFormatter(locale).format(date.toDate(getLocalTimeZone()))
+  function check(input: HTMLInputElement): { reason: string } | { date: DateValue } | null {
+    const text = input.value.trim()
+    if (!text) return null
+    const pieces = text.split(pattern.separator)
+    const date = pieces.length === pattern.fields.length && pieces.every((piece) => /^\d+$/.test(piece))
+      ? parseDateString(text, locale, getLocalTimeZone()) : undefined
+    if (!date) return { reason: t.datePicker.format(input.placeholder) }
+    if (min && date.compare(parseDate(min)) < 0) return { reason: t.datePicker.min(dateText(parseDate(min))) }
+    if (max && date.compare(parseDate(max)) > 0) return { reason: t.datePicker.max(dateText(parseDate(max))) }
+    if (picker.isUnavailable(date)) return { reason: t.datePicker.unavailable }
+    return { date }
+  }
+
+  // Takes the typed date, or reports why not (Zag would clamp or revert it).
+  function commit(input: HTMLInputElement, index: number) {
+    const result = check(input)
+    if (!result) { report(null, input); return true }
+    if ('reason' in result) { report({ index, ...result }, input); return false }
+    report(null, input)
+    const values = picker.value.slice()
+    values[index] = result.date
+    if (range && !values[1 - index]) values[1 - index] = result.date
+    if (range && values[0] && values[1] && values[0].compare(values[1]) > 0) values.reverse()
+    picker.setValue(values)
+    return true
+  }
+
   // Up/Down step an input's date by a day (Shift: a week), skipping unavailable
   // ones; in range mode the other end moves along so start never passes end.
   // Captured, so Zag's own key handling (which skips handled keys) stands aside.
   function step(e: KeyboardEvent<HTMLInputElement>, index: number) {
-    // Zag picks whatever it parsed on Enter, and shows "undefined" for a part
-    // typed date (11/1): wait until every field has digits.
+    // Enter takes the typed date only if it can (Zag shows "undefined" for a
+    // part-typed one, 11/1); otherwise it reports why.
     if (e.key === 'Enter') {
-      const pieces = e.currentTarget.value.trim().split(pattern.separator)
-      if (e.currentTarget.value.trim() && (pieces.length < pattern.fields.length || pieces.some((piece) => !/\d/.test(piece)))) e.preventDefault()
+      if (!commit(e.currentTarget, index)) e.preventDefault()
       return
     }
     const dir = ({ ArrowUp: 1, ArrowDown: -1 } as Record<string, number>)[e.key]
@@ -230,19 +280,22 @@ function DatePickerInner(props: DatePickerProps) {
   )
 
   return (
-    <Ark.RootProvider value={picker} {...rest} {...part('root')} className={cx(className, classes?.root)}>
+    <Ark.RootProvider value={picker} {...rest} {...part('root')} className={cx(className, classes?.root)} data-inline={inline || undefined}>
       {label && !field && <Ark.Label {...part('label')}>{label}</Ark.Label>}
       {!inline && <Ark.Control {...part('control')}>
         {/* Siblings, not wrapped: the CSS grows the last input (:last-of-type). */}
         {(range ? [0, 1] : [0]).map((index) => <Fragment key={index}>
           {index === 1 && <span {...part('separator')}>–</span>}
-          <Ark.Input index={index} {...part('input')} size={10} onKeyDownCapture={(e) => step(e, index)}
-            onInputCapture={(e) => separate(e, pattern)}
-            aria-describedby={field?.ariaDescribedby} />
+          <Ark.Input index={index} {...part('input')} size={10} fixOnBlur={false} data-error-for={errorId}
+            onKeyDownCapture={(e) => step(e, index)} onInputCapture={(e) => separate(e, pattern)}
+            onBlur={(e: FocusEvent<HTMLInputElement>) => commit(e.currentTarget, index)}
+            aria-invalid={problem?.index === index || undefined}
+            aria-describedby={[field?.ariaDescribedby, problem?.index === index && errorId].filter(Boolean).join(' ') || undefined} />
         </Fragment>)}
-        <Ark.ClearTrigger {...part('clear-trigger')}><iconify-icon icon="lucide:x" /></Ark.ClearTrigger>
+        <Ark.ClearTrigger {...part('clear-trigger')} onClick={() => report(null)}><iconify-icon icon="lucide:x" /></Ark.ClearTrigger>
         <Ark.Trigger {...part('trigger')}><iconify-icon icon="lucide:calendar" /></Ark.Trigger>
       </Ark.Control>}
+      {problem && !inline && <div {...part('error')} id={errorId} role="alert">{problem.reason}</div>}
 
       {inline ? content : <Ark.Positioner {...part('positioner')}>{content}</Ark.Positioner>}
     </Ark.RootProvider>

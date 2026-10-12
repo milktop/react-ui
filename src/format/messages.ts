@@ -56,6 +56,7 @@ export type Messages = {
     create: (text: string) => string
   }
   tagsInput: { placeholder: string }
+  datePicker: { format: (pattern: string) => string, min: (date: string) => string, max: (date: string) => string, unavailable: string }
   swatchPicker: { placeholder: string, colors: Record<string, string> }
   command: { label: string, placeholder: string, empty: string, loading: string, esc: string, toNavigate: string, toSelect: string }
   toaster: { label: string }
@@ -124,6 +125,10 @@ export const en: Messages = {
     create: (text) => `Create “${text}”`,
   },
   tagsInput: { placeholder: 'Add…' },
+  datePicker: {
+    format: (pattern) => `Enter a date as ${pattern}`, min: (date) => `Pick a date from ${date}`, max: (date) => `Pick a date up to ${date}`,
+    unavailable: 'That date isn’t available',
+  },
   swatchPicker: { placeholder: 'Choose a colour', colors: Object.fromEntries(swatchNames.map((name) => [name, capital(name)])) },
   command: {
     label: 'Command menu', placeholder: 'Type a command or search…', empty: 'No results', loading: 'Searching…',
@@ -193,6 +198,11 @@ export const fr: Messages = {
     create: (text) => `Créer « ${text} »`,
   },
   tagsInput: { placeholder: 'Ajouter…' },
+  datePicker: {
+    format: (pattern) => `Saisissez une date au format ${pattern.replace(/d/g, 'j').replace(/y/g, 'a')}`,
+    min: (date) => `Choisissez une date à partir du ${date}`, max: (date) => `Choisissez une date jusqu’au ${date}`,
+    unavailable: 'Cette date n’est pas disponible',
+  },
   swatchPicker: {
     placeholder: 'Choisir une couleur',
     colors: {
