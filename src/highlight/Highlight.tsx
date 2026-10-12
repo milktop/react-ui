@@ -5,6 +5,8 @@
  *
  * - `text`: the text; `query`: what to mark (a string, or several)
  * - `ignoreCase` (true), `matchAll` (true: every match, not just the first)
+ * - the marks' colour is the `--ui-highlight` token (a tint of the accent):
+ *   set it on :root for every highlight, or in `style` for one
  */
 import { Highlight as Ark, type HighlightProps as ArkProps } from '@ark-ui/react/highlight'
 import { partsOf, type Classes } from '../utils.js'

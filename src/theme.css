@@ -30,6 +30,9 @@
     --ui-accent-text: white;
     --ui-accent-soft: #dbeafe;
     --ui-accent-soft-text: #1e40af;
+    /* Selected text, and Highlight's marks. */
+    --ui-selection: color-mix(in srgb, var(--ui-accent) 24%, transparent);
+    --ui-highlight: color-mix(in srgb, var(--ui-accent) 22%, transparent);
     --ui-ring: #3b82f6;
     --ui-ring-soft: #3b82f633;
     --ui-danger: #dc2626;
@@ -86,6 +89,8 @@
     --ui-accent: #3b82f6;
     --ui-accent-soft: #1e3a8a;
     --ui-accent-soft-text: #bfdbfe;
+    --ui-selection: color-mix(in srgb, var(--ui-accent) 40%, transparent);
+    --ui-highlight: color-mix(in srgb, var(--ui-accent) 35%, transparent);
     --ui-ring: #60a5fa;
     --ui-ring-soft: #60a5fa33;
     --ui-danger: #f87171;
@@ -98,6 +103,8 @@
     /* Shadows don't read on dark; borders do the work. */
     --ui-card-shadow: none;
   }
+
+  ::selection { background: var(--ui-selection); }
 
   /* Zag hides closed parts with `hidden`; that beats any display a component sets. */
   [data-scope][hidden] { display: none !important; }
