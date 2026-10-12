@@ -4,8 +4,8 @@ import pkg from '../../package.json'
 
 const version = `v${pkg.version}`
 
-const install = `npm install github:milktop/react-ui#${version}
-# or, while developing locally
+const install = `npm install @milktop/react-ui
+# or, while developing the library (after npm run build:lib there)
 npm install file:../../react/ui`
 
 const css = `/* app.css: the library's layer sits below Tailwind's utilities */
@@ -49,7 +49,7 @@ const sections = [
   { heading: 'The shortcut or its parts', text: 'Every component is a shortcut that covers the common case, with its parts on it for the rare one. No CLI, no copied snippets.', code: parts },
   { heading: 'Style', text: 'Every component takes className (its outer element) and classes (its parts, by camelCased part name), and the --ui-* tokens restyle it. See Theming for each way, from the whole app to one part.', code: style },
   { heading: 'TypeScript, or not', text: 'Written in TypeScript: TSX apps get checked props (a Select\'s value is the type of its items\' valueKey) and JSX apps get the same autocomplete, with no build step for either.' },
-  { heading: 'Upgrade', text: 'Install the newer tag. Until 1.0, a minor version may change props or markup; patch versions only fix things.' },
+  { heading: 'Upgrade', text: 'npm update @milktop/react-ui, or npm install @milktop/react-ui@latest across a minor version. Until 1.0, a minor version may change props or markup; patch versions only fix things.' },
 ]
 
 export function Installation() {
