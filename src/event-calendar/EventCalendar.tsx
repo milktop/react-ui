@@ -400,12 +400,33 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const refocus = useRef<Id | null>(null)
   const suppressClick = useRef(false)
 
+  // `byMinutes` kept to the day's hours: an event moves or grows no further than
+  // the grid shows (one already past an edge doesn't go further past it).
+  function withinHours(event: E, kind: 'move' | 'resize', byMinutes: number) {
+    const start = parse(event.start)
+    const from = minutesOfDay(start)
+    const to = from + minutesBetween(start, parse(event.end))
+    const latest = Math.max(0, endHour * 60 - to)
+    const earliest = kind === 'move' ? Math.min(0, startHour * 60 - from) : -Infinity
+    return Math.max(earliest, Math.min(latest, byMinutes))
+  }
+
+  // Where a pinned event placed at `minute` starts: on a slot, ending by the day's last hour.
+  function placeAt(minute: number) {
+    if (!pinned) return minute
+    const length = minutesBetween(parse(pinned.start), parse(pinned.end)) || slotMinutes
+    const latest = startHour * 60 + Math.floor((span - length) / slotMinutes) * slotMinutes
+    return Math.max(startHour * 60, Math.min(latest, minute))
+  }
+
   // Where an event would go if moved by `byColumns` and `byMinutes` (or resized by `byMinutes`).
   function target(event: E, kind: 'move' | 'resize', byColumns: number, byMinutes: number) {
     const start = parse(event.start)
     const end = parse(event.end)
     const from = columnOf(event, event.start.slice(0, 10))
     if (from < 0) return null
+    byMinutes = withinHours(event, kind, byMinutes)
+    if (!byColumns && !byMinutes) return null
     if (kind === 'resize') {
       const newEnd = addMinutes(end, byMinutes)
       if (minutesBetween(start, newEnd) < slotMinutes) return null
@@ -461,7 +482,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     const from = minuteAt(e.clientY, box)
     gesture.current = { kind, column, x: e.clientX, y: e.clientY, top: box.top, height: box.height, width: box.width, left: box.left, from, moved: false, keys: keysOf(e), event }
     if (kind === 'select') setPreview({ kind: 'select', column, from, to: from + slotMinutes })
-    if (kind === 'place') setPreview({ kind: 'place', column, from })
+    if (kind === 'place') setPreview({ kind: 'place', column, from: placeAt(from) })
   }
 
   // The columns from one to another (with resources, only the first one's resource).
@@ -486,13 +507,13 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
       const at = minuteAt(e.clientY, g)
       setPreview({ kind: 'select', column: g.column, from: Math.min(g.from, at), to: Math.max(g.from, at) + slotMinutes })
     } else if (g.kind === 'place') {
-      setPreview({ kind: 'place', column: g.column, from: minuteAt(e.clientY, g) })
+      setPreview({ kind: 'place', column: g.column, from: placeAt(minuteAt(e.clientY, g)) })
     } else if (g.kind === 'move') {
       const byColumns = Math.round(dx / g.width)
-      const byMinutes = Math.round(dy / perMinute / slotMinutes) * slotMinutes
+      const byMinutes = withinHours(g.event!, 'move', Math.round(dy / perMinute / slotMinutes) * slotMinutes)
       setPreview({ kind: 'move', id: g.event!.id, columns: byColumns, minutes: byMinutes, x: byColumns * g.width, y: byMinutes * perMinute })
     } else {
-      setPreview({ kind: 'resize', id: g.event!.id, minutes: Math.round(dy / perMinute / slotMinutes) * slotMinutes })
+      setPreview({ kind: 'resize', id: g.event!.id, minutes: withinHours(g.event!, 'resize', Math.round(dy / perMinute / slotMinutes) * slotMinutes) })
     }
   }
 
@@ -559,7 +580,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     if (gesture.current) return setHoverSlot(null)
     const box = e.currentTarget.closest('[data-part=day]')!.getBoundingClientRect()
     const from = minuteAt(e.clientY, box)
-    if (pinned) return setPreview({ kind: 'place', column, from })
+    if (pinned) return setPreview({ kind: 'place', column, from: placeAt(from) })
     // Over the empty column (or its shading), not an event.
     const over = e.target as HTMLElement
     setHoverSlot(onSelect && (over === e.currentTarget || over.dataset.part === 'unavailable') ? { column, from } : null)
