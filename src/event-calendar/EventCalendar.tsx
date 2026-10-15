@@ -421,13 +421,14 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const suppressClick = useRef(false)
 
   // `byMinutes` kept to the day's hours: an event moves or grows no further than
-  // the grid shows (one already past an edge doesn't go further past it).
+  // the grid shows (one already past an edge doesn't go further past it), and
+  // shrinks to a slot at the shortest (one already shorter doesn't shrink).
   function withinHours(event: E, kind: 'move' | 'resize', byMinutes: number) {
     const start = parse(event.start)
     const from = minutesOfDay(start)
-    const to = from + minutesBetween(start, parse(event.end))
-    const latest = Math.max(0, endHour * 60 - to)
-    const earliest = kind === 'move' ? Math.min(0, startHour * 60 - from) : -Infinity
+    const length = minutesBetween(start, parse(event.end))
+    const latest = Math.max(0, endHour * 60 - from - length)
+    const earliest = kind === 'move' ? Math.min(0, startHour * 60 - from) : Math.min(0, slotMinutes - length)
     return Math.max(earliest, Math.min(latest, byMinutes))
   }
 
