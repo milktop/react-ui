@@ -4,7 +4,7 @@
 // exactly what an app would do in its own CSS. The same options as
 // svelte-ui's and imba-ui's playgrounds.
 import { useSyncExternalStore } from 'react'
-import { colorScheme } from '@milktop/react-ui'
+import { appearance, accents as scaledAccents, colorScheme } from '@milktop/react-ui'
 
 // Each accent: light and dark values for [accent, accent text, soft, soft text, ring].
 export const accents = {
@@ -59,6 +59,7 @@ function load(): Appearance {
 
 let state = load()
 const listeners = new Set<() => void>()
+let lastAccent: string | null = null
 
 // Applies it to <html> and saves it.
 function apply() {
@@ -66,13 +67,26 @@ function apply() {
   const dark = colorScheme.dark
   const [accent, accentText, soft, softText, ring] = (accents[state.accent] ?? accents.blue)[dark ? 'dark' : 'light']
   const [, md, sm, lg] = densities[state.density] ?? densities.default
-  const tokens = {
+  const tokens: Record<string, string> = {
     '--ui-accent': accent, '--ui-accent-text': accentText, '--ui-accent-soft': soft, '--ui-accent-soft-text': softText,
     '--ui-ring': ring, '--ui-ring-soft': `${ring}33`,
     '--ui-radius': (radii[state.radius] ?? radii.default)[1],
     '--ui-control-height': md, '--ui-control-height-sm': sm, '--ui-control-height-lg': lg,
     '--ui-font': (fonts[state.font] ?? fonts.jakarta).family,
   }
+  // The library's own accents go through `appearance` (its scale recolours
+  // the accent tokens, and <Appearance> shows the same choice); the
+  // playground's extra ones (amber, neutral) set the tokens directly.
+  if (state.accent in scaledAccents) {
+    for (const name of ['--ui-accent', '--ui-accent-text', '--ui-accent-soft', '--ui-accent-soft-text', '--ui-ring', '--ui-ring-soft'] as const) {
+      delete tokens[name]
+      root.style.removeProperty(name)
+    }
+    // Only when this panel's accent changes, so its other settings leave a
+    // choice made in <Appearance> alone
+    if (state.accent !== lastAccent) appearance.load({ accent: state.accent, custom: null })
+  }
+  lastAccent = state.accent
   for (const [name, value] of Object.entries(tokens)) root.style.setProperty(name, value)
 
   // Backgrounds: light mode only, so dark mode's own values apply there.

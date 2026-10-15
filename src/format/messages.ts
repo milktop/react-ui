@@ -64,6 +64,10 @@ export type Messages = {
   chart: { label: string, total: string }
   stat: { up: string, down: string, same: string }
   themeToggle: { label: string, light: string, dark: string, system: string }
+  appearance: {
+    label: string, mode: string, accent: string, sidebar: string, lightOnly: string, custom: string, dev: string, reset: string
+    accents: Record<string, string>, sidebars: Record<string, string>
+  }
   sortableList: {
     handle: string, instructions: string, position: (index: number, count: number) => string
     pickedUp: (name: string, place: string) => string, movedTo: (name: string, place: string) => string
@@ -139,6 +143,12 @@ export const en: Messages = {
   chart: { label: 'Chart', total: 'Total' },
   stat: { up: 'Up', down: 'Down', same: 'No change' },
   themeToggle: { label: 'Colour scheme', light: 'Light', dark: 'Dark', system: 'System' },
+  appearance: {
+    label: 'Appearance', mode: 'Mode', accent: 'Colour', sidebar: 'Sidebar', lightOnly: 'in light mode',
+    custom: 'Any colour', dev: 'Dev mode', reset: 'Reset',
+    accents: { slate: 'Slate', blue: 'Blue', indigo: 'Indigo', violet: 'Violet', teal: 'Teal', emerald: 'Emerald', rose: 'Rose' },
+    sidebars: { default: 'Default', neutral: 'Neutral', soft: 'Soft', tint: 'Tint', accent: 'Accent', dark: 'Dark', deep: 'Deep' },
+  },
   sortableList: {
     handle: 'Drag to reorder',
     instructions: 'Press Space to pick this up. While dragging, use the arrow keys to move it, Space to drop it, or Escape to cancel.',
@@ -220,6 +230,12 @@ export const fr: Messages = {
   chart: { label: 'Graphique', total: 'Total' },
   stat: { up: 'Hausse', down: 'Baisse', same: 'Stable' },
   themeToggle: { label: 'Thème', light: 'Clair', dark: 'Sombre', system: 'Système' },
+  appearance: {
+    label: 'Apparence', mode: 'Mode', accent: 'Couleur', sidebar: 'Barre latérale', lightOnly: 'en mode clair',
+    custom: 'Couleur libre', dev: 'Mode dev', reset: 'Réinitialiser',
+    accents: { slate: 'Ardoise', blue: 'Bleu', indigo: 'Indigo', violet: 'Violet', teal: 'Teal', emerald: 'Émeraude', rose: 'Rose' },
+    sidebars: { default: 'Par défaut', neutral: 'Neutre', soft: 'Doux', tint: 'Teinte', accent: 'Accent', dark: 'Foncé', deep: 'Très foncé' },
+  },
   sortableList: {
     handle: 'Glisser pour réordonner',
     instructions: 'Appuyez sur Espace pour saisir cet élément. Déplacez-le ensuite avec les flèches, déposez-le avec Espace, ou appuyez sur Échap pour annuler.',

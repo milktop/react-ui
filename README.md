@@ -52,7 +52,8 @@ So far:
 - Pickers: TimeInput · NativeSelect · SwatchPicker · Select (one component: searchable, server `load`, `onCreate`,
   multiple, tags; Combobox's parts for building one by hand) · DatePicker
 - Choices: Checkbox · CheckboxGroup · Switch · RadioGroup · Segmented ·
-  ThemeToggle (`colorScheme`, `useColorScheme`)
+  ThemeToggle (`colorScheme`, `useColorScheme`) · Appearance (light and dark, the accent and the
+  sidebar style behind one button; `appearance`, `useAppearance`)
 - Forms: Field · Fields
 - Overlays: Tooltip · Popover · HoverCard · Dialog · Sheet (both: props or
   composed from Header/Body/Footer) · ActionBar · Menu · ContextMenu (Menu.Item,
@@ -132,6 +133,53 @@ dark values apply under `html.dark`:
 
 ```css
 :root { --ui-accent: #e11d48; --ui-radius: 10px; }
+```
+
+### Accent and sidebar style
+
+`appearance` holds the accent colour and the sidebar style, saved like
+`colorScheme`. `<Appearance>` lets people choose them, with light and dark,
+behind one button:
+
+```tsx
+<Appearance accents={['teal', 'blue', 'violet']} sidebars={['neutral', 'tint', 'dark']} />
+```
+
+`accents` and `sidebars` are what users may choose (every one if left out),
+the default first: a saved choice outside them moves to it. While building
+the app, add `dev`: it offers every accent and sidebar style, any colour, a
+reset, and the props to paste for the current choice. Take it off before
+shipping.
+
+The accents are Tailwind's scales (`slate`, `blue`, `indigo`, `violet`,
+`teal`, `emerald`, `rose`); a custom hex colour gets its scale worked out in
+the browser. It sets the `--ui-accent-50` … `-950` scale on `<html>`, which
+the accent and ring tokens are steps of, so setting that scale in your own
+CSS recolours them too. The sidebar styles (`default`, `neutral`, `soft`,
+`tint`, `accent`, `dark`, `deep`) are light-mode only. From code:
+
+```ts
+import { appearance } from '@milktop/react-ui'
+
+appearance.defaults = { accent: 'teal', sidebar: 'neutral' }  // before anything is saved, and for reset
+appearance.update({ accent: 'violet', sidebar: 'dark' })
+appearance.load(user.appearance)                              // apply a saved one
+appearance.onChange = (value) => save(value)                  // { accent, custom, sidebar }
+```
+
+It saves under `ui-appearance` (`appearance.storageKey` changes it), scale
+included, so the `<head>` can paint it before your bundle loads:
+
+```html
+<script>
+  try {
+    var a = JSON.parse(localStorage.getItem('ui-appearance') || '{}'), r = document.documentElement
+    if (a.sidebar && a.sidebar !== 'default') r.dataset.uiSidebarStyle = a.sidebar
+    var steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]
+    if (a.scale) steps.forEach(function (s, i) { r.style.setProperty('--ui-accent-' + s, a.scale[i]) })
+    if (a.scaleText) r.style.setProperty('--ui-accent-500-text', a.scaleText)
+  } catch (e) {}
+</script>
 ```
 
 ### React Server Components

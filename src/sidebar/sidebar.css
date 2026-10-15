@@ -124,4 +124,47 @@
     [data-rail] > [data-part=trigger] > & { display: none; } }
   /* As wide as the trigger when it opens upwards, and never narrower than 13rem. */
   [data-scope=sidebar-user] [data-scope=menu][data-part=content] { min-width: max(13rem, var(--reference-width)); }
+
+  /* The sidebar styles `appearance` sets (data-ui-sidebar-style on <html>):
+     the sidebar tokens for both layouts (the plain one's surface and the
+     inset one's background), in light mode. They're set on the sidebar
+     itself, so they win over tokens set on <html>. */
+  /* Grey, the current page's icon in the accent (neutral-accent: the old
+     name, which a page may still paint before the bundle loads). */
+  :root:not(.dark):is([data-ui-sidebar-style=neutral], [data-ui-sidebar-style=neutral-accent]) [data-scope=sidebar][data-part=root] {
+    --ui-sidebar-hover: #eef0f3; --ui-sidebar-inset-hover: #eef0f3;
+    --ui-sidebar-active: #e6e9ee; --ui-sidebar-inset-active: #e6e9ee; --ui-sidebar-inset-active-shadow: none;
+    --ui-sidebar-active-icon: var(--ui-accent); }
+  :root:not(.dark)[data-ui-sidebar-style=soft] [data-scope=sidebar][data-part=root] {
+    --ui-sidebar-hover: var(--ui-accent-soft); --ui-sidebar-inset-hover: var(--ui-accent-soft);
+    --ui-sidebar-active: var(--ui-accent-soft); --ui-sidebar-inset-active: var(--ui-accent-soft); --ui-sidebar-inset-active-shadow: none; }
+  :root:not(.dark)[data-ui-sidebar-style=tint] [data-scope=sidebar][data-part=root] {
+    --ui-sidebar-surface: var(--ui-accent-50); --ui-sidebar-bg: var(--ui-accent-50);
+    --ui-sidebar-hover: color-mix(in srgb, var(--ui-accent-100) 60%, transparent);
+    --ui-sidebar-inset-hover: color-mix(in srgb, var(--ui-accent-100) 60%, transparent);
+    --ui-sidebar-active: var(--ui-accent-100); --ui-sidebar-inset-active: var(--ui-accent-100); --ui-sidebar-inset-active-shadow: none;
+    --ui-sidebar-active-text: var(--ui-accent-800); }
+  /* The coloured ones: white text and translucent white hovers. */
+  :root:not(.dark):is([data-ui-sidebar-style=accent], [data-ui-sidebar-style=dark], [data-ui-sidebar-style=deep]) [data-scope=sidebar][data-part=root] {
+    --ui-sidebar-text: white; --ui-sidebar-muted: rgba(255, 255, 255, 0.6);
+    --ui-sidebar-border: transparent; --ui-sidebar-divider: rgba(255, 255, 255, 0.12);
+    --ui-sidebar-item-text: rgba(255, 255, 255, 0.88); --ui-sidebar-heading: rgba(255, 255, 255, 0.55); --ui-sidebar-icon: rgba(255, 255, 255, 0.7);
+    --ui-sidebar-hover-text: white; --ui-sidebar-active-text: white;
+    --ui-sidebar-hover: rgba(255, 255, 255, 0.08); --ui-sidebar-inset-hover: rgba(255, 255, 255, 0.08);
+    --ui-sidebar-active-shadow: none; --ui-sidebar-inset-active-shadow: none; }
+  :root:not(.dark)[data-ui-sidebar-style=accent] [data-scope=sidebar][data-part=root] {
+    --ui-sidebar-surface: var(--ui-accent-600); --ui-sidebar-bg: var(--ui-accent-600);
+    --ui-sidebar-item-text: white; --ui-sidebar-heading: rgba(255, 255, 255, 0.7); --ui-sidebar-icon: rgba(255, 255, 255, 0.85);
+    /* Like the dark ones (below), a little stronger on the lighter colour. */
+    --ui-sidebar-hover: rgba(255, 255, 255, 0.1); --ui-sidebar-inset-hover: rgba(255, 255, 255, 0.1);
+    --ui-sidebar-active: rgba(255, 255, 255, 0.18); --ui-sidebar-inset-active: rgba(255, 255, 255, 0.18); }
+  /* The dark ones: the current page a stronger version of the hover, so it
+     stays quiet whatever the accent. */
+  :root:not(.dark):is([data-ui-sidebar-style=dark], [data-ui-sidebar-style=deep]) [data-scope=sidebar][data-part=root] {
+    --ui-sidebar-hover: rgba(255, 255, 255, 0.06); --ui-sidebar-inset-hover: rgba(255, 255, 255, 0.06);
+    --ui-sidebar-active: rgba(255, 255, 255, 0.12); --ui-sidebar-inset-active: rgba(255, 255, 255, 0.12); }
+  :root:not(.dark)[data-ui-sidebar-style=dark] [data-scope=sidebar][data-part=root] {
+    --ui-sidebar-surface: var(--ui-accent-900); --ui-sidebar-bg: var(--ui-accent-900); }
+  :root:not(.dark)[data-ui-sidebar-style=deep] [data-scope=sidebar][data-part=root] {
+    --ui-sidebar-surface: var(--ui-accent-950); --ui-sidebar-bg: var(--ui-accent-950); }
 }

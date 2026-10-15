@@ -27,6 +27,11 @@ export { RadioGroup } from './radio-group/RadioGroup.js'
 export { Segmented } from './segment-group/Segmented.js'
 export { ThemeToggle } from './theme-toggle/ThemeToggle.js'
 export { colorScheme, useColorScheme, type Scheme } from './color-scheme.js'
+export { Appearance } from './appearance-panel/Appearance.js'
+export {
+  appearance, useAppearance, accents, accentScale, accentSteps, sidebarStyles,
+  type AccentName, type AppearanceValue, type SidebarStyle,
+} from './appearance.js'
 export { Tooltip } from './tooltip/Tooltip.js'
 export {
   Menu, ContextMenu, MenuItem, MenuSeparator, MenuGroup, MenuCheckbox, MenuRadioGroup, MenuRadio, Submenu,

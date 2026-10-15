@@ -73,6 +73,7 @@ const all: Group[] = [
     { slug: 'segment-group', title: 'Segmented', about: 'A row of options with a sliding indicator', file: 'segment-group/Segmented.tsx' },
     { slug: 'swatch-picker', title: 'Swatch picker', about: 'A colour from a few swatches', file: 'swatch-picker/SwatchPicker.tsx' },
     { slug: 'theme-toggle', title: 'Theme toggle', about: 'Light, dark or the OS setting', file: 'theme-toggle/ThemeToggle.tsx' },
+    { slug: 'appearance', title: 'Appearance', about: 'Light and dark, the accent and the sidebar style', file: 'appearance-panel/Appearance.tsx' },
   ] },
   { heading: 'Forms', icon: 'lucide:clipboard-list', pages: [
     { slug: 'field', title: 'Field', about: 'Labels, hints and errors, on a grid', file: 'field/Field.tsx' },
