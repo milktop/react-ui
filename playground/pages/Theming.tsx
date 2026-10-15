@@ -11,7 +11,7 @@ const strokes = [{ value: '1.5', label: 'Light' }, { value: '2', label: 'Default
 // Where each way applies, and what it reaches.
 const wins = [
   ['The whole app', ':root { --ui-accent: … }', 'Every component, through tokens'],
-  ['Part of a page, or one instance', 'style={{ \'--ui-accent\': … }}', 'Everything inside it; overrides :root'],
+  ['Part of a page, or one instance', 'className="[--ui-accent:…]" (or style)', 'Everything inside it; overrides :root'],
   ['Every instance', '[data-scope=checkbox][data-part=control] { … }', 'That part wherever it’s used; beats @layer ui'],
   ['One part of one instance', 'classes={{ control: \'…\' }}', 'That part of that instance'],
   ['A part’s content', 'indicator={…}, renderItem={…}', 'What the part shows'],

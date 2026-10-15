@@ -106,7 +106,8 @@ the words of the app's provider.
   (`classes={{ itemText: 'font-mono' }}`).
 - Slots replace a part's content: a node, or a function given its state
   (`indicator={({ indeterminate }) => …}`, `renderItem={(item) => …}`).
-- `style={{ '--ui-accent': … }}`: tokens for one instance; on `:root` for the whole app.
+- Tokens for one instance or a section: a class (`className="[--ui-accent:#16a34a]"` with
+  Tailwind) or `style={{ '--ui-accent': … }}`; on `:root` for the whole app.
 - Typed: written in TypeScript, shipped as JS with `.d.ts` types, so TSX apps
   get checked props (Select's value is the type of your items' `valueKey`)
   and JSX apps get autocomplete, with no errors either way.
