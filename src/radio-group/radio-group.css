@@ -9,7 +9,7 @@
   [data-scope=radio-group][data-part=item] { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 14px; cursor: pointer;
     &[data-disabled] { opacity: 0.5; cursor: not-allowed; } }
   [data-scope=radio-group][data-part=item-control] { display: grid; place-items: center; flex-shrink: 0; width: 1rem; height: 1rem;
-    margin-top: 0.125rem; box-sizing: border-box; background: var(--ui-surface); border: 1px solid var(--ui-border); border-radius: 9999px;
+    margin-top: 0.125rem; box-sizing: border-box; background: var(--ui-field-bg); border: 1px solid var(--ui-field-border); border-radius: 9999px;
     &[data-state=checked] { border-color: var(--ui-accent); border-width: 5px; }
     &[data-focus-visible] { outline: 2px solid var(--ui-ring-soft); border-color: var(--ui-ring); }
     &[data-invalid] { border-color: var(--ui-danger); } }

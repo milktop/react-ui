@@ -3,7 +3,7 @@
     color: var(--ui-text); font-family: var(--ui-font); font-size: 14px;
     &[data-disabled] { opacity: 0.5; cursor: not-allowed; } }
   [data-scope=checkbox][data-part=control] { display: grid; place-items: center; flex-shrink: 0; width: 1rem; height: 1rem; box-sizing: border-box;
-    background: var(--ui-surface); border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) - 2px); color: var(--ui-accent-text);
+    background: var(--ui-field-bg); border: 1px solid var(--ui-field-border); border-radius: calc(var(--ui-radius) - 2px); color: var(--ui-accent-text);
     &:is([data-state=checked], [data-state=indeterminate]) { background: var(--ui-accent); border-color: var(--ui-accent); }
     &[data-focus-visible] { outline: 2px solid var(--ui-ring-soft); border-color: var(--ui-ring); }
     &[data-invalid] { border-color: var(--ui-danger); } }

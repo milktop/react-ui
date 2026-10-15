@@ -23,6 +23,15 @@
     --ui-sidebar-bg: #f8f9fb;
     --ui-frame: white;
     --ui-border: #e4e4e7;
+    /* Form controls (inputs, selects, checkboxes, …): their fill and border, and
+       the border on hover. Light, they match cards; dark, they sit a step below
+       the card with a stronger edge, so they read as places to type. */
+    --ui-field-bg: var(--ui-surface);
+    --ui-field-border: var(--ui-border);
+    --ui-field-border-hover: #d4d4d8;
+    /* Text inputs the browser autofilled: a faint accent tint in place of its
+       own colour (--ui-field-bg hides it). */
+    --ui-field-autofill-bg: color-mix(in srgb, var(--ui-accent) 8%, var(--ui-field-bg));
     --ui-hover: #f4f4f5;
     /* Loading placeholders: visible on the canvas and on cards alike. */
     --ui-skeleton: #e4e4e7;
@@ -85,6 +94,9 @@
     --ui-sidebar-bg: #0c0c0e;
     --ui-frame: #0c0c0e;
     --ui-border: #2b2b31;
+    --ui-field-bg: #17171b;
+    --ui-field-border: #3a3a42;
+    --ui-field-border-hover: #4a4a53;
     --ui-hover: #27272d;
     --ui-skeleton: #303036;
     --ui-accent: #3b82f6;
