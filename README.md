@@ -199,9 +199,10 @@ npm run build      # the playground as a static site, in playground/dist
 npm run build:lib  # the package: src/ to dist/ (JS, .d.ts, CSS); runs before npm publish
 ```
 
-Releasing (logged in with `npm login`, on a clean main): each runs the checks
-and the build, bumps the version, commits and tags it, pushes with the tag,
-then publishes.
+Releasing (on a clean main): each runs the checks and the build, bumps the
+version, commits and tags it, and pushes with the tag. The tag starts the
+Publish workflow (`.github/workflows/publish.yml`), which publishes to npm
+through Trusted publishing: no npm login or token needed.
 
 ```sh
 npm run release:patch   # 0.1.0 → 0.1.1
