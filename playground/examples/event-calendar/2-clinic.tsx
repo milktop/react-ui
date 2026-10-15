@@ -1,7 +1,7 @@
 /* A vet clinic's day
-  A column per vet (`resources`), 15-minute slots, inside a fixed `height` that opens at the current time. Each vet's hours, lunch and clashes come from `isAvailable` (hatched, the reason on hover; drops and bookings there are refused). Drag to book; hold Shift to block time; select in the all-day strip to mark a vet away. Moves save for a moment (`pending`). Click an appointment, then Move…, to place it anywhere, even another week (`pinned`). Right-click an appointment or an empty time for a menu (`eventMenu`, `slotMenu`). The day's messages are an extra row. */
+  Day view has a column per vet (`resources`); Week puts everyone together (`resourceViews={['day']}`), in each vet's colour, with who's working in each day's header (`renderDayHeader`, given the day's events). 15-minute slots, inside a fixed `height` that opens at the current time. Each vet's hours, lunch and clashes come from `isAvailable` (hatched, the reason on hover; drops and bookings there are refused). Drag to book; hold Shift to block time; select in the all-day strip to mark a vet away. Moves save for a moment (`pending`). Click an appointment, then Move…, to place it anywhere, even another week (`pinned`). Right-click an appointment or an empty time for a menu (`eventMenu`, `slotMenu`). The day's messages are an extra row. */
 import { useState } from 'react'
-import { EventCalendar, Avatar, Badge, toaster, confirm, type CalendarChange, type CalendarQuery, type CalendarSelection, type CalendarKeys } from '@milktop/react-ui'
+import { EventCalendar, Avatar, AvatarGroup, Badge, toaster, confirm, type CalendarChange, type CalendarQuery, type CalendarSelection, type CalendarKeys } from '@milktop/react-ui'
 import { vets, appointments as initial, type Appointment } from './clinic'
 import { day } from './lessons'
 
@@ -72,7 +72,7 @@ export default function Example() {
   }
 
   return (
-    <EventCalendar events={appointments} resources={vets} defaultView="day" views={['day', 3]} slotMinutes={15} hourHeight="5rem"
+    <EventCalendar events={appointments} resources={vets} defaultView="day" views={['day', 'week']} resourceViews={['day']} slotMinutes={15} hourHeight="5rem"
       startHour={8} endHour={18} height="34rem" scrollToTime="now"
       onEventChange={update} onSelect={book} isAvailable={isAvailable} onUnavailable={(reason) => toaster.error({ title: reason })}
       onResourceClick={(vet) => toaster.info({ title: vet.title, description: `${vet.role}: ${appointments.filter((x) => x.resourceId === vet.id && !x.allDay).length} appointments` })}
@@ -118,6 +118,17 @@ export default function Example() {
           </span>
         ),
       }]}
+      // In the week, without vet columns: the day, and who's working (the vets
+      // with appointments that day).
+      renderDayHeader={(date, { events }) => (
+        <span className="flex flex-col items-center gap-1">
+          <span className="text-xs text-(--ui-muted)">
+            {date.toLocaleDateString('en-GB', { weekday: 'short' })}<strong className="ml-1 text-sm font-semibold text-(--ui-text)">{date.getDate()}</strong>
+          </span>
+          <AvatarGroup size="sm" max={3} tooltip
+            items={vets.filter((vet) => events.some((a) => a.resourceId === vet.id && !a.blocked)).map((vet) => ({ name: vet.title.replace('Dr ', ''), color: vet.color }))} />
+        </span>
+      )}
       renderResource={(vet) => (
         <span className="flex min-w-0 items-center gap-2">
           <Avatar size="sm" name={vet.title.replace('Dr ', '')} color={vet.color} />

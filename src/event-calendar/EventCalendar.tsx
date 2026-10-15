@@ -56,7 +56,8 @@
  * - `onEventChange(event, { start, end, resourceId }, { kind })`: makes
  *   events movable and resizable: drag one to another time, day or resource,
  *   or its bottom edge to change its length; or focus it and use ↑↓ (a slot),
- *   ←→ (a column), Shift+↑↓ (its length). The change spreads straight into
+ *   ←→ (a column), Shift+↑↓ (its length). Dragging (or selecting) near an
+ *   edge scrolls the grid, or the page. The change spreads straight into
  *   the event (`{ ...event, ...change }`); `kind` is 'move' or 'resize', and
  *   comparing `resourceId` with the event's shows a change of resource.
  *   Update your events in response (or don't, and it stays where it was)
@@ -80,7 +81,9 @@
  *
  * Drawing and words
  * - `renderEvent(event, { start, end, resource, compact })`, `renderResource(resource)`,
- *   `renderDayHeader(date)`: draw those yourself
+ *   `renderDayHeader(date, { events, resources })`: draw those yourself. A day
+ *   header gets that day's events and the resources (e.g. who's in, in a view
+ *   without their columns)
  * - `eventLabel(event)`: what screen readers call an event (its title, if text)
  * - `translations`: its words (Today, All day, the views, the announcements…),
  *   over the LocaleProvider's (English and French are built in);
@@ -150,6 +153,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
   Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'onSelect'> & {
     events?: E[]
     resources?: R[] | null
+    resourceViews?: CalendarView[] | null
     view?: CalendarView
     defaultView?: CalendarView
     onViewChange?: (view: CalendarView) => void
@@ -180,7 +184,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     onPinnedChange?: (event: E | null) => void
     renderEvent?: (event: E, state: { start: Date, end: Date, resource: R | null, compact: boolean }) => ReactNode
     renderResource?: (resource: R) => ReactNode
-    renderDayHeader?: (date: Date) => ReactNode
+    renderDayHeader?: (date: Date, day: { events: E[], resources: R[] | null }) => ReactNode
     eventLabel?: (event: E) => string
     translations?: Partial<CalendarTranslations>
     actions?: ReactNode
@@ -232,10 +236,24 @@ function place<E extends CalendarEvent>(events: E[]): Placed<E>[] {
   return placed
 }
 
+// The nearest ancestor that scrolls up and down, or the document.
+function scrollParent(from: HTMLElement): HTMLElement {
+  let el = from.parentElement
+  while (el && el !== document.body) {
+    const overflow = getComputedStyle(el).overflowY
+    if ((overflow === 'auto' || overflow === 'scroll') && el.scrollHeight > el.clientHeight + 1) return el
+    el = el.parentElement
+  }
+  return document.scrollingElement as HTMLElement
+}
+
 // What a pointer is doing: drawing out a selection, or moving or resizing an event.
 type Gesture<E> = {
-  kind: 'select' | 'move' | 'resize' | 'all-day' | 'place', column: number, x: number, y: number, top: number, height: number,
-  width: number, left: number, from: number, moved: boolean, keys: CalendarKeys, event?: E,
+  kind: 'select' | 'move' | 'resize' | 'all-day' | 'place', column: number, x: number, y: number, lastX: number, lastY: number,
+  // The day column (or the all-day strip) pressed, measured afresh as the grid
+  // or page scrolls, and where they were scrolled to at the start.
+  target: HTMLElement, width: number, from: number, exact: number, moved: boolean, keys: CalendarKeys, event?: E,
+  scroll: { left: number, x: number },
 }
 type Preview = { kind: 'select', column: number, from: number, to: number }
   | { kind: 'all-day', columns: number[] }
@@ -244,7 +262,7 @@ type Preview = { kind: 'select', column: number, from: number, to: number }
   | { kind: 'place', column: number, from: number }
 
 export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends CalendarResource = CalendarResource>({
-  events = [], resources = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
+  events = [], resources = null, resourceViews = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
   date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, hourHeight = '3rem',
   height = null, scrollToTime = null, rows = [], allDayMax = 3, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
   pinned = null, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
@@ -278,7 +296,9 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const count = view === 'day' ? 1 : view === 'week' ? 7 : view === 'workweek' ? 5 : Math.max(1, view)
   const step = view === 'week' || view === 'workweek' ? 7 : count
   const dates = Array.from({ length: count }, (_, i) => addDays(first, i))
-  const lanes = resources?.length ? resources : [null]
+  // A column per resource in this view, or everyone's events together.
+  const split = !!resources?.length && (!resourceViews || resourceViews.includes(view))
+  const lanes = split ? resources! : [null]
   const columns: Column<R>[] = dates.flatMap((d) => lanes.map((resource) => ({ date: d, iso: toISODate(d), resource })))
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i)
   const span = (endHour - startHour) * 60
@@ -310,7 +330,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const nameOf = (event: E) => eventLabel ? eventLabel(event) : typeof event.title === 'string' ? event.title : 'Event'
   const resourceName = (column: Column<R> | undefined) =>
     column?.resource && typeof column.resource.title === 'string' ? `, ${column.resource.title}` : ''
-  const columnOf = (event: E, iso: string) => columns.findIndex((c) => c.iso === iso && (!resources?.length || c.resource?.id === event.resourceId))
+  const columnOf = (event: E, iso: string) => columns.findIndex((c) => c.iso === iso && (!split || c.resource?.id === event.resourceId))
 
   const [picking, setPicking] = useState(false)
   const [status, setStatus] = useState('')
@@ -437,10 +457,11 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     return { start: addMinutes(addDays(start, days), byMinutes), end: addMinutes(addDays(end, days), byMinutes), column }
   }
 
-  const queryFor = (event: E, next: { start: Date, end: Date, column: Column<R> }): CalendarQuery<E> => ({
-    start: toISODateTime(next.start), end: toISODateTime(next.end), allDay: false, event,
-    ...(next.column.resource && { resourceId: next.column.resource.id }),
-  })
+  // Its new column's resource, or (in a view without their columns) its own.
+  const queryFor = (event: E, next: { start: Date, end: Date, column: Column<R> }): CalendarQuery<E> => {
+    const resourceId = next.column.resource ? next.column.resource.id : event.resourceId
+    return { start: toISODateTime(next.start), end: toISODateTime(next.end), allDay: false, event, ...(resourceId != null && { resourceId }) }
+  }
 
   // Applies a change (after checking it's allowed).
   function commit(event: E, kind: 'move' | 'resize', next: { start: Date, end: Date, column: Column<R> }) {
@@ -452,7 +473,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
       ? t.resized(nameOf(event), timeFormat.format(next.end))
       : t.moved(nameOf(event), `${longDay.format(next.start)}, ${timeFormat.format(next.start)}${resourceName(next.column)}`))
     onEventChange?.(event, {
-      start: query.start, end: query.end, ...(next.column.resource && { resourceId: next.column.resource.id }),
+      start: query.start, end: query.end, ...(query.resourceId != null && { resourceId: query.resourceId }),
     }, { kind })
   }
 
@@ -469,21 +490,30 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     if (e.button !== 0) return
     e.stopPropagation()
     try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* not a live pointer */ }
+    // Where things are scrolled at the start: a drag near an edge scrolls the
+    // grid (or the page), and positions are measured again as it does.
+    const scroll = { left: grid.current?.scrollLeft ?? 0, x: scrollX }
+    const point = { x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, moved: false, keys: keysOf(e), scroll }
     if (kind === 'all-day') {
       // The strip spans every column: which one is under the pointer.
       const box = e.currentTarget.getBoundingClientRect()
       const width = box.width / columns.length
       const at = Math.max(0, Math.min(columns.length - 1, Math.floor((e.clientX - box.left) / width)))
-      gesture.current = { kind, column: at, x: e.clientX, y: e.clientY, top: box.top, height: box.height, width, left: box.left, from: at, moved: false, keys: keysOf(e) }
+      gesture.current = { kind, column: at, ...point, target: e.currentTarget, width, from: at, exact: 0 }
       setPreview({ kind: 'all-day', columns: [at] })
       return
     }
-    const box = e.currentTarget.closest('[data-part=day]')!.getBoundingClientRect()
+    const day = e.currentTarget.closest<HTMLElement>('[data-part=day][role=gridcell]')!
+    const box = day.getBoundingClientRect()
     const from = minuteAt(e.clientY, box)
-    gesture.current = { kind, column, x: e.clientX, y: e.clientY, top: box.top, height: box.height, width: box.width, left: box.left, from, moved: false, keys: keysOf(e), event }
+    gesture.current = { kind, column, ...point, target: day, width: box.width, from, exact: exactMinute(e.clientY, box), event }
     if (kind === 'select') setPreview({ kind: 'select', column, from, to: from + slotMinutes })
     if (kind === 'place') setPreview({ kind: 'place', column, from: placeAt(from) })
   }
+
+  // The minute of the day at a height in a day column (not snapped).
+  const exactMinute = (y: number, box: { top: number, height: number }) =>
+    startHour * 60 + Math.max(0, Math.min(span - 1, ((y - box.top) / box.height) * span))
 
   // The columns from one to another (with resources, only the first one's resource).
   const columnRange = (a: number, b: number) => {
@@ -495,31 +525,93 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   function track(e: PointerEvent) {
     const g = gesture.current
     if (!g) return
-    const dx = e.clientX - g.x
-    const dy = e.clientY - g.y
-    if (!g.moved && Math.hypot(dx, dy) < 4) return
+    g.lastX = e.clientX
+    g.lastY = e.clientY
+    if (!g.moved && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 4) return
     g.moved = true
-    const perMinute = g.height / span
+    updatePreview()
+    autoScroll()
+  }
+
+  // The preview from the pointer's last position, measured afresh, so it
+  // stays right while the grid or the page scrolls under it.
+  function updatePreview() {
+    const g = gesture.current
+    if (!g) return
+    const box = g.target.getBoundingClientRect()
     if (g.kind === 'all-day') {
-      const at = Math.max(0, Math.min(columns.length - 1, Math.floor((e.clientX - g.left) / g.width)))
-      setPreview({ kind: 'all-day', columns: columnRange(g.from, at) })
-    } else if (g.kind === 'select') {
-      const at = minuteAt(e.clientY, g)
+      const at = Math.max(0, Math.min(columns.length - 1, Math.floor((g.lastX - box.left) / g.width)))
+      return setPreview({ kind: 'all-day', columns: columnRange(g.from, at) })
+    }
+    const perMinute = box.height / span
+    if (g.kind === 'select') {
+      const at = minuteAt(g.lastY, box)
       setPreview({ kind: 'select', column: g.column, from: Math.min(g.from, at), to: Math.max(g.from, at) + slotMinutes })
     } else if (g.kind === 'place') {
-      setPreview({ kind: 'place', column: g.column, from: placeAt(minuteAt(e.clientY, g)) })
-    } else if (g.kind === 'move') {
-      const byColumns = Math.round(dx / g.width)
-      const byMinutes = withinHours(g.event!, 'move', Math.round(dy / perMinute / slotMinutes) * slotMinutes)
-      setPreview({ kind: 'move', id: g.event!.id, columns: byColumns, minutes: byMinutes, x: byColumns * g.width, y: byMinutes * perMinute })
+      setPreview({ kind: 'place', column: g.column, from: placeAt(minuteAt(g.lastY, box)) })
     } else {
-      setPreview({ kind: 'resize', id: g.event!.id, minutes: withinHours(g.event!, 'resize', Math.round(dy / perMinute / slotMinutes) * slotMinutes) })
+      let byMinutes = Math.round((exactMinute(g.lastY, box) - g.exact) / slotMinutes) * slotMinutes
+      if (g.kind === 'move') {
+        const scrolledX = (grid.current?.scrollLeft ?? 0) - g.scroll.left + scrollX - g.scroll.x
+        const byColumns = Math.round((g.lastX - g.x + scrolledX) / g.width)
+        byMinutes = withinHours(g.event!, 'move', byMinutes)
+        setPreview({ kind: 'move', id: g.event!.id, columns: byColumns, minutes: byMinutes, x: byColumns * g.width, y: byMinutes * perMinute })
+      } else {
+        setPreview({ kind: 'resize', id: g.event!.id, minutes: withinHours(g.event!, 'resize', byMinutes) })
+      }
     }
+  }
+
+  // Near an edge while dragging: scroll that way, faster the closer it is,
+  // each frame until the pointer moves away or lets go. Up and down scrolls
+  // the grid when it has a `height` (below its sticky headers), or else the
+  // page; sideways, the grid when it's wider than its box.
+  const scrolling = useRef(false)
+  function autoScroll() {
+    if (scrolling.current) return
+    scrolling.current = true
+    // Each loop belongs to one gesture: one left over from the last drag stops.
+    const owner = gesture.current
+    const step = () => {
+      const g = gesture.current
+      const el = grid.current
+      if (!g || g !== owner || !g.moved || !el) return void (scrolling.current = false)
+      const box = el.getBoundingClientRect()
+      const edge = 48
+      const speed = (near: number) => Math.ceil(Math.min(1, Math.max(0, (edge - near) / edge)) * 18)
+      let vy = 0
+      let vx = 0
+      if (g.kind !== 'all-day') {
+        const scroller = el.scrollHeight > el.clientHeight + 1 ? el : scrollParent(el)
+        // The grid below its sticky headers; the page (whose top can sit under
+        // a fixed top bar); or an app shell's scrolling page.
+        const area = scroller === el ? { top: box.top + (parseFloat(el.style.getPropertyValue('--sticky-total')) || 0), bottom: box.bottom }
+          : scroller === document.scrollingElement ? { top: 64, bottom: innerHeight }
+          : scroller.getBoundingClientRect()
+        vy = g.lastY < area.top + edge ? -speed(g.lastY - area.top) : g.lastY > area.bottom - edge ? speed(area.bottom - g.lastY) : 0
+        const before = scroller.scrollTop
+        scroller.scrollTop += vy
+        // Already at the end: nothing more to scroll.
+        if (scroller.scrollTop === before) vy = 0
+      }
+      if (el.scrollWidth > el.clientWidth + 1) {
+        const left = box.left + (el.querySelector<HTMLElement>('[data-part=gutter]')?.offsetWidth ?? 0)
+        vx = g.lastX < left + edge ? -speed(g.lastX - left) : g.lastX > box.right - edge ? speed(box.right - g.lastX) : 0
+        const before = el.scrollLeft
+        el.scrollLeft += vx
+        if (el.scrollLeft === before) vx = 0
+      }
+      if (!vx && !vy) return void (scrolling.current = false)
+      updatePreview()
+      requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
   }
 
   function end() {
     const g = gesture.current
     gesture.current = null
+    scrolling.current = false
     const p = latestPreview.current
     setPreview(null)
     if (!g) return
@@ -557,6 +649,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
 
   function cancel() {
     gesture.current = null
+    scrolling.current = false
     setPreview(null)
   }
 
@@ -578,7 +671,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   }
   function hover(e: PointerEvent<HTMLElement>, column: number) {
     if (gesture.current) return setHoverSlot(null)
-    const box = e.currentTarget.closest('[data-part=day]')!.getBoundingClientRect()
+    const box = e.currentTarget.closest('[data-part=day][role=gridcell]')!.getBoundingClientRect()
     const from = minuteAt(e.clientY, box)
     if (pinned) return setPreview({ kind: 'place', column, from: placeAt(from) })
     // Over the empty column (or its shading), not an event.
@@ -621,7 +714,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     const el = grid.current
     if (!el || !height || !scrollToTime || scrolled.current) return
     scrolled.current = true
-    const day = el.querySelector<HTMLElement>('[data-part=day]')
+    const day = el.querySelector<HTMLElement>('[data-part=day][role=gridcell]')
     if (!day) return
     const [h, m] = scrollToTime === 'now' ? [now.getHours() - 1, 0] : scrollToTime.split(':').map(Number)
     const minutes = Math.max(startHour * 60, Math.min(endHour * 60, h * 60 + (m || 0)))
@@ -633,7 +726,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const allDay = events.filter(isAllDay).flatMap((event) => {
     const from = event.start.slice(0, 10)
     const to = event.end.slice(0, 10)
-    const covered = columns.map((c, i) => (c.iso >= from && c.iso <= to && (!resources?.length || c.resource?.id === event.resourceId) ? i : -1))
+    const covered = columns.map((c, i) => (c.iso >= from && c.iso <= to && (!split || c.resource?.id === event.resourceId) ? i : -1))
       .filter((i) => i >= 0)
     // Runs of neighbouring columns (with resources, a day's column for the event's resource).
     const runs: number[][] = []
@@ -678,13 +771,15 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const hiddenIn = (i: number) => hiddenCount[i]
 
   const barColor = (event: E) => event.color ?? resourceOf(event.resourceId)?.color ?? 'accent'
-  const twoRows = !!resources?.length && count > 1
+  // The events on a day, for its header.
+  const eventsOn = (d: Date) => events.filter((event) => event.start.slice(0, 10) <= toISODate(d) && event.end.slice(0, 10) >= toISODate(d))
+  const twoRows = split && count > 1
   const editable = (event: E) => !!onEventChange && event.editable !== false && !event.pending
   const pinnedMinutes = pinned ? minutesBetween(parse(pinned.start), parse(pinned.end)) || slotMinutes : 0
   // The header rows, numbered for sticking: days, resources, extra rows, the all-day strip.
   let rowNumber = 0
-  const dayRow = !resources?.length || count > 1 ? rowNumber++ : -1
-  const resourceRow = resources?.length ? rowNumber++ : -1
+  const dayRow = !split || count > 1 ? rowNumber++ : -1
+  const resourceRow = split ? rowNumber++ : -1
   const extraRows = rows.map(() => rowNumber++)
   const allDayRow = rowNumber
 
@@ -748,7 +843,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
           <div key={toISODate(d)} {...part('day-header')} role="columnheader" data-today={sameDay(d, now) || undefined}
             data-sticky-row={dayRow} style={{ gridColumn: `span ${lanes.length}`, top: `var(--sticky-${dayRow})` }}>
             {(() => {
-              const content = renderDayHeader ? renderDayHeader(d) : <><span>{dayFormat.format(d)}</span><strong>{d.getDate()}</strong></>
+              const content = renderDayHeader ? renderDayHeader(d, { events: eventsOn(d), resources }) : <><span>{dayFormat.format(d)}</span><strong>{d.getDate()}</strong></>
               return onDayClick
                 ? <button type="button" {...part('header-button')} onClick={() => onDayClick(toISODate(d))} aria-label={longDay.format(d)}>{content}</button>
                 : content
@@ -833,7 +928,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
         </div>
         {columns.map((column, index) => {
           const own = events.filter((event) => !isAllDay(event) && event.start.startsWith(column.iso)
-            && (!resources?.length || event.resourceId === column.resource?.id))
+            && (!column.resource || event.resourceId === column.resource.id))
           const selecting = preview?.kind === 'select' && preview.column === index ? preview : null
           const placing = preview?.kind === 'place' && preview.column === index ? preview : null
           const isToday = sameDay(column.date, now)
@@ -846,7 +941,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
             <div key={`${column.iso}-${column.resource?.id ?? ''}`} {...part('day')} role="gridcell"
               aria-label={`${longDay.format(column.date)}${resourceName(column)}`}
               data-today={isToday || undefined} data-selectable={onSelect || pinned ? '' : undefined}
-              data-first={(!!resources?.length && column.resource === lanes[0]) || undefined}
+              data-first={(split && column.resource === lanes[0]) || undefined}
               style={{ '--hours': hours.length, ...(column.resource?.color && { '--resource-color': cssColor(column.resource.color) }) } as CSSProperties}
               onPointerDown={(e) => { if (e.target === e.currentTarget) press(e) }}
               onPointerMove={(e) => { track(e); hover(e, index) }} onPointerUp={end} onPointerCancel={cancel}
@@ -867,7 +962,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                 const resizing = preview?.kind === 'resize' && preview.id === event.id ? preview : null
                 const shownEnd = resizing ? addMinutes(finish, resizing.minutes) : finish
                 const minutes = minutesBetween(start, shownEnd)
-                const color = event.color ?? column.resource?.color ?? 'accent'
+                const color = event.color ?? (column.resource ?? resourceOf(event.resourceId))?.color ?? 'accent'
                 const time = `${timeFormat.format(start)} – ${timeFormat.format(shownEnd)}`
                 const box = { top: top(minutesOfDay(start)), left: `${(sub / subs) * 100}%`, width: `${100 / subs}%` }
                 return (
