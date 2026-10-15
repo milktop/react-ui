@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import 'iconify-icon'
 import {
-  AppShell, Sidebar, NavSection, NavGroup, NavItem, SidebarUser, Topbar, Breadcrumbs, Page, Command, formatHotkey,
-  MenuItem, MenuSeparator, Submenu, MenuRadioGroup, MenuRadio, ThemeToggle, Toaster, toaster, colorScheme, useColorScheme, cx,
+  AppShell, Sidebar, Menu, Topbar, Breadcrumbs, Page, Command, formatHotkey,
+  ThemeToggle, Toaster, toaster, colorScheme, useColorScheme, cx,
   type CommandItem, type Scheme,
 } from '@milktop/react-ui'
 import { Demo, Toggle, Backticked } from './lib/Demo'
@@ -75,44 +75,44 @@ export function App() {
         logoCollapsed={<a href="#/" aria-label="React UI" className={mark}>UI</a>}
         logo={<a href="#/" className="flex items-center gap-2 text-(--ui-sidebar-text) no-underline"><span className={mark}>UI</span>React UI</a>}
         footer={
-          <SidebarUser name="Ada Lovelace" description="ada@example.com" onSelect={(action) => toaster.info({ title: `Picked “${String(action)}”` })}>
-            <MenuItem value="profile" icon="lucide:user">Profile</MenuItem>
-            <MenuItem value="settings" icon="lucide:settings" shortcut="⌘,">Settings</MenuItem>
-            <Submenu label="Theme" icon="lucide:palette">
-              <MenuRadioGroup value={scheme} onValueChange={(value) => setScheme(value as Scheme)}>
-                <MenuRadio value="light" icon="lucide:sun">Light</MenuRadio>
-                <MenuRadio value="dark" icon="lucide:moon">Dark</MenuRadio>
-                <MenuRadio value="system" icon="lucide:monitor">System</MenuRadio>
-              </MenuRadioGroup>
-            </Submenu>
-            <MenuSeparator />
-            <MenuItem value="logout" icon="lucide:log-out" danger>Log out</MenuItem>
-          </SidebarUser>
+          <Sidebar.User name="Ada Lovelace" description="ada@example.com" onSelect={(action) => toaster.info({ title: `Picked “${String(action)}”` })}>
+            <Menu.Item value="profile" icon="lucide:user">Profile</Menu.Item>
+            <Menu.Item value="settings" icon="lucide:settings" shortcut="⌘,">Settings</Menu.Item>
+            <Menu.Submenu label="Theme" icon="lucide:palette">
+              <Menu.RadioGroup value={scheme} onValueChange={(value) => setScheme(value as Scheme)}>
+                <Menu.Radio value="light" icon="lucide:sun">Light</Menu.Radio>
+                <Menu.Radio value="dark" icon="lucide:moon">Dark</Menu.Radio>
+                <Menu.Radio value="system" icon="lucide:monitor">System</Menu.Radio>
+              </Menu.RadioGroup>
+            </Menu.Submenu>
+            <Menu.Separator />
+            <Menu.Item value="logout" icon="lucide:log-out" danger>Log out</Menu.Item>
+          </Sidebar.User>
         }>
-        <NavSection>
-          <NavItem icon="lucide:house" href="#/" active={!page && !block && !guides[route]}>Overview</NavItem>
-          <NavItem icon="lucide:palette" href="#/theming" active={route === '#/theming'}>Theming</NavItem>
-          <NavItem icon="lucide:swatch-book" href="#/tokens" active={route === '#/tokens'}>Tokens</NavItem>
-          <NavItem icon="lucide:download" href="#/installation" active={route === '#/installation'}>Installation</NavItem>
-        </NavSection>
-        <NavSection heading="Components">
+        <Sidebar.Section>
+          <Sidebar.Item icon="lucide:house" href="#/" active={!page && !block && !guides[route]}>Overview</Sidebar.Item>
+          <Sidebar.Item icon="lucide:palette" href="#/theming" active={route === '#/theming'}>Theming</Sidebar.Item>
+          <Sidebar.Item icon="lucide:swatch-book" href="#/tokens" active={route === '#/tokens'}>Tokens</Sidebar.Item>
+          <Sidebar.Item icon="lucide:download" href="#/installation" active={route === '#/installation'}>Installation</Sidebar.Item>
+        </Sidebar.Section>
+        <Sidebar.Section heading="Components">
           {groups.map((group) => (
-            <NavGroup key={group.heading} label={group.heading} icon={group.icon}
+            <Sidebar.Group key={group.heading} label={group.heading} icon={group.icon}
               open={opened === group.heading} onOpenChange={(open) => setOpened(open ? group.heading : null)}>
-              {group.pages.map((p) => <NavItem key={p.slug} href={`#/${p.slug}`} active={p.slug === page?.slug}>{p.title}</NavItem>)}
-            </NavGroup>
+              {group.pages.map((p) => <Sidebar.Item key={p.slug} href={`#/${p.slug}`} active={p.slug === page?.slug}>{p.title}</Sidebar.Item>)}
+            </Sidebar.Group>
           ))}
-        </NavSection>
-        <NavSection heading="Blocks">
+        </Sidebar.Section>
+        <Sidebar.Section heading="Blocks">
           {(['Pages', 'Sections'] as const).map((group) => (
-            <NavGroup key={group} label={group} icon={group === 'Pages' ? 'lucide:app-window' : 'lucide:layout-panel-top'}
+            <Sidebar.Group key={group} label={group} icon={group === 'Pages' ? 'lucide:app-window' : 'lucide:layout-panel-top'}
               open={opened === `blocks:${group}`} onOpenChange={(open) => setOpened(open ? `blocks:${group}` : null)}>
               {blocks.filter((b) => b.group === group).map((b) => (
-                <NavItem key={b.slug} href={`#/blocks/${b.slug}`} active={b === block}>{b.title}</NavItem>
+                <Sidebar.Item key={b.slug} href={`#/blocks/${b.slug}`} active={b === block}>{b.title}</Sidebar.Item>
               ))}
-            </NavGroup>
+            </Sidebar.Group>
           ))}
-        </NavSection>
+        </Sidebar.Section>
       </Sidebar>
 
       <Topbar end={<>

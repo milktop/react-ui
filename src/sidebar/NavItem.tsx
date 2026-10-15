@@ -2,8 +2,8 @@
  * A sidebar link (or a button, without `href`). Other props (onClick,
  * data-*) go on the link.
  *
- *   <NavItem icon="lucide:users" href="/students" active={isCurrent('/students')} badge={3}>Students</NavItem>
- *   <NavItem icon="lucide:users" link={<Link to="/students" />}>Students</NavItem>
+ *   <Sidebar.Item icon="lucide:users" href="/students" active={isCurrent('/students')} badge={3}>Students</Sidebar.Item>
+ *   <Sidebar.Item icon="lucide:users" link={<Link to="/students" />}>Students</Sidebar.Item>
  *
  * - `icon`: an Iconify name
  * - `href`: where it goes (without one it's a button: give it `onClick`)

@@ -1,10 +1,10 @@
 /**
- * Tabs: the Tab children are the panels, and the tab list is built from
- * their labels.
+ * Tabs: the Tabs.Tab children (also Tab) are the panels, and the tab list
+ * is built from their labels.
  *
  *   <Tabs value={tab} onValueChange={setTab}>
- *     <Tab value="lessons" label="Lessons" icon="lucide:calendar">…</Tab>
- *     <Tab value="invoices" label="Invoices" count={2} countColor="danger">…</Tab>
+ *     <Tabs.Tab value="lessons" label="Lessons" icon="lucide:calendar">…</Tabs.Tab>
+ *     <Tabs.Tab value="invoices" label="Invoices" count={2} countColor="danger">…</Tabs.Tab>
  *   </Tabs>
  *
  * Arrow keys move between tabs (selecting as they go), Home/End jump to the
@@ -135,6 +135,7 @@ function TabsShortcut({
 }
 
 export const Tabs = withParts(TabsShortcut, {
+  Tab,
   Root: Ark.Root,
   List: Ark.List,
   Trigger: Ark.Trigger,

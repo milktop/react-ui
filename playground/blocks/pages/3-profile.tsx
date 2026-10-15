@@ -2,7 +2,7 @@
   A header with the student's details and actions, then tabs: an overview of details and history, upcoming lessons, their files and your notes. */
 import { useState } from 'react'
 import {
-  Avatar, Badge, Button, Breadcrumbs, Menu, Tabs, Tab, Card, DataList, Timeline, Table, Attachments, Editor, Stats, Stat, Progress,
+  Avatar, Badge, Button, Breadcrumbs, Menu, Tabs, Card, DataList, Timeline, Table, Attachments, Editor, Stats, Stat, Progress,
   toaster, type Attachment,
 } from '@milktop/react-ui'
 import { activity } from '../data'
@@ -46,7 +46,7 @@ export default function Profile() {
       </div>
 
       <Tabs defaultValue="overview">
-        <Tab value="overview" label="Overview" icon="lucide:layout-grid">
+        <Tabs.Tab value="overview" label="Overview" icon="lucide:layout-grid">
           <div className="flex flex-wrap items-start gap-6 pt-4">
             <div className="flex min-w-0 flex-[2_1_24rem] flex-col gap-6">
               <Stats variant="divided" columns={3}>
@@ -72,21 +72,21 @@ export default function Profile() {
             </div>
             <Card heading="History" className="min-w-0 flex-[1_1_16rem]"><Timeline size="sm" items={activity} /></Card>
           </div>
-        </Tab>
-        <Tab value="lessons" label="Lessons" count={lessons.length}>
+        </Tabs.Tab>
+        <Tabs.Tab value="lessons" label="Lessons" count={lessons.length}>
           <div className="pt-4">
             <Table rows={lessons} columns={[
               { key: 'when', label: 'When' }, { key: 'topic', label: 'Topic' }, { key: 'length', label: 'Length', align: 'end' },
               { key: 'status', label: '', align: 'end', cell: ({ row }) => <Badge variant={row.status === 'Booked' ? 'success' : 'warning'}>{row.status}</Badge> },
             ]} />
           </div>
-        </Tab>
-        <Tab value="files" label="Files" count={files.length}>
+        </Tabs.Tab>
+        <Tabs.Tab value="files" label="Files" count={files.length}>
           <div className="pt-4"><Attachments items={files} onItemsChange={setFiles} removable addable /></div>
-        </Tab>
-        <Tab value="notes" label="Notes">
+        </Tabs.Tab>
+        <Tabs.Tab value="notes" label="Notes">
           <div className="pt-4"><Editor value={notes} onValueChange={setNotes} placeholder="Notes for the next lesson…" /></div>
-        </Tab>
+        </Tabs.Tab>
       </Tabs>
     </div>
   )

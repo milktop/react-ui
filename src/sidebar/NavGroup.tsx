@@ -1,9 +1,9 @@
 /**
  * Nav items under a label that opens and closes.
  *
- *   <NavGroup label="Forms" icon="lucide:form" defaultOpen>
- *     <NavItem href="/input">Input</NavItem>
- *   </NavGroup>
+ *   <Sidebar.Group label="Forms" icon="lucide:form" defaultOpen>
+ *     <Sidebar.Item href="/input">Input</Sidebar.Item>
+ *   </Sidebar.Group>
  *
  * - `label`: its text; `icon`: an Iconify name
  * - `open`, `defaultOpen`; `onOpenChange`: called with the new open state.

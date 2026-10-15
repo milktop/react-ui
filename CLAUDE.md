@@ -35,6 +35,10 @@ look. Read `README.md` first.
   `export const Checkbox = withParts(CheckboxShortcut, { Root: Ark.Root, … })`.
   Parts are Ark's own where Ark has them; parts of our own (Dialog's Header,
   Body, Footer) are `partOf(scope, name)`.
+  Our own components that sit inside it (Sidebar's Section, Menu's Item,
+  Tabs' Tab) go on it too, and win a name Ark also uses (Ark's item becomes
+  `Accordion.RawItem`). They're also exported by name (`NavSection`,
+  `MenuItem`), but docs and examples use the dotted form.
 - Exports its props type (`CheckboxProps`): Ark's root props (`Ark.RootProps`)
   with ours added, `Omit`ting what we replace (`onCheckedChange`, and `label`,
   which Ark types as a string). `classes` is `Classes<…>` of its part names.

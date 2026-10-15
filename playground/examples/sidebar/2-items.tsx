@@ -1,6 +1,6 @@
 /* From data
-  `items` builds the sections, items and groups (a group opens when one of its items is active); `footer` holds a SidebarUser. */
-import { Sidebar, SidebarUser, toaster, type SidebarSection } from '@milktop/react-ui'
+  `items` builds the sections, items and groups (a group opens when one of its items is active); `footer` holds a Sidebar.User. */
+import { Sidebar, toaster, type SidebarSection } from '@milktop/react-ui'
 
 const nav: SidebarSection[] = [
   { items: [
@@ -26,7 +26,7 @@ export default function Example() {
   return (
     <div className="h-96 w-full max-w-60 overflow-hidden rounded-xl border border-(--ui-border)">
       <Sidebar items={nav} logo="TutorApp" className="h-full"
-        footer={<SidebarUser name="Ada Lovelace" description="ada@example.com" items={account}
+        footer={<Sidebar.User name="Ada Lovelace" description="ada@example.com" items={account}
           onSelect={(action) => toaster.info({ title: `Picked “${String(action)}”` })} />} />
     </div>
   )

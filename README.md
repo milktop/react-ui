@@ -35,6 +35,13 @@ so a hand-built component looks just like the shortcut:
 No CLI and no copied snippets: every shortcut ships in the package, and
 where one doesn't fit you build from the parts.
 
+Our own parts hang off their component the same way, so one import covers
+them: `Sidebar.Section`, `Sidebar.Item`, `Menu.Item`, `Tabs.Tab`,
+`Accordion.Item`. Where one of ours takes a name Ark also uses, Ark's part
+moves aside (`Accordion.RawItem`). They're also exported by name
+(`NavSection`, `MenuItem`, `Tab`…), for imports by name and, later, server
+components; the dotted form is the one the docs use.
+
 ## Components
 
 So far:
@@ -57,18 +64,17 @@ So far:
 - Forms: Field · Fields
 - Overlays: Tooltip · Popover · HoverCard · Dialog · Sheet (both: props or
   composed from Header/Body/Footer) · ActionBar · Menu · ContextMenu (Menu.Item,
-  Separator, Group, Checkbox, RadioGroup/Radio, Submenu; also as MenuItem…) ·
+  Separator, Group, Checkbox, RadioGroup/Radio, Submenu) ·
   Toaster (`toaster.success(…)` from anywhere) · `confirm()` (`await confirm({ … })`
   from anywhere, no state or markup)
 - Scheduling and ordering (React only): EventCalendar (day, n days, work week or
   week by the hour, with resources such as vets or rooms as columns; drag to
   select a time, drag or arrow-key events to move and resize them, all-day
   events, a date jump) · SortableList (drag or keyboard, on dnd-kit)
-- Disclosure: Tabs/Tab (with counts and dots, inline or in the corner) · Accordion · Collapsible
+- Disclosure: Tabs (Tabs.Tab, with counts and dots, inline or in the corner) · Accordion · Collapsible
 - Navigation: AppShell (flat or inset; the sidebar collapses to a rail with ⌘B
   and is a drawer on phones; inset, or `scroll="page"`, scrolls only the page
-  on wide screens) · Topbar · Sidebar (NavSection, NavGroup, NavItem,
-  SidebarUser; also Sidebar.Section…) · Page · Breadcrumbs · Command (⌘K)
+  on wide screens) · Topbar · Sidebar (Sidebar.Section, Group, Item, User) · Page · Breadcrumbs · Command (⌘K)
 
 That's all of svelte-ui's components.
 

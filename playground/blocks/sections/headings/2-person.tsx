@@ -1,6 +1,6 @@
 /* A person, with meta and tabs
   An avatar, a status, a row of facts with icons, and tabs (with counts) underneath that switch the page's sections. */
-import { Avatar, Badge, Button, Tabs, Tab } from '@milktop/react-ui'
+import { Avatar, Badge, Button, Tabs } from '@milktop/react-ui'
 
 const facts = [['lucide:book-open', 'GCSE Maths'], ['lucide:calendar', 'Thursdays, 16:00'], ['lucide:map-pin', 'Online']]
 
@@ -18,10 +18,10 @@ export default function Heading() {
         <Button icon="lucide:play">Resume lessons</Button>
       </div>
       <Tabs defaultValue="overview">
-        <Tab value="overview" label="Overview" />
-        <Tab value="lessons" label="Lessons" count={12} />
-        <Tab value="invoices" label="Invoices" count={2} countColor="danger" />
-        <Tab value="files" label="Files" />
+        <Tabs.Tab value="overview" label="Overview" />
+        <Tabs.Tab value="lessons" label="Lessons" count={12} />
+        <Tabs.Tab value="invoices" label="Invoices" count={2} countColor="danger" />
+        <Tabs.Tab value="files" label="Files" />
       </Tabs>
     </div>
   )

@@ -2,16 +2,16 @@
  * An app sidebar: a logo, the nav, and a footer. In an AppShell it collapses
  * to an icon rail (its button, or ⌘B) and becomes a drawer on phones.
  *
- *   <Sidebar logo="TutorApp" footer={<SidebarUser name="Ada Lovelace" items={account} />}>
- *     <NavSection heading="Menu">
- *       <NavItem icon="lucide:house" href="/" active>Dashboard</NavItem>
- *       <NavGroup label="Settings" icon="lucide:settings">…</NavGroup>
- *     </NavSection>
+ *   <Sidebar logo="TutorApp" footer={<Sidebar.User name="Ada Lovelace" items={account} />}>
+ *     <Sidebar.Section heading="Menu">
+ *       <Sidebar.Item icon="lucide:house" href="/" active>Dashboard</Sidebar.Item>
+ *       <Sidebar.Group label="Settings" icon="lucide:settings">…</Sidebar.Group>
+ *     </Sidebar.Section>
  *   </Sidebar>
  *
  * - `logo`; `logoCollapsed`: shown instead in the rail (a mark)
- * - `footer`: along the bottom (a SidebarUser)
- * - `accordion`: one NavGroup open at a time
+ * - `footer`: along the bottom (a Sidebar.User)
+ * - `accordion`: one Sidebar.Group open at a time
  * - `items`: the nav as data, in place of (or before) the content:
  *   `[{ heading, items: [{ label, icon, href, active, badge, items }] }]`
  * - `edge`: a thin strip along the right edge that collapses or expands it
@@ -21,8 +21,8 @@
  * - restyle its items with the `--ui-sidebar-*` tokens, e.g.
  *   style={{ '--ui-sidebar-active': 'var(--ui-accent-soft)' }}
  *
- * Its parts are on it too: Sidebar.Section, Sidebar.Group, Sidebar.Item and
- * Sidebar.User are NavSection, NavGroup, NavItem and SidebarUser.
+ * Its parts are on it: Sidebar.Section, Sidebar.Group, Sidebar.Item and
+ * Sidebar.User (also exported as NavSection, NavGroup, NavItem and SidebarUser).
  */
 import { useMemo, useState, type HTMLAttributes, type ReactNode } from 'react'
 import '../icons.js'

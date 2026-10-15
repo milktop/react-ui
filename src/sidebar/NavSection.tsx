@@ -1,7 +1,7 @@
 /**
  * A group of nav items, with an optional heading (hidden in the rail).
  *
- *   <NavSection heading="Settings" collapsible>…NavGroups…</NavSection>
+ *   <Sidebar.Section heading="Settings" collapsible>…groups…</Sidebar.Section>
  *
  * - `heading`
  * - `collapsible`: a button beside the heading that collapses (or expands)

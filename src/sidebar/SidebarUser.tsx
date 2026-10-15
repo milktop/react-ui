@@ -3,7 +3,7 @@
  * it, opening a menu of account actions upwards (to the right in the rail,
  * where only the avatar shows).
  *
- *   <SidebarUser name="Ada Lovelace" description="ada@example.com" items={account} onSelect={run} />
+ *   <Sidebar.User name="Ada Lovelace" description="ada@example.com" items={account} onSelect={run} />
  *
  * It's a Menu with the user as its trigger: give it `items`, Menu's child
  * components, or both, and `onSelect` (the rest of Menu's props apply too).
