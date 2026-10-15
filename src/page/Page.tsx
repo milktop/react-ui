@@ -11,12 +11,16 @@
  * - `align`: 'center' or 'start'
  * - `actions`, `breadcrumbs`: shown in the header
  *
+ * When the shell scrolls the page rather than the window, the page can take
+ * focus (so the keyboard scrolls it) and is marked `scroll-region`, so
+ * Inertia resets and restores its scroll on visits as it does the window's.
+ *
  * What's inside a Page isn't the shell's: a Sidebar shown in the page (as an
  * example, say) doesn't collapse or turn into a drawer with the app's.
  */
 import type { HTMLAttributes, ReactNode } from 'react'
 import { cx, partsOf, type Classes } from '../utils.js'
-import { ShellContext } from '../app-shell/shell.js'
+import { ShellContext, useShell } from '../app-shell/shell.js'
 import '../theme.css'
 import './page.css'
 
@@ -35,9 +39,11 @@ export function Page({
   className, classes, children, ...rest
 }: PageProps) {
   const part = partsOf('page', classes)
+  const scrolls = !!useShell()?.pageScroll
+  const scrolling = scrolls ? { tabIndex: -1, 'scroll-region': '' } : {}
 
   return (
-    <div {...rest} {...part('root')} className={cx(className, classes?.root)} data-width={width} data-align={align}>
+    <div {...scrolling} {...rest} {...part('root')} className={cx(className, classes?.root)} data-width={width} data-align={align}>
       <div {...part('inner')}>
         {(heading || description || actions || breadcrumbs) && (
           <header {...part('header')}>

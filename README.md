@@ -65,7 +65,8 @@ So far:
   events, a date jump) · SortableList (drag or keyboard, on dnd-kit)
 - Disclosure: Tabs/Tab (with counts and dots, inline or in the corner) · Accordion · Collapsible
 - Navigation: AppShell (flat or inset; the sidebar collapses to a rail with ⌘B
-  and is a drawer on phones) · Topbar · Sidebar (NavSection, NavGroup, NavItem,
+  and is a drawer on phones; inset, or `scroll="page"`, scrolls only the page
+  on wide screens) · Topbar · Sidebar (NavSection, NavGroup, NavItem,
   SidebarUser; also Sidebar.Section…) · Page · Breadcrumbs · Command (⌘K)
 
 That's all of svelte-ui's components.

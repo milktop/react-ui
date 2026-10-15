@@ -74,6 +74,13 @@
        its section headings, its own icon buttons, and hovered items' text.
        With the item tokens, enough for a coloured sidebar. */
     --ui-sidebar-surface: var(--ui-surface);
+    /* Its text outside the nav items (the logo, SidebarUser), muted text, and
+       its edge and nested groups' rule: for a coloured sidebar. */
+    --ui-sidebar-text: var(--ui-text);
+    --ui-sidebar-muted: var(--ui-muted);
+    --ui-sidebar-border: var(--ui-border);
+    /* The line above its footer. */
+    --ui-sidebar-divider: var(--ui-border);
     --ui-sidebar-heading: var(--ui-muted);
     --ui-sidebar-icon: var(--ui-muted);
     --ui-sidebar-hover-text: var(--ui-text);
@@ -82,6 +89,8 @@
     --ui-sidebar-active-text: var(--ui-text);
     --ui-sidebar-active-weight: 500;
     --ui-sidebar-active-shadow: none;
+    /* The current page's icon (its text colour by default). */
+    --ui-sidebar-active-icon: currentColor;
     /* The inset layout's sidebar is grey, so its hovered and current items go white. */
     --ui-sidebar-inset-hover: color-mix(in srgb, var(--ui-surface) 75%, transparent);
     --ui-sidebar-inset-active: var(--ui-surface);

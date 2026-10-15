@@ -11,9 +11,10 @@
  *
  * In the rail only its icon shows, and its items open beside it as a flyout:
  * on hover, or on click for keyboard and touch. Escape, leaving it or
- * following a link closes it.
+ * following a link closes it. It moves up when it would run past the bottom
+ * of the window, and scrolls when taller than it.
  */
-import { useContext, useEffect, useId, useRef, useState, type CSSProperties, type FocusEvent, type HTMLAttributes, type KeyboardEvent, type MouseEvent } from 'react'
+import { useContext, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type FocusEvent, type HTMLAttributes, type KeyboardEvent, type MouseEvent } from 'react'
 import '../icons.js'
 import { useShell } from '../app-shell/shell.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
@@ -58,7 +59,15 @@ export function NavGroup({
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const root = useRef<HTMLDivElement>(null)
   const toggleEl = useRef<HTMLButtonElement>(null)
+  const childrenEl = useRef<HTMLDivElement>(null)
   const showing = rail && flyout
+
+  // Moved up when it would run past the bottom of the window.
+  useLayoutEffect(() => {
+    if (!showing || !childrenEl.current) return
+    const top = Math.max(8, Math.min(position.top, innerHeight - childrenEl.current.offsetHeight - 8))
+    if (top !== position.top) setPosition({ ...position, top })
+  }, [showing, position])
 
   function showFlyout() {
     if (!rail || !toggleEl.current) return
@@ -95,7 +104,7 @@ export function NavGroup({
         <iconify-icon {...part('indicator')} icon="lucide:chevron-down" aria-hidden="true" />
       </button>
       {(rail ? showing : open) && (
-        <div {...part('children')} id={`${id}-panel`} role="presentation"
+        <div {...part('children')} ref={childrenEl} id={`${id}-panel`} role="presentation"
           style={{ '--flyout-top': `${position.top}px`, '--flyout-left': `${position.left}px` } as CSSProperties}
           onClick={(e: MouseEvent) => { if ((e.target as Element).closest('a')) setFlyout(false) }}>
           <div {...part('panel')}>

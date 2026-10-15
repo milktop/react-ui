@@ -68,7 +68,7 @@ export function App() {
     <AppShell persist="react-ui:sidebar" inset={appearance.layout === 'inset'}>
       <Sidebar
         logoCollapsed={<a href="#/" aria-label="React UI" className={mark}>UI</a>}
-        logo={<a href="#/" className="flex items-center gap-2 text-(--ui-text) no-underline"><span className={mark}>UI</span>React UI</a>}
+        logo={<a href="#/" className="flex items-center gap-2 text-(--ui-sidebar-text) no-underline"><span className={mark}>UI</span>React UI</a>}
         footer={
           <SidebarUser name="Ada Lovelace" description="ada@example.com" onSelect={(action) => toaster.info({ title: `Picked “${String(action)}”` })}>
             <MenuItem value="profile" icon="lucide:user">Profile</MenuItem>
