@@ -40,7 +40,7 @@ import { DatePicker as Ark, parseDate, useDatePicker, type DatePickerValueChange
 import { useFieldContext } from '@ark-ui/react/field'
 import { DateFormatter, getLocalTimeZone, today } from '@internationalized/date'
 import { parseDateString } from '@zag-js/date-utils'
-import 'iconify-icon'
+import '../icons.js'
 import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { cx, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'

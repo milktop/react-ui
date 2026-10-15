@@ -9,7 +9,7 @@
  * - `end`: actions on the right
  */
 import type { HTMLAttributes, ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import { useShell } from './shell.js'

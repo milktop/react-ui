@@ -20,7 +20,7 @@
  */
 import { useEffect } from 'react'
 import { Pagination as Ark, usePagination } from '@ark-ui/react/pagination'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { formatNumber } from '../format/format.js'

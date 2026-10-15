@@ -24,7 +24,7 @@
  */
 import { useEffect, useState, type ComponentProps } from 'react'
 import { Menu } from '../menu/Menu.js'
-import 'iconify-icon'
+import '../icons.js'
 import { Segmented } from '../segment-group/Segmented.js'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { useColorScheme, type Scheme } from '../color-scheme.js'

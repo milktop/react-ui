@@ -17,7 +17,7 @@
  * - `type`: 'button' by default (pass 'submit' for forms)
  */
 import type { ComponentProps } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

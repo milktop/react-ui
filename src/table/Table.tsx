@@ -37,7 +37,7 @@
  * sorting, selection or loading states); `data-align` on cells works too.
  */
 import { useEffect, useRef, type CSSProperties, type HTMLAttributes, type MouseEvent, type ReactNode, type SyntheticEvent } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { Checkbox } from '../checkbox/Checkbox.js'
 import { Skeleton } from '../skeleton/Skeleton.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'

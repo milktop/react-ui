@@ -23,7 +23,7 @@
 import { Children, isValidElement, type ComponentProps, type ComponentType, type ReactElement, type ReactNode } from 'react'
 import { Dialog as Ark, type DialogOpenChangeDetails } from '@ark-ui/react/dialog'
 import { Portal } from '@ark-ui/react/portal'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, on, partOf, partsOf, withParts, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

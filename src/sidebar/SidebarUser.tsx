@@ -14,7 +14,7 @@
  * - `letters`, `color`: passed to the Avatar
  */
 import type { ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { Menu, type MenuProps } from '../menu/Menu.js'
 import { Avatar, type AvatarColor } from '../avatar/Avatar.js'
 import { useShell } from '../app-shell/shell.js'

@@ -39,7 +39,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent, type HTMLAttributes, type ReactNode } from 'react'
 import { createFileTypeValidator, getAcceptAttrString, getFileKey } from '@zag-js/file-utils'
 import { useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { Dialog } from '../dialog/Dialog.js'
 import { formatBytes } from '../format/format.js'
 import { useLocale, useMessages } from '../format/LocaleProvider.js'

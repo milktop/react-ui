@@ -12,7 +12,7 @@
  *   the crumb and the props to spread on it: `(item, props) => <Link to={item.href} {...props} />`
  */
 import type { HTMLAttributes, ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { Menu } from '../menu/Menu.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'

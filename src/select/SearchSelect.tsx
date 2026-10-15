@@ -6,7 +6,7 @@ import {
   type ComboboxInputValueChangeDetails, type ComboboxValueChangeDetails,
 } from '@ark-ui/react/combobox'
 import { useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partOf, partsOf, slot } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import { useItems } from './items.js'

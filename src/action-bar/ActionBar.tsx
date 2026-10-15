@@ -19,7 +19,7 @@
  */
 import { useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 import { Portal } from '@ark-ui/react/portal'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

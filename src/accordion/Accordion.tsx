@@ -24,7 +24,7 @@
  */
 import { createContext, useContext, useRef, type ReactNode } from 'react'
 import { Accordion as Ark } from '@ark-ui/react/accordion'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './accordion.css'

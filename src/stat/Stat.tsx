@@ -19,7 +19,7 @@
  * Group stats in Stats for a responsive grid.
  */
 import type { HTMLAttributes, ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { formatNumber } from '../format/format.js'
 import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { RollingNumber } from '../rolling-number/RollingNumber.js'

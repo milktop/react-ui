@@ -14,7 +14,7 @@
  * - `full`: no rounding, to run edge to edge
  */
 import type { HTMLAttributes, ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

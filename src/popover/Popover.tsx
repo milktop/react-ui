@@ -26,7 +26,7 @@
  */
 import type { ReactElement, ReactNode } from 'react'
 import { Popover as Ark, type PopoverOpenChangeDetails } from '@ark-ui/react/popover'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, on, partOf, partsOf, withParts, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

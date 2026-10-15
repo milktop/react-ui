@@ -34,7 +34,7 @@
 import { useRef, useState, type ReactNode } from 'react'
 import { TagsInput as Ark, useTagsInput, type TagsInputValueChangeDetails } from '@ark-ui/react/tags-input'
 import { useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partOf, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

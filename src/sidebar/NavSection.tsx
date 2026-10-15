@@ -8,7 +8,7 @@
  *   all the section's groups at once
  */
 import { useMemo, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { useShell } from '../app-shell/shell.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'

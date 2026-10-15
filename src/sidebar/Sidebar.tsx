@@ -25,7 +25,7 @@
  * Sidebar.User are NavSection, NavGroup, NavItem and SidebarUser.
  */
 import { useMemo, useState, type HTMLAttributes, type ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { useShell } from '../app-shell/shell.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'

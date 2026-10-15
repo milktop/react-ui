@@ -9,7 +9,7 @@
  * - the content: actions, e.g. a button to create the first item
  */
 import type { ComponentProps, ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import '../theme.css'
 import './empty-state.css'

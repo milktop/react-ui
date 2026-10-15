@@ -17,7 +17,7 @@
  * group's flyout the text stays); in the drawer, following a link closes it.
  */
 import { Children, cloneElement, isValidElement, useContext, type AnchorHTMLAttributes, type MouseEvent, type ReactElement, type ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { useShell } from '../app-shell/shell.js'
 import { cx, partsOf, type Classes } from '../utils.js'

@@ -27,7 +27,7 @@
  *   </Card>
  */
 import { Children, createElement, isValidElement, type ComponentProps, type ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partOf, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './card.css'

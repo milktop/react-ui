@@ -24,7 +24,7 @@
  */
 import { useMemo, type ReactNode } from 'react'
 import { TreeView as Ark, createTreeCollection, useTreeViewNodeContext, type TreeViewSelectionChangeDetails } from '@ark-ui/react/tree-view'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, on, partsOf, withParts, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

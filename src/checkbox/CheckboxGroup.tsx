@@ -18,7 +18,7 @@
  * Shift-clicking a checkbox ticks (or clears) every item between it and the
  * last one clicked, as in mail and file lists.
  */
-import 'iconify-icon'
+import '../icons.js'
 import { useId, useRef, type ComponentProps, type ReactNode, type SyntheticEvent } from 'react'
 import { useFieldContext } from '@ark-ui/react/field'
 import { Checkbox } from './Checkbox.js'

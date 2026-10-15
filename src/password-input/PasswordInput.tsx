@@ -21,7 +21,7 @@
 import type { ChangeEvent, ComponentProps, ReactNode } from 'react'
 import { PasswordInput as Ark, usePasswordInput, type PasswordInputVisibilityChangeDetails } from '@ark-ui/react/password-input'
 import { useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

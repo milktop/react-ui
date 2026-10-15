@@ -3,7 +3,7 @@
 import { Fragment, useMemo, useRef, type KeyboardEvent } from 'react'
 import { Select as Ark, createListCollection, useSelect, type SelectValueChangeDetails } from '@ark-ui/react/select'
 import { useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, slot } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import { useItems } from './items.js'

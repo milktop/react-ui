@@ -15,7 +15,7 @@
  */
 import type { ComponentProps } from 'react'
 import { Clipboard, useClipboard } from '@ark-ui/react/clipboard'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

@@ -24,7 +24,7 @@
 import { useId } from 'react'
 import type { ChangeEvent, ComponentProps, HTMLInputTypeAttribute, ReactNode } from 'react'
 import { Field, useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partOf, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './input.css'

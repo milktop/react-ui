@@ -23,7 +23,7 @@
  *   text in a tooltip; its content is the value
  */
 import { createContext, useContext, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'

@@ -29,7 +29,7 @@
 import { useState, type FocusEvent, type ReactNode } from 'react'
 import { SegmentGroup as Ark, type SegmentGroupValueChangeDetails } from '@ark-ui/react/segment-group'
 import { useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { cx, partOf, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'

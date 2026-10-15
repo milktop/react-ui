@@ -22,7 +22,7 @@
  *   under the title
  */
 import type { HTMLAttributes, LiHTMLAttributes, ReactNode } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './timeline.css'

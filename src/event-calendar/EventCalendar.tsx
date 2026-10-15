@@ -91,7 +91,7 @@ import {
   Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type KeyboardEvent, type PointerEvent,
   type ReactNode,
 } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { Button } from '../button/Button.js'
 import { Popover } from '../popover/Popover.js'
 import { DatePicker } from '../date-picker/DatePicker.js'

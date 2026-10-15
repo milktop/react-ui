@@ -15,7 +15,7 @@
  */
 import { useId, type ReactNode, type SelectHTMLAttributes } from 'react'
 import { Field, useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import '../theme.css'
 import './native-select.css'

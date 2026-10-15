@@ -19,7 +19,7 @@
 import { useState, type ReactNode } from 'react'
 import { Editable as Ark } from '@ark-ui/react/editable'
 import { useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

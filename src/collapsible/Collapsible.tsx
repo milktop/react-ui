@@ -19,7 +19,7 @@
  */
 import type { ReactElement, ReactNode } from 'react'
 import { Collapsible as Ark, type CollapsibleOpenChangeDetails } from '@ark-ui/react/collapsible'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, on, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './collapsible.css'

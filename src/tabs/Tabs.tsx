@@ -30,7 +30,7 @@
  */
 import { Children, isValidElement, useEffect, type ReactElement, type ReactNode } from 'react'
 import { Tabs as Ark, type TabsValueChangeDetails } from '@ark-ui/react/tabs'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partOf, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './tabs.css'

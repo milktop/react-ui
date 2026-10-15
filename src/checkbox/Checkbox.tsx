@@ -24,7 +24,7 @@
  */
 import type { ReactNode } from 'react'
 import { Checkbox as Ark, type CheckboxCheckedChangeDetails } from '@ark-ui/react/checkbox'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, on, partsOf, slot, withParts, type Classes, type Slot } from '../utils.js'
 import '../theme.css'
 import './checkbox.css'

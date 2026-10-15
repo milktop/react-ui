@@ -25,7 +25,7 @@
 import type { ReactNode } from 'react'
 import { RadioGroup as Ark, type RadioGroupValueChangeDetails } from '@ark-ui/react/radio-group'
 import { useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partOf, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './radio-group.css'

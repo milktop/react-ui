@@ -10,7 +10,7 @@
  *   filter, a record's label); `removeLabel` names it ('Remove …')
  */
 import type { ComponentProps } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import '../theme.css'
 import './badge.css'

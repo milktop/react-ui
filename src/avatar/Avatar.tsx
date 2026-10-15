@@ -28,7 +28,7 @@
  */
 import type { CSSProperties } from 'react'
 import { Avatar as Ark } from '@ark-ui/react/avatar'
-import 'iconify-icon'
+import '../icons.js'
 import { Tooltip } from '../tooltip/Tooltip.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'

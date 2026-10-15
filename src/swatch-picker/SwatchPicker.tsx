@@ -23,7 +23,7 @@ import { useId, useState, type CSSProperties, type HTMLAttributes, type ReactNod
 import { Popover } from '../popover/Popover.js'
 import { RadioGroup as Ark, type RadioGroupValueChangeDetails } from '@ark-ui/react/radio-group'
 import { useFieldContext } from '@ark-ui/react/field'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

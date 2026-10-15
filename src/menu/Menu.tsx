@@ -43,7 +43,7 @@
  */
 import { createContext, useContext, useId, useRef, useState, type ComponentProps, type ReactElement, type ReactNode } from 'react'
 import { Menu as Ark, useMenuContext, type MenuSelectionDetails } from '@ark-ui/react/menu'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './menu.css'

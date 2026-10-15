@@ -19,7 +19,7 @@
 import type { ReactNode } from 'react'
 import { Toaster as ArkToaster, Toast, createToaster, type CreateToasterReturn, type ToastOptions } from '@ark-ui/react/toast'
 import { Portal } from '@ark-ui/react/portal'
-import 'iconify-icon'
+import '../icons.js'
 import { cx, partsOf, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'

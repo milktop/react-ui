@@ -14,7 +14,7 @@
  * following a link closes it.
  */
 import { useContext, useEffect, useId, useRef, useState, type CSSProperties, type FocusEvent, type HTMLAttributes, type KeyboardEvent, type MouseEvent } from 'react'
-import 'iconify-icon'
+import '../icons.js'
 import { useShell } from '../app-shell/shell.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
 import { FlyoutContext, SectionContext, useSidebar } from './context.js'
