@@ -28,6 +28,9 @@
   [data-scope=menu][data-part=item-indicator] {
     &[data-type=checkbox] { display: block; font-size: 14px; color: var(--ui-accent); }
     &[data-type=radio] { display: block; width: 6px; height: 6px; border-radius: 9999px; background: var(--ui-accent); box-shadow: 0 0 0 3px var(--ui-accent-soft); } }
+  /* indicator='end' (the default): a tick after the label and any shortcut, for radios too. */
+  [data-scope=menu][data-part=indicator][data-side=end] { order: 1;
+    & > [data-type=radio] { width: auto; height: auto; font-size: 14px; color: var(--ui-accent); border-radius: 0; background: none; box-shadow: none; } }
   [data-scope=menu][data-part=chevron] { display: block; font-size: 14px; margin-left: auto; color: var(--ui-muted); }
   /* A div or an <hr> (Ark's): no border of its own. */
   [data-scope=menu][data-part=separator] { display: block; height: 1px; margin: 0.25rem -0.25rem; border: none; background: var(--ui-border); }

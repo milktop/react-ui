@@ -35,7 +35,7 @@ export {
 export { Tooltip } from './tooltip/Tooltip.js'
 export {
   Menu, ContextMenu, MenuItem, MenuSeparator, MenuGroup, MenuCheckbox, MenuRadioGroup, MenuRadio, Submenu,
-  type MenuEntry, type MenuOptionChange,
+  type MenuEntry, type MenuOptionChange, type MenuIndicator,
 } from './menu/Menu.js'
 export { Tabs, Tab } from './tabs/Tabs.js'
 export { Dialog } from './dialog/Dialog.js'

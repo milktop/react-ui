@@ -29,6 +29,10 @@
  *   component must pass them on, as Button does)
  * - `placement`: 'bottom-start' (default), 'bottom-end', …
  * - `label`: a small label above the items
+ * - `indicator`: where checkbox and radio items show they're checked: 'end'
+ *   (default; a tick after the label, so labels line up with the other
+ *   items) or 'start' (a tick, or a dot for radios, before it); submenus
+ *   follow their menu's unless they set one
  * - `keepOpen`: stay open after an item is chosen (to tick several); an
  *   item's own `keepOpen` overrides it
  * - `context`: open on right-click (or long-press) of the trigger, at the
@@ -49,6 +53,7 @@ import '../theme.css'
 import './menu.css'
 
 type Value = string | number
+export type MenuIndicator = 'start' | 'end'
 type Part = ReturnType<typeof partsOf>
 
 export type MenuEntry = string | number | {
@@ -63,6 +68,7 @@ export type MenuOptionChange = { type: 'checkbox' | 'radio', name: string | null
 type MenuShared = {
   part: Part
   keepOpen: boolean
+  indicator: MenuIndicator
   keys: { labelKey: string, valueKey: string, disabledKey: string }
   remember: (key: string, value: unknown) => void
   select: (key: string) => void
@@ -171,7 +177,7 @@ function Checkbox({ checked, defaultChecked = false, onCheckedChange, value, ico
   return (
     <Ark.CheckboxItem {...menu.part('item')} value={String(value ?? id)} checked={on} disabled={!!disabled} {...closeFor(keepOpen)}
       onCheckedChange={(next) => { setOwn(next); onCheckedChange?.(next) }}>
-      <span {...menu.part('indicator')}>
+      <span {...menu.part('indicator')} data-side={menu.indicator}>
         <Ark.ItemIndicator {...menu.part('item-indicator')} data-type="checkbox"><iconify-icon icon="lucide:check" aria-hidden="true" /></Ark.ItemIndicator>
       </span>
       <ItemInside part={menu.part} icon={icon} shortcut={shortcut}>{children}</ItemInside>
@@ -233,7 +239,11 @@ function Radio({ value, icon = null, shortcut = null, disabled = false, keepOpen
   values?.set(key, value)
   return (
     <Ark.RadioItem {...menu.part('item')} value={key} disabled={!!disabled} {...closeFor(keepOpen)}>
-      <span {...menu.part('indicator')}><Ark.ItemIndicator {...menu.part('item-indicator')} data-type="radio" /></span>
+      <span {...menu.part('indicator')} data-side={menu.indicator}>
+        <Ark.ItemIndicator {...menu.part('item-indicator')} data-type="radio">
+          {menu.indicator === 'end' && <iconify-icon icon="lucide:check" aria-hidden="true" />}
+        </Ark.ItemIndicator>
+      </span>
       <ItemInside part={menu.part} icon={icon} shortcut={shortcut}>{children}</ItemInside>
     </Ark.RadioItem>
   )
@@ -248,16 +258,19 @@ function Radio({ value, icon = null, shortcut = null, disabled = false, keepOpen
  *   </Menu.Submenu>
  *
  * - `label`: the row's text; `icon`: an optional Iconify name before it
- * - `items`: as on Menu; `keepOpen` for its items (it follows its menu)
+ * - `items`: as on Menu; `keepOpen` and `indicator` for its items (they
+ *   follow its menu's)
  *
  * Its items' selections reach the outer Menu's `onSelect`.
  */
-function Submenu({ label, icon = null, items = [], keepOpen = null, className, children }: {
-  label: ReactNode, icon?: string | null, items?: MenuEntry[], keepOpen?: boolean | null, className?: string, children?: ReactNode
+function Submenu({ label, icon = null, items = [], keepOpen = null, indicator = null, className, children }: {
+  label: ReactNode, icon?: string | null, items?: MenuEntry[], keepOpen?: boolean | null, indicator?: MenuIndicator | null,
+  className?: string, children?: ReactNode
 }) {
   const outer = useMenu()
   const part = outer.part
   const stays = keepOpen ?? outer.keepOpen
+  const side = indicator ?? outer.indicator
   return (
     <Ark.Root closeOnSelect={!stays} positioning={{ placement: 'right-start', strategy: 'fixed', gutter: 2 }}
       navigate={(details) => details.node.click()} onSelect={(details: MenuSelectionDetails) => outer.select(details.value)}>
@@ -268,7 +281,7 @@ function Submenu({ label, icon = null, items = [], keepOpen = null, className, c
       </Ark.TriggerItem>
       <Ark.Positioner {...part('positioner')}>
         <Ark.Content {...part('content')} className={className}>
-          <MenuContext.Provider value={{ ...outer, keepOpen: stays }}>
+          <MenuContext.Provider value={{ ...outer, keepOpen: stays, indicator: side }}>
             <Entries items={items} />
             {children}
           </MenuContext.Provider>
@@ -292,9 +305,9 @@ function Option({ entry, optionKey, label, disabled, siblings }: {
   }
   return (
     <div {...api.getOptionItemProps(props)} {...menu.part('item')} data-danger={entry.danger || undefined}>
-      <span {...menu.part('indicator')}>
+      <span {...menu.part('indicator')} data-side={menu.indicator}>
         <span {...api.getItemIndicatorProps(props)} {...menu.part('item-indicator')} data-type={entry.type}>
-          {entry.type === 'checkbox' && <iconify-icon icon="lucide:check" aria-hidden="true" />}
+          {(entry.type === 'checkbox' || menu.indicator === 'end') && <iconify-icon icon="lucide:check" aria-hidden="true" />}
         </span>
       </span>
       {entry.icon && <iconify-icon {...menu.part('icon')} icon={entry.icon} aria-hidden="true" />}
@@ -339,6 +352,7 @@ export type MenuProps = Omit<Ark.ContentProps, 'onSelect' | 'onChange'> & {
   trigger?: ReactElement | null
   placement?: NonNullable<Ark.RootProps['positioning']>['placement']
   label?: ReactNode
+  indicator?: MenuIndicator
   keepOpen?: boolean
   context?: boolean
   open?: boolean
@@ -351,7 +365,7 @@ export type MenuProps = Omit<Ark.ContentProps, 'onSelect' | 'onChange'> & {
 
 function MenuShortcut({
   items = [], labelKey = 'label', valueKey = 'value', disabledKey = 'disabled', trigger = null, placement = 'bottom-start',
-  label = null, keepOpen = false, context = false, open, defaultOpen, onOpenChange, onSelect, onChange,
+  label = null, indicator = 'end', keepOpen = false, context = false, open, defaultOpen, onOpenChange, onSelect, onChange,
   className, classes, children, ...rest
 }: MenuProps) {
   const part = partsOf('menu', classes)
@@ -360,7 +374,7 @@ function MenuShortcut({
   const [checks, setChecks] = useState<Record<string, boolean>>({})
 
   const shared: MenuShared = {
-    part, keepOpen, keys: { labelKey, valueKey, disabledKey },
+    part, keepOpen, indicator, keys: { labelKey, valueKey, disabledKey },
     remember: (key, value) => { values.current.set(key, value) },
     select: (key) => { if (values.current.has(key)) onSelect?.(values.current.get(key)) },
     isChecked: (key, initial) => checks[key] ?? initial,
