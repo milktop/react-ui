@@ -12,7 +12,8 @@
  * - `count`: a badge on the corner (hidden at 0 or null), "99+" past `max`
  * - `dot`: a small dot there instead, for "something new"
  * - `pulse`: a ring ripples out from the badge or dot (not when the system asks for less motion)
- * - `countColor`: 'danger', 'accent', 'success', 'warning' or 'neutral'
+ * - `countColor`: 'danger', 'accent', 'success', 'warning' or 'neutral', for the
+ *   dot too; or set `--ui-button-count-bg` and `--ui-button-count-text` in CSS for any other
  * - `countLabel`: what the count is, for assistive tech ('new': "Inbox, 3 new")
  * - `type`: 'button' by default (pass 'submit' for forms)
  */

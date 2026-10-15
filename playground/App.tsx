@@ -10,12 +10,14 @@ import { groups, pages, examplesOf, docOf, type Group, type Page as PageEntry } 
 import { blocks } from './blocks/registry'
 import { BlockPage } from './lib/BlockPage'
 import { AppearancePanel } from './lib/AppearancePanel'
+import { StylingPanel } from './lib/StylingPanel'
 import { ApiPanel } from './lib/ApiPanel'
 import { useAppearance } from './lib/appearance'
 import { Theming } from './pages/Theming'
 import { Installation } from './pages/Installation'
+import { Tokens } from './pages/Tokens'
 
-const guides: Record<string, string> = { '#/theming': 'Theming', '#/installation': 'Installation' }
+const guides: Record<string, string> = { '#/theming': 'Theming', '#/tokens': 'Tokens', '#/installation': 'Installation' }
 
 function useHash() {
   const [hash, setHash] = useState(location.hash)
@@ -31,7 +33,8 @@ function useHash() {
 const commands: CommandItem[] = [
   ...pages.map((p) => ({ label: p.title, description: p.about, href: `#/${p.slug}`, icon: p.group.icon, group: p.group.heading })),
   ...blocks.map((b) => ({ label: b.title, description: b.about, href: `#/blocks/${b.slug}`, icon: b.icon, group: `Blocks: ${b.group}` })),
-  { label: 'Theming', description: 'Tokens and overrides', href: '#/theming', icon: 'lucide:palette', group: 'Guides' },
+  { label: 'Theming', description: 'Each way to restyle, from the whole app to one part', href: '#/theming', icon: 'lucide:palette', group: 'Guides' },
+  { label: 'Tokens', description: 'Every --ui-* token, what it styles, light and dark', href: '#/tokens', icon: 'lucide:swatch-book', group: 'Guides' },
   { label: 'Installation', description: 'Install, set up the CSS layers, import', href: '#/installation', icon: 'lucide:download', group: 'Guides' },
   { label: 'Toggle sidebar', value: 'sidebar', icon: 'lucide:panel-left', shortcut: '⌘B', group: 'Playground' },
   { label: 'Light theme', value: 'light', icon: 'lucide:sun', group: 'Playground', keywords: ['appearance', 'mode'] },
@@ -45,6 +48,8 @@ function run(command: unknown) {
 
 export function App() {
   const hash = useHash()
+  // The page, without a query (#/tokens?q=ui-accent).
+  const route = hash.split('?')[0]
   const page = pages.find((p) => hash === `#/${p.slug}`)
   const block = blocks.find((b) => hash === `#/blocks/${b.slug}`)
   const appearance = useAppearance()
@@ -62,7 +67,7 @@ export function App() {
   const trail = page
     ? [{ label: 'React UI', href: '#/' }, { label: page.group.heading }, { label: page.title }]
     : block ? [{ label: 'React UI', href: '#/' }, { label: 'Blocks' }, { label: block.group }, { label: block.title }]
-    : [{ label: 'React UI', href: '#/' }, { label: guides[hash] ?? 'Overview' }]
+    : [{ label: 'React UI', href: '#/' }, { label: guides[route] ?? 'Overview' }]
 
   return (
     <AppShell persist="react-ui:sidebar" inset={appearance.layout === 'inset'}>
@@ -85,9 +90,10 @@ export function App() {
           </SidebarUser>
         }>
         <NavSection>
-          <NavItem icon="lucide:house" href="#/" active={!page && !block && !guides[hash]}>Overview</NavItem>
-          <NavItem icon="lucide:palette" href="#/theming" active={hash === '#/theming'}>Theming</NavItem>
-          <NavItem icon="lucide:download" href="#/installation" active={hash === '#/installation'}>Installation</NavItem>
+          <NavItem icon="lucide:house" href="#/" active={!page && !block && !guides[route]}>Overview</NavItem>
+          <NavItem icon="lucide:palette" href="#/theming" active={route === '#/theming'}>Theming</NavItem>
+          <NavItem icon="lucide:swatch-book" href="#/tokens" active={route === '#/tokens'}>Tokens</NavItem>
+          <NavItem icon="lucide:download" href="#/installation" active={route === '#/installation'}>Installation</NavItem>
         </NavSection>
         <NavSection heading="Components">
           {groups.map((group) => (
@@ -127,8 +133,9 @@ export function App() {
       <Page width={block && appearance.width === 'default' ? 'wide' : appearance.width} align={appearance.align}>
         {page ? <ComponentPage key={page.slug} page={page} />
           : block ? <BlockPage key={block.slug} block={block} />
-          : hash === '#/theming' ? <Theming />
-          : hash === '#/installation' ? <Installation />
+          : route === '#/theming' ? <Theming />
+          : route === '#/tokens' ? <Tokens query={new URLSearchParams(hash.split('?')[1] ?? '').get('q') ?? ''} />
+          : route === '#/installation' ? <Installation />
           : <Overview />}
       </Page>
       <Toaster />
@@ -140,18 +147,28 @@ const mark = 'inline-flex h-7 w-7 items-center justify-center rounded-(--ui-radi
 
 function ComponentPage({ page }: { page: PageEntry & { group: Group } }) {
   const [showDoc, setShowDoc] = useState(false)
+  const [showStyling, setShowStyling] = useState(false)
   const doc = docOf(page.file)
+  const files = [page.file, ...(page.more ?? [])]
 
   return (
     <>
       <div className="flex items-center justify-between gap-4">
         <h1 className="m-0 text-xl font-bold">{page.title}</h1>
-        <Toggle pressed={showDoc} onClick={() => setShowDoc(!showDoc)} icon="lucide:list-tree">Props</Toggle>
+        <div className="flex shrink-0 gap-1">
+          <Toggle pressed={showDoc} onClick={() => setShowDoc(!showDoc)} icon="lucide:list-tree">Props</Toggle>
+          <Toggle pressed={showStyling} onClick={() => setShowStyling(!showStyling)} icon="lucide:paintbrush">Styling</Toggle>
+        </div>
       </div>
       <p className="mt-1 mb-0 text-sm text-(--ui-muted)"><Backticked text={doc.summary} /></p>
       {showDoc && (
         <div className="mt-5 flex flex-col gap-4">
-          {[page.file, ...(page.more ?? [])].map((file) => <ApiPanel key={file} file={file} />)}
+          {files.map((file) => <ApiPanel key={file} file={file} />)}
+        </div>
+      )}
+      {showStyling && (
+        <div className="mt-5 flex flex-col gap-4">
+          {files.map((file) => <StylingPanel key={file} file={file} />)}
         </div>
       )}
       {examplesOf(page.slug).map((example) => (
