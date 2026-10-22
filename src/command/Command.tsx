@@ -11,8 +11,10 @@
  *   the item is listed under), `icon`, `description`, `shortcut` text,
  *   `keywords` (extra words to match) and `disabled`. An item with `href`
  *   goes there when picked
- * - `load`: optional async function(query) returning items, for server
- *   search (debounced by `debounce` ms, `loadingText` meanwhile)
+ * - `load`: optional async function(query) returning more items, for server
+ *   search (debounced by `debounce` ms, `loadingText` meanwhile). They're
+ *   listed after the matching `items`, which filter as you type while the
+ *   search runs
  * - `onSelect`: called with the item's `value` (or the item, if it has none)
  * - `trigger`: the element that opens it (it gets the trigger's props)
  * - `open`, `defaultOpen`; `onOpenChange`: called with the new open state
@@ -75,9 +77,12 @@ export function formatHotkey(key = 'k') {
 
 const keyOf = (item: CommandItem) => String(item.value ?? item.href ?? item.label)
 
+// Lowercase without accents, so "tache" finds "Tâches"
+const fold = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+
 // Every word typed must appear in the label, description, group or keywords.
 function matches(item: CommandItem, words: string[]) {
-  const text = [item.label, item.description, item.group, ...(item.keywords ?? [])].join(' ').toLowerCase()
+  const text = fold([item.label, item.description, item.group, ...(item.keywords ?? [])].join(' '))
   return words.every((word) => text.includes(word))
 }
 
@@ -109,8 +114,11 @@ export function Command({
   const ticket = useRef(0)
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
-  const found = load ? loaded : words.length ? items.filter((item) => matches(item, words)) : items
+  // The items filter at once; loaded results from the last search stay
+  // below them until the new ones arrive.
+  const words = fold(query).split(/\s+/).filter(Boolean)
+  const local = words.length ? items.filter((item) => matches(item, words)) : items
+  const found = load ? [...local, ...loaded] : local
 
   // Results in group order (by first appearance), so the list reads and the
   // arrow keys move the same way.
