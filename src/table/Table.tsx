@@ -23,7 +23,8 @@
  * - `selectable`: a checkbox per row and a select-all; `selected`,
  *   `defaultSelected`: the selected rows' keys; `onSelectedChange`. Shift-click
  *   a row's checkbox to tick (or clear) the rows between it and the last one
- *   clicked
+ *   clicked. Once a row is ticked, clicking a row ticks (or clears) it too,
+ *   Shift a run, rather than calling `onRowClick`
  * - `loading`: skeleton rows while there are none yet (`loadingRows`, 5),
  *   else dims the rows
  * - `emptyText`, or `empty` (markup), for no rows
@@ -31,7 +32,8 @@
  * - `label`: a caption for assistive tech
  * - `size`: 'sm', 'md' (default) or 'lg' (roomier rows)
  * - `flush`: no border or rounding, to sit edge to edge in a card
- * - `onRowClick`: called with the row when a row is clicked (outside its controls)
+ * - `onRowClick`: called with the row when a row is clicked (outside its
+ *   controls), unless rows are ticked
  *
  * Or write the <table> yourself as its content, for the look alone (no
  * sorting, selection or loading states); `data-align` on cells works too.
@@ -142,6 +144,8 @@ export function Table<T extends object = Row>({
   const isSelected = (row: T) => selected.includes(keyOf(row))
   const selectedCount = rows.filter(isSelected).length
   const allState = selectedCount === 0 ? false : selectedCount === rows.length ? true : 'indeterminate'
+  // Once a row is ticked, a click on a row ticks it rather than opening it.
+  const selecting = selectable && selected.length > 0
 
   // Change events don't carry the Shift key, so it's noted on the way in;
   // Shift+mousedown would also select the text between.
@@ -150,7 +154,7 @@ export function Table<T extends object = Row>({
   function noteShift(e: SyntheticEvent) {
     const event = e.nativeEvent as MouseEvent['nativeEvent'] | KeyboardEvent
     shift.current = event.shiftKey
-    if (event.shiftKey && e.type === 'mousedown' && (e.target as Element).closest('[data-part=select-cell]')) e.preventDefault()
+    if (event.shiftKey && e.type === 'mousedown' && (selecting || (e.target as Element).closest('[data-part=select-cell]'))) e.preventDefault()
   }
 
   function toggleRow(row: T, on: boolean) {
@@ -178,13 +182,14 @@ export function Table<T extends object = Row>({
   function rowClicked(e: MouseEvent, row: T) {
     const control = (e.target as Element).closest('a, button, input, label, select, textarea, [data-scope]:not([data-scope=table])')
     if (control && e.currentTarget.contains(control)) return
-    onRowClick?.(row)
+    if (selecting) toggleRow(row, !isSelected(row))
+    else onRowClick?.(row)
   }
 
   const columnCount = columns.length + (selectable ? 1 : 0)
   return (
     <div {...rest} {...part('root')} className={cx(className, classes?.root)} data-size={size} data-flush={flush || undefined}
-      data-loading={(loading && rows.length > 0) || undefined}>
+      data-selecting={selecting || undefined} data-loading={(loading && rows.length > 0) || undefined}>
       <div {...part('scroll')} data-sticky={maxHeight ? '' : undefined} style={maxHeight ? { maxHeight } as CSSProperties : undefined}>
         {!columns.length ? children : (
           <table {...part('table')} aria-busy={loading}>

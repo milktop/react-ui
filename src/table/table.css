@@ -23,6 +23,8 @@
     & tbody tr:last-child td { border-bottom: none; }
     & tbody tr:hover { background: color-mix(in srgb, var(--ui-hover) 60%, transparent); }
     & tbody tr[data-selected] { background: color-mix(in srgb, var(--ui-accent-soft) 45%, transparent); }
+    /* While rows are ticked, a click on a row ticks it. */
+    [data-selecting] > & tbody tr { cursor: pointer; }
     /* Outer cells line up with a card's padding. */
     [data-flush] > & :is(th, td):first-child { padding-left: 1.25rem; }
     [data-flush] > & :is(th, td):last-child { padding-right: 1.25rem; } }
