@@ -33,7 +33,7 @@
  * - `size`: 'sm', 'md' (default) or 'lg' (roomier rows)
  * - `flush`: no border or rounding, to sit edge to edge in a card
  * - `onRowClick`: called with the row when a row is clicked (outside its
- *   controls), unless rows are ticked
+ *   controls), unless rows are ticked; rows then show the pointer
  *
  * Or write the <table> yourself as its content, for the look alone (no
  * sorting, selection or loading states); `data-align` on cells works too.
@@ -189,7 +189,7 @@ export function Table<T extends object = Row>({
   const columnCount = columns.length + (selectable ? 1 : 0)
   return (
     <div {...rest} {...part('root')} className={cx(className, classes?.root)} data-size={size} data-flush={flush || undefined}
-      data-selecting={selecting || undefined} data-loading={(loading && rows.length > 0) || undefined}>
+      data-clickable={onRowClick ? '' : undefined} data-selecting={selecting || undefined} data-loading={(loading && rows.length > 0) || undefined}>
       <div {...part('scroll')} data-sticky={maxHeight ? '' : undefined} style={maxHeight ? { maxHeight } as CSSProperties : undefined}>
         {!columns.length ? children : (
           <table {...part('table')} aria-busy={loading}>
