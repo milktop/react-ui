@@ -9,6 +9,8 @@
  * - `open`, `defaultOpen`; `onOpenChange`: called with the new open state.
  *   In an `accordion` Sidebar, opening one closes the others.
  *
+ * Opening it scrolls the sidebar just enough to show its items.
+ *
  * In the rail only its icon shows, and its items open beside it as a flyout:
  * on hover, or on click for keyboard and touch. Escape, leaving it or
  * following a link closes it. It moves up when it would run past the bottom
@@ -76,8 +78,21 @@ export function NavGroup({
     setFlyout(true)
   }
 
+  // Scrolls the sidebar just enough to show the opened items (the heading
+  // stays in view when the group is taller than the sidebar).
+  const revealing = useRef(false)
+  useEffect(() => {
+    if (!open || !revealing.current) return
+    revealing.current = false
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+    root.current?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' })
+  }, [open])
+
   function toggle() {
-    if (!rail) setOpen(!open)
+    if (!rail) {
+      revealing.current = !open
+      setOpen(!open)
+    }
     else if (showing) setFlyout(false)
     else showFlyout()
   }
