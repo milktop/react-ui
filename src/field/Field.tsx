@@ -10,7 +10,10 @@
  * - `label`, `hint`, `error` (shown instead of the hint), `required`
  * - `span`: columns (of 12) to take inside Fields
  * - without children it renders an Input, and the other props (value,
- *   onValueChange, type, placeholder, icon, suffix…) pass on to it
+ *   onValueChange, type, placeholder, icon, suffix…) pass on to it; with
+ *   type="number" a NumberInput (value a number or null, min, max, step…)
+ *
+ *     <Field label="Rate" type="number" min={0} prefix="£" value={rate} onValueChange={setRate} />
  *
  * By hand, with Ark's Field parts:
  *
@@ -23,6 +26,7 @@
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import { Field as Ark } from '@ark-ui/react/field'
 import { Input, type InputProps } from '../input/Input.js'
+import { NumberInput, type NumberInputProps } from '../number-input/NumberInput.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './field.css'
@@ -30,7 +34,11 @@ import './field.css'
 // Omit, kept per member of InputProps' union (type="number" or not).
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
-export type FieldProps = DistributiveOmit<InputProps, 'label' | 'classes' | 'children'> & {
+type Control =
+  | DistributiveOmit<Exclude<InputProps, { type: 'number' }>, 'label' | 'classes' | 'children'>
+  | (Omit<NumberInputProps, 'label' | 'classes' | 'children'> & { type: 'number' })
+
+export type FieldProps = Control & {
   label?: ReactNode
   hint?: ReactNode
   error?: ReactNode
@@ -51,11 +59,16 @@ function FieldShortcut({
     <Ark.Root {...part('root')} className={cx(className, classes?.root)} style={{ '--span': span, ...style } as CSSProperties}
       invalid={!!error} required={required} disabled={disabled}>
       {label && <Ark.Label {...part('label')}>{label}<Ark.RequiredIndicator {...part('required-indicator')} aria-hidden="true"> *</Ark.RequiredIndicator></Ark.Label>}
-      {children ?? <Input {...inputProps as InputProps} />}
+      {children ?? control(inputProps)}
       {error ? <Ark.ErrorText {...part('error-text')}>{error}</Ark.ErrorText>
         : hint && <Ark.HelperText {...part('helper-text')}>{hint}</Ark.HelperText>}
     </Ark.Root>
   )
+}
+
+function control({ type, ...props }: Omit<Control, 'classes'>) {
+  if (type === 'number') return <NumberInput {...props as NumberInputProps} />
+  return <Input type={type} {...props as InputProps} />
 }
 
 export const Field = withParts(FieldShortcut, {

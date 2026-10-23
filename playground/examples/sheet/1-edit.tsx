@@ -13,7 +13,7 @@ const lessons = [
 
 export default function Example() {
   const [editing, setEditing] = useState(false)
-  const [student, setStudent] = useState({ name: 'Ada Lovelace', email: 'ada@example.com', year: 11, notes: 'Prefers worked examples.' })
+  const [student, setStudent] = useState({ name: 'Ada Lovelace', email: 'ada@example.com', year: 11 as number | null, notes: 'Prefers worked examples.' })
   const [draft, setDraft] = useState(student)
   const set = <K extends keyof typeof draft>(key: K) => (value: (typeof draft)[K]) => setDraft({ ...draft, [key]: value })
 
