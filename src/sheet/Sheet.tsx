@@ -14,6 +14,9 @@
  * - `size`: 'sm', 'md' (default) or 'lg': the width (or height for top and bottom)
  * - `open`, `defaultOpen`, `onOpenChange`, `trigger`, `heading`, `description`,
  *   `footer`, `closable`, `alert`: as for Dialog
+ * - `modal`: false keeps the page usable beside it (no backdrop, no focus
+ *   trap, the page still scrolls, a click outside doesn't close it), for
+ *   looking something up while working on the page
  *
  * Or composed from Sheet.Header (heading, description), Sheet.Body and
  * Sheet.Footer, with a Sheet.Trigger child, as Dialog is. By hand, Dialog's
@@ -38,6 +41,7 @@ export type SheetProps = Omit<Ark.ContentProps, 'children'> & {
   heading?: ReactNode
   description?: ReactNode
   alert?: boolean
+  modal?: boolean
   closable?: boolean
   trigger?: ReactElement | null
   footer?: ReactNode
@@ -71,7 +75,7 @@ const withScope = <P extends object>(Part: ComponentType<P>, name: string) => {
 
 function SheetShortcut({
   open, defaultOpen, onOpenChange, side = 'right', size = 'md', heading = null, description = null, alert = false,
-  closable = true, trigger = null, footer = null, className, classes, children, ...rest
+  modal = true, closable = true, trigger = null, footer = null, className, classes, children, ...rest
 }: SheetProps) {
   const t = useMessages()
   const part = partsOf('sheet', classes)
@@ -83,11 +87,12 @@ function SheetShortcut({
   return (
     <Ark.Root {...(open !== undefined && { open })} {...(defaultOpen !== undefined && { defaultOpen })}
       {...on('onOpenChange', onOpenChange, (details: DialogOpenChangeDetails) => details.open)}
-      role={alert ? 'alertdialog' : 'dialog'} closeOnInteractOutside={!alert} lazyMount unmountOnExit>
+      role={alert ? 'alertdialog' : 'dialog'} modal={modal} trapFocus={modal} preventScroll={modal}
+      closeOnInteractOutside={modal && !alert} lazyMount unmountOnExit>
       {trigger && <Ark.Trigger asChild>{trigger}</Ark.Trigger>}
       {composed && triggers}
       <Portal>
-        <Ark.Backdrop {...part('backdrop')} />
+        {modal && <Ark.Backdrop {...part('backdrop')} />}
         <Ark.Positioner {...part('positioner')} data-side={side}>
           <Ark.Content {...rest} {...part('content')} className={cx(className, classes?.content)} data-side={side} data-size={size}>
             {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label={t.common.close}><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}

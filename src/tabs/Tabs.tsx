@@ -14,6 +14,8 @@
  * - `variant`: 'line' (default, an underline) or 'pills'
  * - `counts`: where the tabs' counts sit: 'inline' (default, after the label)
  *   or 'corner' (top right, like a button's)
+ * - `iconOnly`: tabs with an icon show just the icon, their label in a
+ *   tooltip (and still read out); tabs without one keep their label
  * - `renderTrigger`: a tab's content, given the tab's props; its count still follows
  *
  * By hand, with Ark's parts (data-variant on the root picks the look):
@@ -31,6 +33,7 @@
 import { Children, isValidElement, useEffect, type ReactElement, type ReactNode } from 'react'
 import { Tabs as Ark, type TabsValueChangeDetails } from '@ark-ui/react/tabs'
 import '../icons.js'
+import { Tooltip } from '../tooltip/Tooltip.js'
 import { cx, partOf, partsOf, useControllable, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './tabs.css'
@@ -77,12 +80,13 @@ export type TabsProps = Omit<Ark.RootProps, 'value' | 'defaultValue' | 'onValueC
   onValueChange?: (value: Value | null, details: TabsValueChangeDetails) => void
   variant?: 'line' | 'pills'
   counts?: 'inline' | 'corner'
+  iconOnly?: boolean
   renderTrigger?: (tab: TabProps) => ReactNode
-  classes?: Classes<'root' | 'list' | 'trigger' | 'icon' | 'count' | 'indicator' | 'panels' | 'content'>
+  classes?: Classes<'root' | 'list' | 'trigger' | 'tipTarget' | 'icon' | 'count' | 'indicator' | 'panels' | 'content'>
 }
 
 function TabsShortcut({
-  value, defaultValue, onValueChange, variant = 'line', counts = 'inline', renderTrigger, className, classes, children, ...rest
+  value, defaultValue, onValueChange, variant = 'line', counts = 'inline', iconOnly = false, renderTrigger, className, classes, children, ...rest
 }: TabsProps) {
   const part = partsOf('tabs', classes)
   const tabs = Children.toArray(children).filter((child): child is ReactElement<TabProps> => isValidElement(child) && child.type === Tab)
@@ -113,9 +117,17 @@ function TabsShortcut({
           const { count, max = 99, dot, pulse, countColor = 'neutral', countLabel = '' } = tab
           const badge = count && count > 0 ? (count > max ? `${max}+` : String(count)) : dot ? '' : null
           const spoken = count && count > 0 ? [count, countLabel].filter(Boolean).join(' ') : dot ? countLabel : ''
+          const bare = iconOnly && !!tab.icon
           return (
-            <Ark.Trigger key={String(tab.value)} value={String(tab.value)} disabled={!!tab.disabled} {...part('trigger')}>
-              {renderTrigger ? renderTrigger(tab) : <>
+            <Ark.Trigger key={String(tab.value)} value={String(tab.value)} disabled={!!tab.disabled} {...part('trigger')}
+              data-icon-only={bare || undefined}>
+              {renderTrigger ? renderTrigger(tab) : bare ? <>
+                {/* On a span filling the tab: on the trigger itself its props would replace the tab's */}
+                <Tooltip content={tab.label} placement="bottom">
+                  <span {...part('tip-target')}><iconify-icon {...part('icon')} icon={tab.icon!} aria-hidden="true" /></span>
+                </Tooltip>
+                <span {...part('sr-only')}>{tab.label}</span>
+              </> : <>
                 {tab.icon && <iconify-icon {...part('icon')} icon={tab.icon} aria-hidden="true" />}
                 <span>{tab.label}</span>
               </>}
