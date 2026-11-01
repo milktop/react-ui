@@ -11,7 +11,10 @@
  * - `span`: columns (of 12) to take inside Fields
  * - without children it renders an Input, and the other props (value,
  *   onValueChange, type, placeholder, icon, suffix…) pass on to it; with
- *   type="number" a NumberInput (value a number or null, min, max, step…)
+ *   type="number" a NumberInput (value a number or null, min, max, step…);
+ *   with type="phone" a PhoneInput (country, countries, showType, picker…)
+ * - a control can report a problem of its own (PhoneInput's "too short"):
+ *   it shows like an error while `error` is empty
  *
  *     <Field label="Rate" type="number" min={0} prefix="£" value={rate} onValueChange={setRate} />
  *
@@ -23,10 +26,12 @@
  *     <Field.ErrorText>{error}</Field.ErrorText>
  *   </Field.Root>
  */
-import type { ComponentProps, CSSProperties, ReactNode } from 'react'
+import { useState, type ComponentProps, type CSSProperties, type ReactNode } from 'react'
 import { Field as Ark } from '@ark-ui/react/field'
 import { Input, type InputProps } from '../input/Input.js'
 import { NumberInput, type NumberInputProps } from '../number-input/NumberInput.js'
+import { PhoneInput, type PhoneInputProps } from '../phone-input/PhoneInput.js'
+import { FieldReport } from './report.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
 import './field.css'
@@ -37,6 +42,7 @@ type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K>
 type Control =
   | DistributiveOmit<Exclude<InputProps, { type: 'number' }>, 'label' | 'classes' | 'children'>
   | (Omit<NumberInputProps, 'label' | 'classes' | 'children'> & { type: 'number' })
+  | (Omit<PhoneInputProps, 'label' | 'classes'> & { type: 'phone' })
 
 export type FieldProps = Control & {
   label?: ReactNode
@@ -45,6 +51,7 @@ export type FieldProps = Control & {
   required?: boolean
   disabled?: boolean
   span?: number
+  style?: CSSProperties
   classes?: Classes<'root' | 'label' | 'requiredIndicator' | 'helperText' | 'errorText'>
   children?: ReactNode
 }
@@ -54,13 +61,16 @@ function FieldShortcut({
   className, classes, style, children, ...inputProps
 }: FieldProps) {
   const part = partsOf('field', classes)
+  // A control's own problem (PhoneInput's "too short"), shown while there's no `error`
+  const [reported, setReported] = useState<string | null>(null)
+  const message = error || reported
 
   return (
     <Ark.Root {...part('root')} className={cx(className, classes?.root)} style={{ '--span': span, ...style } as CSSProperties}
-      invalid={!!error} required={required} disabled={disabled}>
+      invalid={!!message} required={required} disabled={disabled}>
       {label && <Ark.Label {...part('label')}>{label}<Ark.RequiredIndicator {...part('required-indicator')} aria-hidden="true"> *</Ark.RequiredIndicator></Ark.Label>}
-      {children ?? control(inputProps)}
-      {error ? <Ark.ErrorText {...part('error-text')}>{error}</Ark.ErrorText>
+      <FieldReport.Provider value={setReported}>{children ?? control(inputProps)}</FieldReport.Provider>
+      {message ? <Ark.ErrorText {...part('error-text')}>{message}</Ark.ErrorText>
         : hint && <Ark.HelperText {...part('helper-text')}>{hint}</Ark.HelperText>}
     </Ark.Root>
   )
@@ -68,6 +78,7 @@ function FieldShortcut({
 
 function control({ type, ...props }: Omit<Control, 'classes'>) {
   if (type === 'number') return <NumberInput {...props as NumberInputProps} />
+  if (type === 'phone') return <PhoneInput {...props as PhoneInputProps} />
   return <Input type={type} {...props as InputProps} />
 }
 

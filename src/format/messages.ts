@@ -63,6 +63,10 @@ export type Messages = {
   actionBar: { label: string }
   chart: { label: string, total: string }
   stat: { up: string, down: string, same: string }
+  phoneInput: {
+    country: string, search: string, noMatch: string, mobile: string, landline: string
+    tooShort: string, tooLong: string, invalid: string
+  }
   themeToggle: { label: string, light: string, dark: string, system: string }
   appearance: {
     label: string, mode: string, accent: string, sidebar: string, lightOnly: string, custom: string, dev: string, reset: string
@@ -142,6 +146,10 @@ export const en: Messages = {
   actionBar: { label: 'Selection actions' },
   chart: { label: 'Chart', total: 'Total' },
   stat: { up: 'Up', down: 'Down', same: 'No change' },
+  phoneInput: {
+    country: 'Country', search: 'Search countries', noMatch: 'No country found', mobile: 'Mobile', landline: 'Landline',
+    tooShort: 'This number is too short', tooLong: 'This number is too long', invalid: 'This isn’t a phone number',
+  },
   themeToggle: { label: 'Colour scheme', light: 'Light', dark: 'Dark', system: 'System' },
   appearance: {
     label: 'Appearance', mode: 'Mode', accent: 'Colour', sidebar: 'Sidebar', lightOnly: 'in light mode',
@@ -229,6 +237,10 @@ export const fr: Messages = {
   actionBar: { label: 'Actions sur la sélection' },
   chart: { label: 'Graphique', total: 'Total' },
   stat: { up: 'Hausse', down: 'Baisse', same: 'Stable' },
+  phoneInput: {
+    country: 'Pays', search: 'Rechercher un pays', noMatch: 'Aucun pays trouvé', mobile: 'Mobile', landline: 'Fixe',
+    tooShort: 'Numéro trop court', tooLong: 'Numéro trop long', invalid: 'Numéro de téléphone invalide',
+  },
   themeToggle: { label: 'Thème', light: 'Clair', dark: 'Sombre', system: 'Système' },
   appearance: {
     label: 'Apparence', mode: 'Mode', accent: 'Couleur', sidebar: 'Barre latérale', lightOnly: 'en mode clair',

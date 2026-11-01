@@ -51,6 +51,7 @@ const all: Group[] = [
     { slug: 'input', title: 'Input', about: 'Text and numbers, with icons and affixes', file: 'input/Input.tsx' },
     { slug: 'password-input', title: 'Password input', about: 'Show or hide what was typed', file: 'password-input/PasswordInput.tsx' },
     { slug: 'number-input', title: 'Number input', about: 'Step buttons, arrow keys, limits and formatting', file: 'number-input/NumberInput.tsx' },
+    { slug: 'phone-input', title: 'Phone input', about: 'A flag that picks the country, formatting and checks', file: 'phone-input/PhoneInput.tsx' },
     { slug: 'editor', form: false, title: 'Editor', about: 'Rich text, on TipTap', file: 'editor/Editor.tsx' },
     { slug: 'textarea', title: 'Textarea', about: 'Grows with its content', file: 'textarea/Textarea.tsx' },
     { slug: 'editable', form: false, title: 'Editable', about: 'Click to edit in place', file: 'editable/Editable.tsx' },
