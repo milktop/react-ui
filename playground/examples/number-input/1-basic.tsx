@@ -6,10 +6,12 @@ import { NumberInput } from '@milktop/react-ui'
 export default function Example() {
   const [rate, setRate] = useState<number | null>(40)
   const [minutes, setMinutes] = useState<number | null>(60)
+  const [amount, setAmount] = useState<number | null>(120)
   return <>
     <NumberInput label="Hourly rate" value={rate} onValueChange={setRate} min={0} step={5}
       formatOptions={{ style: 'currency', currency: 'GBP' }} locale="en-GB" allowMouseWheel />
     <NumberInput label="Duration" value={minutes} onValueChange={setMinutes} min={15} max={180} step={15} suffix="min" />
-    <p>{rate} ({typeof rate}), {minutes}</p>
+    <NumberInput label="Amount" value={amount} onValueChange={setAmount} min={0} suffix="€" steppers={false} />
+    <p>{rate} ({typeof rate}), {minutes}, {amount}</p>
   </>
 }
