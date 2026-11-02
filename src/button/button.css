@@ -21,8 +21,9 @@
       &:hover { filter: brightness(0.97); } }
     &[data-variant=ghost] { background: transparent; border-color: transparent;
       &:hover { background: var(--ui-hover); } }
-    /* Looks like a link, behaves as a button. */
+    /* Reads as part of the text around it, so it wraps and takes that text's type. */
     &[data-variant=link] { height: auto; padding: 0; background: transparent; border-color: transparent; color: var(--ui-accent);
+      font-size: inherit; font-weight: inherit; line-height: inherit; white-space: normal; text-align: start;
       &:hover { background: transparent; text-decoration: underline; }
       &:active { translate: none; } }
 
