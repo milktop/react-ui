@@ -13,6 +13,8 @@
  *   `persist` (a localStorage key) their choice is remembered
  * - `columns`: the most tiles per row in the grid; fewer when tiles would get
  *   too small (without it, as many as fit)
+ * - `onOpen`: gets the item when it's clicked; return true to say you've shown
+ *   it yourself (a PDF in your own viewer), or nothing to leave it to the default
  * - `removable`: a remove button on each; `onRemove` gets the item
  * - `addable`: an "Add files" tile that opens the file picker, and files can
  *   be dropped onto the attachments; `onAdd` gets the Files
@@ -34,7 +36,7 @@
  * the saved ones no longer there.
  *
  * Clicking an image opens it large; other files open their `url`, if any, in
- * a new tab. Files with a `url` get a download button.
+ * a new tab (see `onOpen`). Files with a `url` get a download button.
  */
 import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent, type HTMLAttributes, type ReactNode } from 'react'
 import { createFileTypeValidator, getAcceptAttrString, getFileKey } from '@zag-js/file-utils'
@@ -69,6 +71,7 @@ export type AttachmentsProps = Omit<HTMLAttributes<HTMLDivElement>, 'onDrop'> & 
   maxFileSize?: number | null
   addLabel?: ReactNode
   emptyText?: ReactNode
+  onOpen?: (item: Attachment) => boolean | void
   onRemove?: (item: Attachment) => void
   onAdd?: (files: File[]) => void
   onReject?: (rejected: AttachmentRejection[]) => void
@@ -141,7 +144,7 @@ const typeChecker = (accept: string | null) => {
 export function Attachments({
   items: itemsProp, defaultItems = [], onItemsChange, layout: layoutProp, defaultLayout = 'grid', onLayoutChange,
   switchable = false, persist = null, columns = null, removable = false, addable = false,
-  accept = null, maxFiles = null, maxFileSize = null, addLabel: addLabelProp, emptyText = null, onRemove, onAdd, onReject,
+  accept = null, maxFiles = null, maxFileSize = null, addLabel: addLabelProp, emptyText = null, onOpen, onRemove, onAdd, onReject,
   label = null, name, keptName, disabled: disabledProp = false, className, classes, style, ...rest
 }: AttachmentsProps) {
   const t = useMessages()
@@ -255,6 +258,7 @@ export function Attachments({
   const [previewing, setPreviewing] = useState<Entry | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
   function open(entry: Entry) {
+    if (onOpen?.(entry.item)) return
     if (entry.image && entry.url) {
       setPreviewing(entry)
       setPreviewOpen(true)
