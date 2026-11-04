@@ -82,7 +82,7 @@ export type Messages = {
     reasons: Record<'FILE_INVALID_TYPE' | 'FILE_TOO_LARGE' | 'TOO_MANY_FILES' | 'FILE_TOO_SMALL', string>
   }
   attachments: {
-    add: string, layout: string, grid: string, list: string, orDrop: string, dropToAdd: string, download: string
+    add: string, layout: string, grid: string, list: string, orDrop: string, dropToAdd: string, download: string, previous: string, next: string
     open: (name: string) => string, downloadFile: (name: string) => string
     count: (count: number, max: number) => string, limit: (max: number) => string
     notType: string, over: (size: string) => string, notAdded: (name: string, reason: string) => string
@@ -171,7 +171,7 @@ export const en: Messages = {
     reasons: { FILE_INVALID_TYPE: 'Not an allowed type', FILE_TOO_LARGE: 'Too large', TOO_MANY_FILES: 'Too many files', FILE_TOO_SMALL: 'Too small' },
   },
   attachments: {
-    add: 'Add files', layout: 'Layout', grid: 'Grid', list: 'List', orDrop: 'or drop files here', dropToAdd: 'Drop to add', download: 'Download',
+    add: 'Add files', layout: 'Layout', grid: 'Grid', list: 'List', orDrop: 'or drop files here', dropToAdd: 'Drop to add', download: 'Download', previous: 'Previous image', next: 'Next image',
     open: (name) => `Open ${name}`, downloadFile: (name) => `Download ${name}`,
     count: (count, max) => `${count} of ${max}`, limit: (max) => `The limit is ${max} files`,
     notType: 'not an accepted type', over: (size) => `over ${size}`, notAdded: (name, reason) => `${name} wasn’t added: ${reason}.`,
@@ -263,7 +263,7 @@ export const fr: Messages = {
   },
   attachments: {
     add: 'Ajouter des fichiers', layout: 'Affichage', grid: 'Grille', list: 'Liste', orDrop: 'ou déposez des fichiers ici',
-    dropToAdd: 'Déposez pour ajouter', download: 'Télécharger',
+    dropToAdd: 'Déposez pour ajouter', download: 'Télécharger', previous: 'Image précédente', next: 'Image suivante',
     open: (name) => `Ouvrir ${name}`, downloadFile: (name) => `Télécharger ${name}`,
     count: (count, max) => `${count} sur ${max}`, limit: (max) => `La limite est de ${max} fichiers`,
     notType: 'type non accepté', over: (size) => `plus de ${size}`, notAdded: (name, reason) => `${name} n’a pas été ajouté : ${reason}.`,

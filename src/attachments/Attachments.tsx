@@ -35,10 +35,11 @@
  * Files, so on submit: new = items that are Files, kept = the rest, removed =
  * the saved ones no longer there.
  *
- * Clicking an image opens it large; other files open their `url`, if any, in
- * a new tab (see `onOpen`). Files with a `url` get a download button.
+ * Clicking an image opens it large, with arrows (and the arrow keys) to move
+ * through the others; other files open their `url`, if any, in a new tab (see
+ * `onOpen`). Files with a `url` get a download button.
  */
-import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent, type HTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useId, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent, type HTMLAttributes, type KeyboardEvent, type ReactNode } from 'react'
 import { createFileTypeValidator, getAcceptAttrString, getFileKey } from '@zag-js/file-utils'
 import { useFieldContext } from '@ark-ui/react/field'
 import '../icons.js'
@@ -80,7 +81,7 @@ export type AttachmentsProps = Omit<HTMLAttributes<HTMLDivElement>, 'onDrop'> & 
   keptName?: string
   disabled?: boolean
   classes?: Classes<'root' | 'header' | 'label' | 'switch' | 'empty' | 'files' | 'file' | 'open' | 'thumb' | 'icon' | 'ext' | 'meta' | 'name' | 'size' | 'actions'
-    | 'action' | 'addTile' | 'addInput' | 'addIcon' | 'addText' | 'addLabel' | 'limit' | 'rejected' | 'dropHint' | 'preview' | 'downloadLink'>
+    | 'action' | 'addTile' | 'addInput' | 'addIcon' | 'addText' | 'addLabel' | 'limit' | 'rejected' | 'dropHint' | 'stage' | 'preview' | 'step' | 'position' | 'downloadLink'>
 }
 
 type Entry = { item: Attachment, name: string, url?: string, image: boolean, size: string, thumb: string | null, ext: string, icon: string }
@@ -255,12 +256,21 @@ export function Attachments({
   }, [layout, columns, list.length])
   const addWide = layout === 'grid' && gridColumns > 0 && list.length > 0 && list.length % gridColumns === 0
 
-  const [previewing, setPreviewing] = useState<Entry | null>(null)
+  const images = list.filter((entry) => entry.image && entry.url)
+  const [previewIndex, setPreviewIndex] = useState(0)
   const [previewOpen, setPreviewOpen] = useState(false)
+  const previewing = images[previewIndex]
+  const several = images.length > 1
+  const step = (by: number) => setPreviewIndex((index) => (index + by + images.length) % images.length)
+  function previewKey(e: KeyboardEvent) {
+    if (!several) return
+    if (e.key === 'ArrowLeft') step(-1)
+    if (e.key === 'ArrowRight') step(1)
+  }
   function open(entry: Entry) {
     if (onOpen?.(entry.item)) return
     if (entry.image && entry.url) {
-      setPreviewing(entry)
+      setPreviewIndex(images.indexOf(entry))
       setPreviewOpen(true)
     } else if (entry.url) window.open(entry.url, '_blank', 'noopener')
   }
@@ -336,9 +346,20 @@ export function Attachments({
         </div>
       )}
 
-      <Dialog size="lg" heading={previewing?.name} open={previewOpen} onOpenChange={setPreviewOpen}
-        footer={previewing && <a {...part('download-link')} href={previewing.url} download={previewing.name}>{t.attachments.download}</a>}>
-        {previewing && <img {...part('preview')} src={previewing.url} alt={previewing.name} />}
+      <Dialog size="lg" heading={previewing?.name} open={previewOpen} onOpenChange={setPreviewOpen} onKeyDown={previewKey}
+        footer={previewing && <>
+          {several && <span {...part('position')}>{previewIndex + 1} / {images.length}</span>}
+          <a {...part('download-link')} href={previewing.url} download={previewing.name}>{t.attachments.download}</a>
+        </>}>
+        {previewing && (
+          <div {...part('stage')} data-several={several || undefined}>
+            <img {...part('preview')} src={previewing.url} alt={previewing.name} />
+            {several && <>
+              <button {...part('step')} data-side="previous" type="button" aria-label={t.attachments.previous} onClick={() => step(-1)}><iconify-icon icon="lucide:chevron-left" /></button>
+              <button {...part('step')} data-side="next" type="button" aria-label={t.attachments.next} onClick={() => step(1)}><iconify-icon icon="lucide:chevron-right" /></button>
+            </>}
+          </div>
+        )}
       </Dialog>
     </div>
   )

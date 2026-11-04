@@ -1,5 +1,5 @@
 /* Photos, three per row
-  `columns` sets the most per row (fewer when tiles would get too small). Images can have a small `thumb` for the tile and a full-size `url` for the preview; click one to see it large. */
+  `columns` sets the most per row (fewer when tiles would get too small). Images can have a small `thumb` for the tile and a full-size `url` for the preview; click one to see it large, and move through them with the arrows or the arrow keys. */
 import { useState } from 'react'
 import { Attachments, type Attachment } from '@milktop/react-ui'
 import { photo } from './files'
