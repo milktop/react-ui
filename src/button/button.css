@@ -9,9 +9,9 @@
     transition: background-color 120ms, border-color 120ms;
 
     &:hover { background: var(--ui-hover); }
-    &:active { translate: 0 1px; }
+    &:active { filter: brightness(0.96); }
     &:focus-visible { outline: 2px solid var(--ui-ring-soft); border-color: var(--ui-ring); }
-    &:disabled { opacity: 0.5; cursor: not-allowed; translate: none; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
 
     &[data-variant=primary] { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-text);
       &:hover { filter: brightness(1.1); } }
@@ -25,7 +25,7 @@
     &[data-variant=link] { height: auto; padding: 0; background: transparent; border-color: transparent; color: var(--ui-accent);
       font-size: inherit; font-weight: inherit; line-height: inherit; white-space: normal; text-align: start;
       &:hover { background: transparent; text-decoration: underline; }
-      &:active { translate: none; } }
+      &:active { filter: none; } }
 
     &[data-size=sm] { height: var(--ui-control-height-sm); padding: 0 0.625rem; font-size: 12px; gap: 0.375rem; }
     &[data-size=lg] { height: var(--ui-control-height-lg); padding: 0 1.25rem; font-size: 16px; }

@@ -23,11 +23,15 @@
  *   `navigate`; by default a link is clicked
  * - `placeholder`, `emptyText`, `label`; `hints`: false hides the keyboard
  *   hints along the bottom
+ * - `scope`: what the search is narrowed to, shown before the input (a pill,
+ *   a menu); give it its own `load`, `items` and `placeholder`. A new `load`
+ *   searches again for what's typed. `onScopeClear`: Backspace in the empty
+ *   input
  *
  * `formatHotkey('k')` gives how the shortcut reads here ('⌘K' or 'Ctrl K'),
  * for a trigger's hint.
  */
-import { useEffect, useRef, useState, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react'
 import { Dialog } from '@ark-ui/react/dialog'
 import { Listbox, createListCollection, useListbox, type ListboxScrollToIndexDetails } from '@ark-ui/react/listbox'
 import { Portal } from '@ark-ui/react/portal'
@@ -65,6 +69,8 @@ export type CommandProps = Omit<Dialog.ContentProps, 'onSelect'> & {
   emptyText?: string
   loadingText?: string
   hints?: boolean
+  scope?: ReactNode
+  onScopeClear?: () => void
   classes?: Classes<'backdrop' | 'positioner' | 'content' | 'search' | 'searchIcon' | 'input' | 'list' | 'status' | 'group' | 'groupLabel'
     | 'item' | 'icon' | 'text' | 'label' | 'description' | 'shortcut' | 'hints' | 'key'>
 }
@@ -97,7 +103,7 @@ function go(href: string) {
 export function Command({
   items = [], load = null, debounce = 200, onSelect, trigger = null, open: openProp, defaultOpen = false, onOpenChange,
   hotkey = 'k', navigate = null, label: labelProp, placeholder: placeholderProp,
-  emptyText: emptyTextProp, loadingText: loadingTextProp, hints = true, className, classes, ...rest
+  emptyText: emptyTextProp, loadingText: loadingTextProp, hints = true, scope = null, onScopeClear, className, classes, ...rest
 }: CommandProps) {
   const t = useMessages()
   const label = labelProp ?? t.command.label
@@ -184,6 +190,21 @@ export function Command({
     latestSearch.current('')
   }, [open])
 
+  // A new scope's `load`: its results for what's typed, and back to the input
+  // (a menu in `scope` would otherwise keep the focus).
+  const latestQuery = useRef(query)
+  useEffect(() => { latestQuery.current = query })
+  const firstLoad = useRef(load)
+  useEffect(() => {
+    if (load === firstLoad.current) return
+    firstLoad.current = load
+    if (!open) return
+    setLoaded([])
+    latestSearch.current(latestQuery.current)
+    const id = setTimeout(() => input.current?.focus(), 0)
+    return () => clearTimeout(id)
+  }, [load, open])
+
   // The first result stays highlighted as the results change, so Enter picks it.
   const resultKeys = results.map(keyOf).join('\u0000')
   useEffect(() => {
@@ -218,8 +239,10 @@ export function Command({
               <Listbox.Label hidden>{label}</Listbox.Label>
               <div {...part('search')}>
                 <iconify-icon {...part('search-icon')} icon="lucide:search" aria-hidden="true" />
+                {scope}
                 <Listbox.Input ref={input} className={classes?.input} autoHighlight type="text" placeholder={placeholder}
-                  value={query} onChange={(e) => search(e.target.value)} />
+                  value={query} onChange={(e) => search(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Backspace' && !query) onScopeClear?.() }} />
                 <kbd {...part('key')} data-esc="">{t.command.esc}</kbd>
               </div>
               <Listbox.Content ref={listEl} className={classes?.list}>
