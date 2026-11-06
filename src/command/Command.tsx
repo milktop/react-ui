@@ -33,7 +33,7 @@
  */
 import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react'
 import { Dialog } from '@ark-ui/react/dialog'
-import { Listbox, createListCollection, useListbox, type ListboxScrollToIndexDetails } from '@ark-ui/react/listbox'
+import { Listbox, createListCollection, useListbox } from '@ark-ui/react/listbox'
 import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
 import { cx, partsOf, useControllable, type Classes } from '../utils.js'
@@ -100,6 +100,9 @@ function go(href: string) {
   link.remove()
 }
 
+// Zag's own scrolling, off: the Command does its own (see below).
+const noScroll = () => {}
+
 export function Command({
   items = [], load = null, debounce = 200, onSelect, trigger = null, open: openProp, defaultOpen = false, onOpenChange,
   hotkey = 'k', navigate = null, label: labelProp, placeholder: placeholderProp,
@@ -159,8 +162,7 @@ export function Command({
 
   // Keeps the highlighted item in view, scrolling only the list, and showing
   // a group's heading along with its first item.
-  function scrollToItem({ getElement }: ListboxScrollToIndexDetails) {
-    const el = getElement()
+  function scrollToItem(el: HTMLElement | null) {
     const box = listEl.current
     if (!el || !box) return
     const top0 = box.getBoundingClientRect().top
@@ -175,10 +177,16 @@ export function Command({
 
   // The value stays empty, so picking the same command again still counts.
   const list = useListbox({
-    collection, value: [], loopFocus: true, scrollToIndexFn: scrollToItem, onSelect: (details) => choose(details.value),
+    collection, value: [], loopFocus: true, scrollToIndexFn: noScroll, onSelect: (details) => choose(details.value),
   })
   const api = useRef(list)
   useEffect(() => { api.current = list })
+
+  // Zag scrolls only a list that was there when it started, and this one comes with the dialog: ours, on each highlight.
+  // An item highlighted by the pointer is already in view, so it doesn't move.
+  useEffect(() => {
+    scrollToItem(listEl.current?.querySelector<HTMLElement>('[data-part=item][data-highlighted]') ?? null)
+  }, [list.highlightedValue])
 
   // Each time it opens (from the trigger, the hotkey or `open`): an empty
   // search over all the commands.
