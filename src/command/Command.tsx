@@ -189,11 +189,12 @@ export function Command({
   }, [list.highlightedValue])
 
   // Each time it opens (from the trigger, the hotkey or `open`): an empty
-  // search over all the commands.
+  // search over all the commands. Emptied as it closes too, so a scope that
+  // changes as it opens again (below) doesn't bring back the last query.
   const latestSearch = useRef(search)
   useEffect(() => { latestSearch.current = search })
   useEffect(() => {
-    if (!open) return
+    if (!open) return setQuery('')
     setLoaded([])
     latestSearch.current('')
   }, [open])
