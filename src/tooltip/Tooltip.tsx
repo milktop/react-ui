@@ -50,14 +50,17 @@ function TooltipShortcut({
   open, defaultOpen, onOpenChange, className, classes, children, ...rest
 }: TooltipProps) {
   const part = partsOf('tooltip', classes)
+  const anchored = isValidElement<{ disabled?: boolean; id?: string }>(children) && !children.props.disabled
+  // A trigger that's already another's (a menu's, a popover's) keeps that one's id: the tooltip finds it by it
+  const triggerId = anchored ? children.props.id : undefined
 
   return (
-    <Ark.Root openDelay={openDelay} interactive={interactive} disabled={disabled} lazyMount unmountOnExit
+    <Ark.Root openDelay={openDelay} {...(triggerId && { ids: { trigger: triggerId } })} interactive={interactive} disabled={disabled} lazyMount unmountOnExit
       positioning={{ placement, strategy: 'fixed', gutter: 8 }}
       {...(closeDelay !== undefined && { closeDelay })} {...(open !== undefined && { open })}
       {...(defaultOpen !== undefined && { defaultOpen })}
       {...on('onOpenChange', onOpenChange, (details: TooltipOpenChangeDetails) => details.open)}>
-      {isValidElement<{ disabled?: boolean }>(children) && !children.props.disabled
+      {anchored
         ? <Ark.Trigger asChild>{children}</Ark.Trigger>
         : <Ark.Trigger asChild><span {...part('trigger')}>{children}</span></Ark.Trigger>}
       <Portal>
