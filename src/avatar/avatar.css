@@ -61,7 +61,9 @@
     &[data-spacing=tight] { --overlap-scale: 1.5; }
     &[data-spacing=loose] { --overlap-scale: 0.4; }
     & > :is([data-scope=avatar], [data-part=more]) { box-shadow: 0 0 0 2px var(--ui-avatar-ring); }
-    & > :is([data-scope=avatar], [data-part=more]):not(:first-child) { margin-left: calc(var(--overlap) * -1); } }
+    & > :is([data-scope=avatar], [data-part=more]):not(:first-child) { margin-left: calc(var(--overlap) * -1); }
+    /* Each dot stays in view over the next avatar's edge */
+    & [data-scope=avatar][data-part=status] { z-index: 1; } }
   [data-scope=avatar-group][data-part=more] {
     display: inline-grid; place-items: center; flex-shrink: 0; width: 2.5rem; height: 2.5rem; border-radius: 9999px; box-sizing: border-box;
     background: var(--ui-hover); color: var(--ui-muted); font-family: var(--ui-font); font-size: 12px; font-weight: 600; cursor: default;
