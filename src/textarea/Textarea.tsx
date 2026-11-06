@@ -10,7 +10,7 @@
  * - `maxRows`: grow up to this many lines, then scroll
  * - `autogrow`: false for a fixed height the user can resize
  */
-import { useCallback, useId, useLayoutEffect, useRef, type ChangeEvent, type ComponentProps, type ReactNode } from 'react'
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, type ChangeEvent, type ComponentProps, type ReactNode } from 'react'
 import { Field, useFieldContext } from '@ark-ui/react/field'
 import { cx, partsOf, type Classes } from '../utils.js'
 import '../theme.css'
@@ -34,10 +34,11 @@ export function Textarea({
   const id = rest.id ?? `${ownId}-textarea`
   const el = useRef<HTMLTextAreaElement | null>(null)
 
-  // Fits the height to the content, capped at maxRows.
+  // Fits the height to the content, capped at maxRows. Not while it isn't laid out (in a closed
+  // popover, a hidden tab): it would measure 0 and stay flat.
   const fit = useCallback(() => {
     const area = el.current
-    if (!autogrow || !area) return
+    if (!autogrow || !area || !area.clientWidth) return
     const line = parseFloat(getComputedStyle(area).lineHeight)
     const max = maxRows ? line * maxRows : Infinity
     area.style.height = 'auto'
@@ -45,6 +46,20 @@ export function Textarea({
     area.style.overflowY = area.scrollHeight > max ? 'auto' : 'hidden'
   }, [autogrow, maxRows])
   useLayoutEffect(fit, [fit, value])
+
+  // Again when its width changes: once it's shown, and when the lines rewrap.
+  useEffect(() => {
+    const area = el.current
+    if (!autogrow || !area) return
+    let width = area.clientWidth
+    const observer = new ResizeObserver(() => {
+      if (area.clientWidth === width) return
+      width = area.clientWidth
+      fit()
+    })
+    observer.observe(area)
+    return () => observer.disconnect()
+  }, [autogrow, fit])
 
   function change(e: ChangeEvent<HTMLTextAreaElement>) {
     onChange?.(e)
