@@ -2,9 +2,9 @@
   [data-scope=tooltip][data-part=trigger] { display: inline-flex; }
   /* The positioner carries the z-index itself. Zag sets it inline as
      var(--z-index) but doesn't always fill in the variable, so set both. */
-  [data-scope=tooltip][data-part=positioner] { z-index: 60; --z-index: 60; }
+  [data-scope=tooltip][data-part=positioner] { z-index: 110; --z-index: 110; } /* above dialogs and sheets (100) */
   [data-scope=tooltip][data-part=content] {
-    z-index: 60; max-width: 16rem; padding: 0.25rem 0.5rem; white-space: normal; font-weight: 400;
+    z-index: 110; max-width: 16rem; padding: 0.25rem 0.5rem; white-space: normal; font-weight: 400;
     background: var(--ui-text); color: var(--ui-surface); font-family: var(--ui-font); font-size: 12px; line-height: 1.4;
     border-radius: calc(var(--ui-radius) - 2px); box-shadow: var(--ui-shadow);
     --arrow-size: 8px; --arrow-background: var(--ui-text);
