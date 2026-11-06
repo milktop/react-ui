@@ -1,6 +1,6 @@
 {
   "name": "@milktop/react-ui",
-  "version": "0.3.12",
+  "version": "0.3.13",
   "description": "React components on Ark UI (Zag state machines), with imba-ui's API and design",
   "license": "MIT",
   "author": "André Goldstein",
