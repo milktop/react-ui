@@ -84,7 +84,9 @@ look. Read `README.md` first.
 
 - `npm run check`: tsc over src and playground (undefined names, wrong
   props, bad imports), then ESLint for hook rules. Run it after editing a
-  component. Examples are typed like app code: give state its full type
+  component. `npm test`: Vitest in jsdom over `test/` (also run before a
+  release and in CI). Zag puts the cursor back in an animation frame, so
+  tests type a key a frame. Examples are typed like app code: give state its full type
   (`useState<number | null>(2)` when a Select can clear it).
 
 ## Gotchas
@@ -159,6 +161,13 @@ look. Read `README.md` first.
   CSS targets them inside the command's content.
 - Ark's Progress.ValueText shows the percentage whatever formatOptions or
   translations say; the shortcut renders Zag's valueAsString instead.
+- NumberInput in a comma locale: without formatOptions zag reads the text
+  with parseFloat, so the shortcut gives it plain ones. A typed point becomes
+  a comma in native keydown and beforeinput listeners, before zag's
+  onBeforeInput (React's, built from keypress or Chrome's textInput) refuses
+  it. jsdom doesn't reproduce zag's refusal: check points with real keys. A
+  controlled value is compared with the number last reported or given, not
+  the text.
 - Zag won't clear a disabled item (hideSelected disables picks): remove picks
   through our own state.
 

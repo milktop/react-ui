@@ -15,6 +15,6 @@
     // Examples import the library by its package name, as an app would.
     "paths": { "@milktop/react-ui": ["./src/index.ts"] }
   },
-  "include": ["src", "playground"],
+  "include": ["src", "playground", "test", "vitest.config.ts"],
   "exclude": ["playground/dist"]
 }
