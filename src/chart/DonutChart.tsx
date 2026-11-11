@@ -82,10 +82,13 @@ export function DonutChart({
           ))}
         </ul>
       )}
-      <table {...part('sr-only')}>
-        <caption>{label}</caption>
-        <tbody>{data.map((slice) => <tr key={slice.label}><td>{slice.label}</td><td>{fmt(slice.value)}</td></tr>)}</tbody>
-      </table>
+      {/* A wrapper, not the table: a table won't shrink below its rows, so it would still take their height */}
+      <div {...part('sr-only')}>
+        <table>
+          <caption>{label}</caption>
+          <tbody>{data.map((slice) => <tr key={slice.label}><td>{slice.label}</td><td>{fmt(slice.value)}</td></tr>)}</tbody>
+        </table>
+      </div>
     </div>
   )
 }

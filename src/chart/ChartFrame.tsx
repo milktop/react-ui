@@ -65,13 +65,16 @@ export function ChartFrame({
           {list.map((s) => <span key={s.key} {...part('legend-item')}><span {...part('swatch')} style={{ background: s.color }} />{s.label}</span>)}
         </div>
       )}
-      <table {...part('sr-only')}>
-        <caption>{label}</caption>
-        <tbody>
-          <tr><th>{x}</th>{list.map((s) => <th key={s.key}>{s.label}</th>)}</tr>
-          {rows.map((row, i) => <tr key={i}><td>{String(row[x] ?? '')}</td>{list.map((s) => <td key={s.key}>{fmt(row[s.key])}</td>)}</tr>)}
-        </tbody>
-      </table>
+      {/* A wrapper, not the table: a table won't shrink below its rows, so it would still take their height */}
+      <div {...part('sr-only')}>
+        <table>
+          <caption>{label}</caption>
+          <tbody>
+            <tr><th>{x}</th>{list.map((s) => <th key={s.key}>{s.label}</th>)}</tr>
+            {rows.map((row, i) => <tr key={i}><td>{String(row[x] ?? '')}</td>{list.map((s) => <td key={s.key}>{fmt(row[s.key])}</td>)}</tr>)}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
