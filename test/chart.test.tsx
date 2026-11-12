@@ -5,8 +5,14 @@ import { DonutChart } from '../src/chart/DonutChart.js'
 
 afterEach(cleanup)
 
-// jsdom has none; the charts measure their width with one
-globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} } as unknown as typeof ResizeObserver
+// jsdom lays nothing out: the charts measure their width with a ResizeObserver, so one that reports 400px at once
+globalThis.ResizeObserver = class {
+  constructor(private report: () => void) {}
+  observe() { this.report() }
+  unobserve() {}
+  disconnect() {}
+} as unknown as typeof ResizeObserver
+Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, get: () => 400 })
 
 // A table won't shrink below its rows, so the visually hidden box must be a wrapper around it.
 test("a chart's data table is hidden inside a wrapper, not hidden itself", () => {
@@ -19,4 +25,16 @@ test("a chart's data table is hidden inside a wrapper, not hidden itself", () =>
     expect(table.dataset.part).toBeUndefined()
     expect(table.parentElement?.dataset.part).toBe('sr-only')
   }
+})
+
+const ticks = (container: HTMLElement) =>
+  [...container.querySelectorAll('[data-part=tick][text-anchor=end]')].map((tick) => tick.textContent)
+
+test('the value axis starts at 0, or fits the values when asked', () => {
+  const weights = [{ label: 'a', kg: 4.2 }, { label: 'b', kg: 3.9 }]
+  const { container: fromZero } = render(<AreaChart data={weights} y="kg" />)
+  expect(ticks(fromZero)[0]).toBe('0')
+  cleanup()
+  const { container: fitted } = render(<AreaChart data={weights} y="kg" zero={false} />)
+  expect(Number(ticks(fitted)[0])).toBeGreaterThan(3)
 })

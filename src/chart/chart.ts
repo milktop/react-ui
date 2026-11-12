@@ -25,6 +25,14 @@ export const pad = { top: 8, bottom: 24, right: 8 }
 
 export const yScale = (max: number, innerH: number) => scaleLinear().domain([0, max || 1]).nice().range([innerH, 0])
 
+// Fitted to the values, with a little room either side, for small changes on a large value (a weight).
+// Never below 0 when nothing is; a flat line sits mid-height.
+export const fitScale = (min: number, max: number, innerH: number) => {
+  const room = (max - min) * 0.1 || Math.abs(max) * 0.1 || 1
+  const low = min >= 0 ? Math.max(0, min - room) : min - room
+  return scaleLinear().domain([low, max + room]).nice().range([innerH, 0])
+}
+
 // Room for the longest tick label.
 export const leftFor = (ticks: number[], fmt: (value: unknown) => string) => Math.max(...ticks.map((tick) => fmt(tick).length), 1) * 7 + 12
 

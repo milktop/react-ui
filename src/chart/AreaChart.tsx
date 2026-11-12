@@ -8,6 +8,8 @@
  * - `y`: the value property, or `series` for several, each `{ key, label, color }`
  *   (colours from the theme's --ui-chart-1…5 by default)
  * - `curve`: 'smooth' (default) or 'linear'; `stacked`: series sit on top of one another
+ * - `zero`: the value axis starts at 0 (default); false fits it to the values, so a small change
+ *   on a large value shows (a weight); stacked charts always start at 0
  * - `height` (240 px), `format(value)` for ticks and tooltips, `grid` (lines; true)
  * - `label`: what it shows, for assistive tech (a hidden table of the data)
  */
@@ -16,7 +18,7 @@ import { useId, useState, type HTMLAttributes, type PointerEvent } from 'react'
 import { scalePoint } from 'd3-scale'
 import { area, line, curveMonotoneX, curveLinear } from 'd3-shape'
 import { ChartFrame, type ChartClasses } from './ChartFrame.js'
-import { seriesOf, formatter, pad, yScale, leftFor, labelStep, num, type ChartRow, type ChartSeries } from './chart.js'
+import { seriesOf, formatter, pad, yScale, fitScale, leftFor, labelStep, num, type ChartRow, type ChartSeries } from './chart.js'
 import { partsOf } from '../utils.js'
 
 export type ChartProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
@@ -32,13 +34,13 @@ export type ChartProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
   classes?: ChartClasses
 }
 
-export type AreaChartProps = ChartProps & { curve?: 'smooth' | 'linear' }
+export type AreaChartProps = ChartProps & { curve?: 'smooth' | 'linear'; zero?: boolean }
 
 type Band = [number, number]
 
 export function AreaChart({
   data = [], x = 'label', y = null, series = null, height = 240, format = null, label: labelProp, grid = true,
-  curve = 'smooth', stacked = false, classes, ...rest
+  curve = 'smooth', stacked = false, zero = true, classes, ...rest
 }: AreaChartProps) {
   const t = useMessages()
   const label = labelProp ?? t.chart.label
@@ -62,14 +64,17 @@ export function AreaChart({
     return [low, low + value]
   }))
 
-  const ys = yScale(Math.max(0, ...bands.flatMap((b) => b.map((v) => v[1]))), innerH)
+  const highs = bands.flatMap((b) => b.map((v) => v[1]))
+  const fitted = !zero && !stacked && highs.length > 0
+  const ys = fitted ? fitScale(Math.min(...highs), Math.max(...highs), innerH) : yScale(Math.max(0, ...highs), innerH)
   const ticks = ys.ticks(4)
   const left = leftFor(ticks, fmt)
   const innerW = Math.max(0, width - left - pad.right)
   const xs = scalePoint<number>().domain(rows.map((_, i) => i)).range([0, innerW])
   const at = (i: number) => xs(i) ?? 0
   const shape = curve === 'linear' ? curveLinear : curveMonotoneX
-  const fill = area<Band>().x((_, i) => at(i)).y0((d) => ys(d[0])).y1((d) => ys(d[1])).curve(shape)
+  // Fitted, the fill runs down to the axis' foot rather than to 0, which is off the chart
+  const fill = area<Band>().x((_, i) => at(i)).y0((d) => (fitted ? innerH : ys(d[0]))).y1((d) => ys(d[1])).curve(shape)
   const stroke = line<Band>().x((_, i) => at(i)).y((d) => ys(d[1])).curve(shape)
   const step = labelStep(rows.length, innerW)
 
