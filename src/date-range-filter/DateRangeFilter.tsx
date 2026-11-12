@@ -11,6 +11,7 @@
  *   your own (below), mixed in any order
  * - `placeholder`: the button's text with no dates ("All dates")
  * - `placement`: where the panel opens ('bottom-end')
+ * - `size`: the button's, to sit beside other controls ('sm', 'md' or 'lg')
  * - `locale`: for the dates on the button and the calendar (the
  *   LocaleProvider's, or 'en-GB')
  *
@@ -29,7 +30,7 @@
  * `dateRangeFilter.ranges`.
  */
 import { useState } from 'react'
-import { Button } from '../button/Button.js'
+import { Button, type ButtonProps } from '../button/Button.js'
 import { DatePicker } from '../date-picker/DatePicker.js'
 import { Popover, type PopoverProps } from '../popover/Popover.js'
 import { useLocale, useMessages } from '../format/LocaleProvider.js'
@@ -47,6 +48,7 @@ export type DateRangeFilterProps = {
   presets?: (DateRangeKey | DateRangePreset)[]
   placeholder?: string | null
   placement?: PopoverProps['placement']
+  size?: ButtonProps['size']
   locale?: string | null
   className?: string
   classes?: Classes<'trigger' | 'panel' | 'presets' | 'preset' | 'clear' | 'calendar'>
@@ -116,7 +118,7 @@ function firstDayOf(locale: string) {
 
 function DateRangeFilterShortcut({
   value, defaultValue, onValueChange, presets = ['today', 'last7', 'last30', 'thisMonth', 'lastMonth', 'thisQuarter', 'lastQuarter', 'thisYear', 'lastYear'],
-  placeholder = null, placement = 'bottom-end', locale: localeProp = null, className, classes,
+  placeholder = null, placement = 'bottom-end', size = 'md', locale: localeProp = null, className, classes,
 }: DateRangeFilterProps) {
   const t = useMessages()
   const app = useLocale()
@@ -161,7 +163,7 @@ function DateRangeFilterShortcut({
     <Popover placement={placement} data-date-range-filter=""
       onOpenChange={(open) => { if (open) { setPicking(dates); setShown((n) => n + 1) } }}
       trigger={
-        <Button icon="lucide:calendar" iconEnd="lucide:chevron-down" className={cx(className, classes?.trigger)}>
+        <Button size={size} icon="lucide:calendar" iconEnd="lucide:chevron-down" className={cx(className, classes?.trigger)}>
           {label}
         </Button>
       }>
