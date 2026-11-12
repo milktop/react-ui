@@ -12,6 +12,8 @@ export type ChartClasses = Classes<'root' | 'frame' | 'svg' | 'grid' | 'tick' | 
 type FrameProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
   rows: ChartRow[]
   x: string
+  // A row's heading in the tooltip and the hidden table.
+  labelOf: (row: ChartRow) => string
   list: Series[]
   fmt: (value: unknown) => string
   height: number
@@ -29,7 +31,7 @@ type FrameProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
 }
 
 export function ChartFrame({
-  rows, x, list, fmt, height, label, hover, onHover, onMove, tipLeft, flip, width, onWidth, className, classes, children, ...rest
+  rows, x, labelOf, list, fmt, height, label, hover, onHover, onMove, tipLeft, flip, width, onWidth, className, classes, children, ...rest
 }: FrameProps) {
   const part = partsOf('chart', classes)
   const frame = useRef<HTMLDivElement>(null)
@@ -49,7 +51,7 @@ export function ChartFrame({
         {width > 0 && children}
         {hover != null && rows[hover] && (
           <div {...part('tooltip')} data-flip={flip || undefined} style={{ left: tipLeft }}>
-            <div {...part('tooltip-label')}>{String(rows[hover][x] ?? '')}</div>
+            <div {...part('tooltip-label')}>{labelOf(rows[hover])}</div>
             {list.map((s) => (
               <div key={s.key} {...part('tooltip-row')}>
                 <span {...part('swatch')} style={{ background: s.color }} />
@@ -71,7 +73,7 @@ export function ChartFrame({
           <caption>{label}</caption>
           <tbody>
             <tr><th>{x}</th>{list.map((s) => <th key={s.key}>{s.label}</th>)}</tr>
-            {rows.map((row, i) => <tr key={i}><td>{String(row[x] ?? '')}</td>{list.map((s) => <td key={s.key}>{fmt(row[s.key])}</td>)}</tr>)}
+            {rows.map((row, i) => <tr key={i}><td>{labelOf(row)}</td>{list.map((s) => <td key={s.key}>{fmt(row[s.key])}</td>)}</tr>)}
           </tbody>
         </table>
       </div>

@@ -10,15 +10,18 @@
  * - `curve`: 'smooth' (default) or 'linear'; `stacked`: series sit on top of one another
  * - `zero`: the value axis starts at 0 (default); false fits it to the values, so a small change
  *   on a large value shows (a weight); stacked charts always start at 0
+ * - `time`: `x` holds dates (Date, or '2024-03-08'), rows in date order: each point sits by its
+ *   date, so a year's gap looks like one, and the axis is marked in months and years
+ * - `formatX(value)`: the axis' labels (a Date when `time`); `tooltipLabel(row)`: the tooltip's heading
  * - `height` (240 px), `format(value)` for ticks and tooltips, `grid` (lines; true)
  * - `label`: what it shows, for assistive tech (a hidden table of the data)
  */
 import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { useId, useState, type HTMLAttributes, type PointerEvent } from 'react'
-import { scalePoint } from 'd3-scale'
+import { scalePoint, scaleTime } from 'd3-scale'
 import { area, line, curveMonotoneX, curveLinear } from 'd3-shape'
 import { ChartFrame, type ChartClasses } from './ChartFrame.js'
-import { seriesOf, formatter, pad, yScale, fitScale, leftFor, labelStep, num, type ChartRow, type ChartSeries } from './chart.js'
+import { seriesOf, formatter, pad, yScale, fitScale, leftFor, labelStep, num, toDate, type ChartRow, type ChartSeries } from './chart.js'
 import { partsOf } from '../utils.js'
 
 export type ChartProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
@@ -34,13 +37,19 @@ export type ChartProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
   classes?: ChartClasses
 }
 
-export type AreaChartProps = ChartProps & { curve?: 'smooth' | 'linear'; zero?: boolean }
+export type AreaChartProps = ChartProps & {
+  curve?: 'smooth' | 'linear'
+  zero?: boolean
+  time?: boolean
+  formatX?: ((value: unknown) => string) | null
+  tooltipLabel?: ((row: ChartRow) => string) | null
+}
 
 type Band = [number, number]
 
 export function AreaChart({
   data = [], x = 'label', y = null, series = null, height = 240, format = null, label: labelProp, grid = true,
-  curve = 'smooth', stacked = false, zero = true, classes, ...rest
+  curve = 'smooth', stacked = false, zero = true, time = false, formatX = null, tooltipLabel = null, classes, ...rest
 }: AreaChartProps) {
   const t = useMessages()
   const label = labelProp ?? t.chart.label
@@ -52,7 +61,8 @@ export function AreaChart({
 
   const rows = data ?? []
   const list = seriesOf(series, y)
-  const fmt = formatter(format, useLocale())
+  const locale = useLocale()
+  const fmt = formatter(format, locale)
   const innerH = Math.max(0, height - pad.top - pad.bottom)
 
   // Each series' [low, high] per row: from 0, or stacked on the ones before.
@@ -70,8 +80,16 @@ export function AreaChart({
   const ticks = ys.ticks(4)
   const left = leftFor(ticks, fmt)
   const innerW = Math.max(0, width - left - pad.right)
-  const xs = scalePoint<number>().domain(rows.map((_, i) => i)).range([0, innerW])
-  const at = (i: number) => xs(i) ?? 0
+  const dates = time ? rows.map((row) => toDate(row[x])) : []
+  const byDate = scaleTime().domain([dates[0] ?? new Date(), dates[dates.length - 1] ?? new Date()]).range([0, innerW])
+  const evenly = scalePoint<number>().domain(rows.map((_, i) => i)).range([0, innerW])
+  const at = (i: number) => (time ? byDate(dates[i]) : evenly(i)) ?? 0
+  const tickLabel = formatX ?? (time
+    ? (value: unknown) => toDate(value).toLocaleDateString(locale, { month: 'short', year: 'numeric' })
+    : (value: unknown) => String(value ?? ''))
+  const labelOf = tooltipLabel ?? ((row: ChartRow) => time ? toDate(row[x]).toLocaleDateString(locale, { dateStyle: 'medium' }) : tickLabel(row[x]))
+  // About one date every 80px, on whole months and years
+  const timeTicks = time && rows.length > 1 ? byDate.ticks(Math.max(2, Math.floor(innerW / 80))) : []
   const shape = curve === 'linear' ? curveLinear : curveMonotoneX
   // Fitted, the fill runs down to the axis' foot rather than to 0, which is off the chart
   const fill = area<Band>().x((_, i) => at(i)).y0((d) => (fitted ? innerH : ys(d[0]))).y1((d) => ys(d[1])).curve(shape)
@@ -81,12 +99,14 @@ export function AreaChart({
   function move(e: PointerEvent<HTMLDivElement>) {
     if (!rows.length) return
     const pos = e.clientX - e.currentTarget.getBoundingClientRect().left - left
-    const gap = rows.length > 1 ? innerW / (rows.length - 1) : 0
-    setHover(Math.max(0, Math.min(rows.length - 1, gap ? Math.round(pos / gap) : 0)))
+    // The nearest point, as they aren't evenly spaced when placed by date
+    let nearest = 0
+    rows.forEach((_, i) => { if (Math.abs(at(i) - pos) < Math.abs(at(nearest) - pos)) nearest = i })
+    setHover(nearest)
   }
 
   return (
-    <ChartFrame {...rest} rows={rows} x={x} list={list} fmt={fmt} height={height} label={label} classes={classes}
+    <ChartFrame {...rest} rows={rows} x={x} labelOf={labelOf} list={list} fmt={fmt} height={height} label={label} classes={classes}
       hover={hover} onHover={setHover} onMove={move} width={width} onWidth={setWidth}
       tipLeft={hover == null ? 0 : left + at(hover)} flip={hover != null && at(hover) > innerW * 0.6}>
       <svg {...part('svg')} width={width} height={height} aria-hidden="true">
@@ -105,9 +125,11 @@ export function AreaChart({
               <text {...part('tick')} x="-8" y={ys(tick)} dy="0.32em" textAnchor="end">{fmt(tick)}</text>
             </g>
           ))}
-          {rows.map((row, i) => i % step === 0 && (
+          {time ? timeTicks.map((tick) => (
+            <text key={+tick} {...part('tick')} x={byDate(tick)} y={innerH + 18} textAnchor="middle">{tickLabel(tick)}</text>
+          )) : rows.map((row, i) => i % step === 0 && (
             <text key={i} {...part('tick')} x={at(i)} y={innerH + 18}
-              textAnchor={i === 0 ? 'start' : i === rows.length - 1 ? 'end' : 'middle'}>{String(row[x] ?? '')}</text>
+              textAnchor={i === 0 ? 'start' : i === rows.length - 1 ? 'end' : 'middle'}>{tickLabel(row[x])}</text>
           ))}
           {list.map((s, i) => (
             <g key={s.key}>

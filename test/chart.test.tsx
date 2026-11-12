@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { AreaChart } from '../src/chart/AreaChart.js'
 import { DonutChart } from '../src/chart/DonutChart.js'
 
@@ -37,4 +37,29 @@ test('the value axis starts at 0, or fits the values when asked', () => {
   cleanup()
   const { container: fitted } = render(<AreaChart data={weights} y="kg" zero={false} />)
   expect(Number(ticks(fitted)[0])).toBeGreaterThan(3)
+})
+
+const xsOf = (container: HTMLElement) =>
+  [...(container.querySelector('[data-part=line]')?.getAttribute('d') ?? '').matchAll(/[ML]([\d.]+),/g)].map((m) => Number(m[1]))
+
+test('by date, a week apart sits closer than a year apart', () => {
+  const weights = [{ date: '2020-01-01', kg: 30 }, { date: '2020-01-08', kg: 31 }, { date: '2021-01-01', kg: 40 }]
+  const { container: evenly } = render(<AreaChart data={weights} x="date" y="kg" curve="linear" />)
+  const [a, b, c] = xsOf(evenly)
+  expect(b - a).toBeCloseTo(c - b)
+  cleanup()
+  const { container: byDate } = render(<AreaChart data={weights} x="date" y="kg" curve="linear" time />)
+  const [d, e, f] = xsOf(byDate)
+  expect(e - d).toBeLessThan((f - e) / 20)
+})
+
+test('the tooltip is headed as asked, and the axis labelled as asked', () => {
+  const weights = [{ date: '2020-01-01', kg: 30 }, { date: '2021-01-01', kg: 40 }]
+  const { container } = render(<AreaChart data={weights} x="date" y="kg" time
+    formatX={() => 'âge'} tooltipLabel={(row) => `pesé le ${row.date}`} />)
+  const axis = [...container.querySelectorAll('[data-part=tick][text-anchor=middle]')].map((tick) => tick.textContent)
+  expect(axis.length).toBeGreaterThan(1)
+  expect(axis.every((text) => text === 'âge')).toBe(true)
+  fireEvent.pointerMove(container.querySelector('[data-part=frame]')!, { clientX: 1000 })
+  expect(container.querySelector('[data-part=tooltip-label]')?.textContent).toBe('pesé le 2021-01-01')
 })

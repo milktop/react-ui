@@ -65,7 +65,7 @@ export function BarChart({
 
   const flip = hover != null && at(hover) > innerW * 0.6
   return (
-    <ChartFrame {...rest} rows={rows} x={x} list={list} fmt={fmt} height={height} label={label} classes={classes}
+    <ChartFrame {...rest} rows={rows} x={x} labelOf={(row) => String(row[x] ?? '')} list={list} fmt={fmt} height={height} label={label} classes={classes}
       hover={hover} onHover={setHover} onMove={move} width={width} onWidth={setWidth}
       tipLeft={hover == null ? 0 : left + at(hover) + (flip ? 0 : xs.bandwidth())} flip={flip}>
       <svg {...part('svg')} width={width} height={height} aria-hidden="true">

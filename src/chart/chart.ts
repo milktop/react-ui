@@ -40,3 +40,9 @@ export const leftFor = (ticks: number[], fmt: (value: unknown) => string) => Mat
 export const labelStep = (count: number, innerW: number) => Math.max(1, Math.ceil(count / Math.max(1, Math.floor(innerW / 64))))
 
 export const num = (value: unknown) => +(value as number) || 0
+
+// A date from a Date, a timestamp or a string; '2024-03-08' is that day at midnight where the chart is, not in UTC.
+export const toDate = (value: unknown) =>
+  value instanceof Date ? value
+    : typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00`)
+      : new Date(value as string | number)
