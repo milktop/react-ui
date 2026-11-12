@@ -54,5 +54,7 @@
       background: var(--ui-surface); border-radius: calc(var(--ui-radius) - 2px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); } }
   [data-scope=tabs][data-part=panels] { padding-top: 1rem; }
   [data-scope=tabs][data-part=content] { display: block; outline: none;
-    &:focus-visible { outline: 2px solid var(--ui-ring-soft); outline-offset: 4px; border-radius: 4px; } }
+    &:focus-visible { outline: 2px solid var(--ui-ring-soft); outline-offset: 4px; border-radius: 4px; }
+    /* Zag sets `hidden` on the tab left a frame after the new one shows; without this both draw for that frame and the new one jumps up */
+    &[data-state=closed] { display: none; } }
 }

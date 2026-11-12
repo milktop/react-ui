@@ -159,6 +159,8 @@
   /* Zag hides closed parts with `hidden`; that beats any display a component sets. */
   [data-scope][hidden] { display: none !important; }
   [data-scope]:focus:not(:focus-visible) { outline: none; }
+  /* An icon's room before it has drawn, so what's beside it doesn't move when it does */
+  iconify-icon { display: inline-block; width: 1em; height: 1em; }
 
   @media (prefers-reduced-motion: reduce) {
     [data-scope][data-part] { animation: none !important; transition: none !important; }
