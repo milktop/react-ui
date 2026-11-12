@@ -63,3 +63,12 @@ test('the tooltip is headed as asked, and the axis labelled as asked', () => {
   fireEvent.pointerMove(container.querySelector('[data-part=frame]')!, { clientX: 1000 })
   expect(container.querySelector('[data-part=tooltip-label]')?.textContent).toBe('pesé le 2021-01-01')
 })
+
+test('by date, the axis is marked where asked, those outside the dates left out', () => {
+  const weights = [{ date: '2020-01-01', kg: 30 }, { date: '2023-01-01', kg: 40 }]
+  const { container } = render(<AreaChart data={weights} x="date" y="kg" time
+    xTicks={['2019-06-01', '2021-01-01', '2022-01-01']} formatX={(value) => String((value as Date).getFullYear())} />)
+  // The value axis' ticks are the ones nudged with dy
+  const axis = [...container.querySelectorAll('[data-part=tick]:not([dy])')].map((tick) => tick.textContent)
+  expect(axis).toEqual(['2021', '2022'])
+})

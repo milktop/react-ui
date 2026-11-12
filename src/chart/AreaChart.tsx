@@ -13,6 +13,7 @@
  * - `time`: `x` holds dates (Date, or '2024-03-08'), rows in date order: each point sits by its
  *   date, so a year's gap looks like one, and the axis is marked in months and years
  * - `formatX(value)`: the axis' labels (a Date when `time`); `tooltipLabel(row)`: the tooltip's heading
+ * - `xTicks`: where `time` marks its axis (dates), in place of its months and years: a birthday a year
  * - `height` (240 px), `format(value)` for ticks and tooltips, `grid` (lines; true)
  * - `label`: what it shows, for assistive tech (a hidden table of the data)
  */
@@ -42,6 +43,7 @@ export type AreaChartProps = ChartProps & {
   zero?: boolean
   time?: boolean
   formatX?: ((value: unknown) => string) | null
+  xTicks?: (Date | string)[] | null
   tooltipLabel?: ((row: ChartRow) => string) | null
 }
 
@@ -49,7 +51,7 @@ type Band = [number, number]
 
 export function AreaChart({
   data = [], x = 'label', y = null, series = null, height = 240, format = null, label: labelProp, grid = true,
-  curve = 'smooth', stacked = false, zero = true, time = false, formatX = null, tooltipLabel = null, classes, ...rest
+  curve = 'smooth', stacked = false, zero = true, time = false, formatX = null, xTicks = null, tooltipLabel = null, classes, ...rest
 }: AreaChartProps) {
   const t = useMessages()
   const label = labelProp ?? t.chart.label
@@ -89,7 +91,12 @@ export function AreaChart({
     : (value: unknown) => String(value ?? ''))
   const labelOf = tooltipLabel ?? ((row: ChartRow) => time ? toDate(row[x]).toLocaleDateString(locale, { dateStyle: 'medium' }) : tickLabel(row[x]))
   // About one date every 80px, on whole months and years
-  const timeTicks = time && rows.length > 1 ? byDate.ticks(Math.max(2, Math.floor(innerW / 80))) : []
+  const [start, end] = byDate.domain()
+  const timeTicks = !time || rows.length < 2 ? []
+    : xTicks ? xTicks.map(toDate).filter((tick) => tick >= start && tick <= end)
+      : byDate.ticks(Math.max(2, Math.floor(innerW / 80)))
+  // A mark near an end is drawn inward from it, so its label stays inside the chart
+  const anchorAt = (pos: number) => (pos < 40 ? 'start' : pos > innerW - 40 ? 'end' : 'middle')
   const shape = curve === 'linear' ? curveLinear : curveMonotoneX
   // Fitted, the fill runs down to the axis' foot rather than to 0, which is off the chart
   const fill = area<Band>().x((_, i) => at(i)).y0((d) => (fitted ? innerH : ys(d[0]))).y1((d) => ys(d[1])).curve(shape)
@@ -126,7 +133,7 @@ export function AreaChart({
             </g>
           ))}
           {time ? timeTicks.map((tick) => (
-            <text key={+tick} {...part('tick')} x={byDate(tick)} y={innerH + 18} textAnchor="middle">{tickLabel(tick)}</text>
+            <text key={+tick} {...part('tick')} x={byDate(tick)} y={innerH + 18} textAnchor={anchorAt(byDate(tick))}>{tickLabel(tick)}</text>
           )) : rows.map((row, i) => i % step === 0 && (
             <text key={i} {...part('tick')} x={at(i)} y={innerH + 18}
               textAnchor={i === 0 ? 'start' : i === rows.length - 1 ? 'end' : 'middle'}>{tickLabel(row[x])}</text>
