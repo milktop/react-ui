@@ -24,6 +24,7 @@
  *     </Popover.Positioner>
  *   </Popover.Root>
  */
+import { Portal } from '@ark-ui/react/portal'
 import type { ReactElement, ReactNode } from 'react'
 import { Popover as Ark, type PopoverOpenChangeDetails } from '@ark-ui/react/popover'
 import '../icons.js'
@@ -54,25 +55,27 @@ function PopoverShortcut({
   const t = useMessages()
   const part = partsOf('popover', classes)
   return (
-    // Mounted (hidden) from the start, as in svelte-ui; fixed, so a scrolling
-    // or clipped parent can't cut it off.
+    // Mounted (hidden) from the start, as in svelte-ui; at the end of the page and fixed, so neither a
+    // scrolling or clipped parent nor a sticky one (its own stacking layer) can cut it off or cover it.
     <Ark.Root modal={modal} positioning={{ placement, strategy: 'fixed' }}
       {...(open !== undefined && { open })} {...(defaultOpen !== undefined && { defaultOpen })}
       {...on('onOpenChange', onOpenChange, (details: PopoverOpenChangeDetails) => details.open)}>
       {trigger && <Ark.Trigger asChild>{trigger}</Ark.Trigger>}
-      <Ark.Positioner {...part('positioner')}>
-        <Ark.Content {...rest} {...part('content')} className={cx(className, classes?.content)}>
-          {arrow && <Ark.Arrow {...part('arrow')}><Ark.ArrowTip {...part('arrow-tip')} /></Ark.Arrow>}
-          {(heading || description) && (
-            <div {...part('header')}>
-              {heading && <Ark.Title {...part('title')}>{heading}</Ark.Title>}
-              {description && <Ark.Description {...part('description')}>{description}</Ark.Description>}
-            </div>
-          )}
-          {children}
-          {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label={t.common.close}><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
-        </Ark.Content>
-      </Ark.Positioner>
+      <Portal>
+        <Ark.Positioner {...part('positioner')}>
+          <Ark.Content {...rest} {...part('content')} className={cx(className, classes?.content)}>
+            {arrow && <Ark.Arrow {...part('arrow')}><Ark.ArrowTip {...part('arrow-tip')} /></Ark.Arrow>}
+            {(heading || description) && (
+              <div {...part('header')}>
+                {heading && <Ark.Title {...part('title')}>{heading}</Ark.Title>}
+                {description && <Ark.Description {...part('description')}>{description}</Ark.Description>}
+              </div>
+            )}
+            {children}
+            {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label={t.common.close}><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
+          </Ark.Content>
+        </Ark.Positioner>
+      </Portal>
     </Ark.Root>
   )
 }

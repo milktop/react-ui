@@ -7,6 +7,8 @@
     background: var(--ui-surface); color: var(--ui-text); font-family: var(--ui-font); font-size: 14px;
     border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) + 2px); box-shadow: var(--ui-shadow);
     --arrow-size: 12px; --arrow-background: var(--ui-surface); }
+  /* No taller than the room it has, scrolling inside; one with an arrow is left alone, as the scroll would clip it */
+  [data-scope=popover][data-part=content]:not(:has(> [data-part=arrow])) { max-height: var(--available-height); overflow-y: auto; }
   [data-scope=popover][data-part=arrow-tip] { border-top: 1px solid var(--ui-border); border-left: 1px solid var(--ui-border); }
   [data-scope=popover][data-part=header] { padding-right: 1.5rem; margin-bottom: 0.75rem;
     &:last-child { margin-bottom: 0; } }
