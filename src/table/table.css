@@ -6,7 +6,7 @@
     &[data-size=sm] { --cell-x: 0.625rem; --cell-y: 0.375rem; --cell-h: 2.25rem; --head-h: 2rem; }
     &[data-size=lg] { --cell-x: 1rem; --cell-y: 1rem; --cell-h: 3.5rem; --head-h: 2.5rem; } }
   /* Scrolls sideways on narrow screens; with maxHeight, down too, under a sticky header. */
-  [data-scope=table][data-part=scroll] { width: 100%; overflow-x: auto; box-sizing: border-box;
+  [data-scope=table][data-part=scroll] { position: relative; width: 100%; overflow-x: auto; box-sizing: border-box;
     background: var(--ui-surface); border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) + 2px); box-shadow: var(--ui-card-shadow);
     &[data-sticky] { overflow-y: auto; }
     [data-flush] > & { border: none; border-radius: 0; background: transparent; box-shadow: none; }

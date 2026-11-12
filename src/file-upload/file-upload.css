@@ -1,5 +1,5 @@
 @layer ui {
-  [data-scope=file-upload][data-part=root] { display: block; min-width: 0; color: var(--ui-text); font-family: var(--ui-font); }
+  [data-scope=file-upload][data-part=root] { position: relative; display: block; min-width: 0; color: var(--ui-text); font-family: var(--ui-font); }
   [data-scope=file-upload][data-part=label] { display: block; font-size: 14px; font-weight: 500; margin-bottom: 0.375rem; }
   [data-scope=file-upload][data-part=dropzone] { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.375rem;
     padding: 1.5rem; box-sizing: border-box; text-align: center; background: var(--ui-surface);

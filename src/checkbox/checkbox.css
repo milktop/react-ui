@@ -1,5 +1,7 @@
 @layer ui {
-  [data-scope=checkbox][data-part=root] { display: inline-flex; align-items: center; gap: 0.5rem; vertical-align: top; cursor: pointer;
+  /* Positioned so the hidden input and label stay inside it, not placed against the body
+     past a scrolling Page, where focusing one scrolls the window. */
+  [data-scope=checkbox][data-part=root] { position: relative; display: inline-flex; align-items: center; gap: 0.5rem; vertical-align: top; cursor: pointer;
     color: var(--ui-text); font-family: var(--ui-font); font-size: 14px;
     &[data-disabled] { opacity: 0.5; cursor: not-allowed; } }
   [data-scope=checkbox][data-part=control] { display: grid; place-items: center; flex-shrink: 0; width: 1rem; height: 1rem; box-sizing: border-box;

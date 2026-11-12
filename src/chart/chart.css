@@ -29,7 +29,7 @@
   [data-scope=sparkline][data-part=line] { stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 }
 @layer ui {
-  [data-scope=donut][data-part=root] { display: inline-flex; align-items: center; gap: 1.5rem; max-width: 100%; color: var(--ui-text); font-family: var(--ui-font); font-size: 13px;
+  [data-scope=donut][data-part=root] { position: relative; display: inline-flex; align-items: center; gap: 1.5rem; max-width: 100%; color: var(--ui-text); font-family: var(--ui-font); font-size: 13px;
     &[data-legend=bottom] { flex-direction: column; gap: 1rem; } }
   [data-scope=donut][data-part=frame] { position: relative; flex-shrink: 0; }
   [data-scope=donut][data-part=svg] { display: block; overflow: visible; }
