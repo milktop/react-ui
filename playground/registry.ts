@@ -64,6 +64,7 @@ const all: Group[] = [
   { heading: 'Pickers', form: true, icon: 'lucide:list-checks', pages: [
     { slug: 'select', title: 'Select', about: 'Pick one or several; search, load or create', file: 'select/Select.tsx' },
     { slug: 'date-picker', title: 'Date picker', about: 'Type a date or pick it from a calendar', file: 'date-picker/DatePicker.tsx' },
+    { slug: 'date-range-filter', title: 'Date range filter', about: 'Preset ranges beside a calendar, for filtering a list', file: 'date-range-filter/DateRangeFilter.tsx' },
     { slug: 'time-input', title: 'Time input', about: 'A time of day', file: 'time-input/TimeInput.tsx' },
     { slug: 'native-select', title: 'Native select', about: 'The browser\'s own select, styled', file: 'native-select/NativeSelect.tsx' },
   ] },

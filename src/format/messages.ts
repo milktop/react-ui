@@ -26,6 +26,7 @@ import type { Clipboard } from '@ark-ui/react/clipboard'
 import type { TreeView } from '@ark-ui/react/tree-view'
 import type { Editable } from '@ark-ui/react/editable'
 import type { PinInput } from '@ark-ui/react/pin-input'
+import type { DateRangeKey } from '../date-range-filter/DateRangeFilter.js'
 
 export type CalendarMessages = {
   today: string, previous: string, next: string, allDay: string, view: string, pickDate: string
@@ -57,6 +58,7 @@ export type Messages = {
   }
   tagsInput: { placeholder: string }
   datePicker: { format: (pattern: string) => string, min: (date: string) => string, max: (date: string) => string, unavailable: string }
+  dateRangeFilter: { placeholder: string, clear: string, ranges: Record<DateRangeKey, string> }
   swatchPicker: { placeholder: string, colors: Record<string, string> }
   command: { label: string, placeholder: string, empty: string, loading: string, esc: string, toNavigate: string, toSelect: string }
   toaster: { label: string }
@@ -136,6 +138,16 @@ export const en: Messages = {
   datePicker: {
     format: (pattern) => `Enter a date as ${pattern}`, min: (date) => `Pick a date from ${date}`, max: (date) => `Pick a date up to ${date}`,
     unavailable: 'That date isn’t available',
+  },
+  dateRangeFilter: {
+    placeholder: 'All dates', clear: 'Clear',
+    ranges: {
+      today: 'Today', yesterday: 'Yesterday', tomorrow: 'Tomorrow',
+      last7: 'Last 7 days', last30: 'Last 30 days', next7: 'Next 7 days', next30: 'Next 30 days',
+      thisWeek: 'This week', lastWeek: 'Last week', nextWeek: 'Next week',
+      thisMonth: 'This month', lastMonth: 'Last month', nextMonth: 'Next month',
+      thisQuarter: 'This quarter', lastQuarter: 'Last quarter', thisYear: 'This year', lastYear: 'Last year',
+    },
   },
   swatchPicker: { placeholder: 'Choose a colour', colors: Object.fromEntries(swatchNames.map((name) => [name, capital(name)])) },
   command: {
@@ -220,6 +232,16 @@ export const fr: Messages = {
     format: (pattern) => `Saisissez une date au format ${pattern.replace(/d/g, 'j').replace(/y/g, 'a')}`,
     min: (date) => `Choisissez une date à partir du ${date}`, max: (date) => `Choisissez une date jusqu’au ${date}`,
     unavailable: 'Cette date n’est pas disponible',
+  },
+  dateRangeFilter: {
+    placeholder: 'Toutes les dates', clear: 'Effacer',
+    ranges: {
+      today: 'Aujourd’hui', yesterday: 'Hier', tomorrow: 'Demain',
+      last7: '7 derniers jours', last30: '30 derniers jours', next7: '7 prochains jours', next30: '30 prochains jours',
+      thisWeek: 'Cette semaine', lastWeek: 'Semaine dernière', nextWeek: 'Semaine prochaine',
+      thisMonth: 'Ce mois-ci', lastMonth: 'Mois dernier', nextMonth: 'Mois prochain',
+      thisQuarter: 'Ce trimestre', lastQuarter: 'Trimestre dernier', thisYear: 'Cette année', lastYear: 'Année dernière',
+    },
   },
   swatchPicker: {
     placeholder: 'Choisir une couleur',

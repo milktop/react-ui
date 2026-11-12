@@ -1,0 +1,27 @@
+@layer ui {
+  /* The popover is the card; the panel inside it sets the size. */
+  [data-scope=popover][data-part=content][data-date-range-filter] { width: auto; padding: 0; }
+  [data-scope=date-range-filter][data-part=panel] { display: flex; }
+  /* As tall as the calendar, with Clear at the bottom. */
+  [data-scope=date-range-filter][data-part=presets] { display: flex; flex-direction: column; gap: 0.125rem; width: 11rem;
+    padding: 0.5rem; border-right: 1px solid var(--ui-border); box-sizing: border-box;
+    /* Its buttons are Buttons (scope button), so they're found by place. Choices in a list: they don't dip when pressed. */
+    > [data-scope=button] { justify-content: flex-start; font-weight: 400; font-size: 13px;
+      &:active { filter: none; } }
+    > [data-scope=button][data-variant=ghost] { color: var(--ui-text);
+      /* The picked one: a quiet tint rather than the soft button's fill. Set
+         --ui-date-range-filter-active-bg and -text for another (e.g. var(--ui-hover)). */
+      &[aria-pressed=true] { font-weight: 500; color: var(--ui-date-range-filter-active-text, var(--ui-text));
+        background: var(--ui-date-range-filter-active-bg, color-mix(in srgb, var(--ui-accent) 10%, transparent)); } }
+    > [data-clear] { margin-top: auto; color: var(--ui-muted); } }
+  [data-scope=date-range-filter][data-part=panel] > [data-scope=date-picker] { padding: 0.75rem; }
+
+  /* On a phone: the presets in two columns above the calendar. */
+  @media (max-width: 639px) {
+    [data-scope=date-range-filter][data-part=panel] { flex-direction: column; }
+    [data-scope=date-range-filter][data-part=presets] { display: grid; grid-template-columns: 1fr 1fr; width: auto;
+      border-right: none; border-bottom: 1px solid var(--ui-border);
+      > [data-clear] { grid-column: span 2; margin-top: 0.25rem; } }
+    [data-scope=date-range-filter][data-part=panel] > [data-scope=date-picker] { align-self: center; }
+  }
+}

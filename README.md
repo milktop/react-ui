@@ -57,7 +57,8 @@ So far:
 - Inputs: Input · Textarea · Editor (rich text on TipTap, with image uploads) · NumberInput · PasswordInput · PinInput · TagsInput ·
   Slider · FileUpload
 - Pickers: TimeInput · NativeSelect · SwatchPicker · Select (one component: searchable, server `load`, `onCreate`,
-  multiple, tags; Combobox's parts for building one by hand) · DatePicker
+  multiple, tags; Combobox's parts for building one by hand) · DatePicker ·
+  DateRangeFilter (preset ranges beside a range calendar, for filtering a list)
 - Choices: Checkbox · CheckboxGroup · Switch · RadioGroup · Segmented ·
   ThemeToggle (`colorScheme`, `useColorScheme`) · Appearance (light and dark, the accent and the
   sidebar style behind one button; `appearance`, `useAppearance`)
