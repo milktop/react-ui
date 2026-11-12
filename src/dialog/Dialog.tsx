@@ -54,6 +54,7 @@ import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
 import { cx, on, partOf, partsOf, withParts, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
+import { InLayer } from '../layer.js'
 import '../theme.css'
 import './dialog.css'
 
@@ -111,22 +112,24 @@ function DialogShortcut({
       role={alert ? 'alertdialog' : 'dialog'} closeOnInteractOutside={!alert} lazyMount unmountOnExit>
       {trigger && <Ark.Trigger asChild>{trigger}</Ark.Trigger>}
       {composed && triggers}
-      <Portal>
-        <Ark.Backdrop {...part('backdrop')} />
-        <Ark.Positioner {...part('positioner')}>
-          <Ark.Content {...rest} {...part('content')} className={cx(className, classes?.content)} data-size={size}>
-            {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label={t.common.close}><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
-            {(heading || description) && (
-              <div {...part('header')}>
-                {heading && <Ark.Title {...part('title')}>{heading}</Ark.Title>}
-                {description && <Ark.Description {...part('description')}>{description}</Ark.Description>}
-              </div>
-            )}
-            {composed ? content : children != null && <div {...part('body')}>{children}</div>}
-            {footer && <div {...part('footer')}>{footer}</div>}
-          </Ark.Content>
-        </Ark.Positioner>
-      </Portal>
+      <InLayer.Provider value>
+        <Portal>
+          <Ark.Backdrop {...part('backdrop')} />
+          <Ark.Positioner {...part('positioner')}>
+            <Ark.Content {...rest} {...part('content')} className={cx(className, classes?.content)} data-size={size}>
+              {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label={t.common.close}><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
+              {(heading || description) && (
+                <div {...part('header')}>
+                  {heading && <Ark.Title {...part('title')}>{heading}</Ark.Title>}
+                  {description && <Ark.Description {...part('description')}>{description}</Ark.Description>}
+                </div>
+              )}
+              {composed ? content : children != null && <div {...part('body')}>{children}</div>}
+              {footer && <div {...part('footer')}>{footer}</div>}
+            </Ark.Content>
+          </Ark.Positioner>
+        </Portal>
+      </InLayer.Provider>
     </Ark.Root>
   )
 }
