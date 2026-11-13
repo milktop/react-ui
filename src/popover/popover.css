@@ -2,10 +2,12 @@
   /* The positioner carries the z-index itself. Zag sets it inline as
      var(--z-index) but doesn't always fill in the variable, so set both. */
   [data-scope=popover][data-part=positioner] { z-index: 50; --z-index: 50; }
-  /* Opened from a dialog or sheet (100): above it, below tooltips (110). Zag copies the content's
-     z-index inline when it opens, so the content carries it too. */
-  [data-scope=popover]:is([data-part=positioner], [data-part=content])[data-layered] { z-index: 105; --z-index: 105; }
-  [data-scope=popover][data-part=content] { z-index: 50; position: relative; width: 18rem; max-width: calc(100vw - 32px);
+  /* Opened from a dialog or sheet (100): above it, below tooltips (110). */
+  [data-scope=popover][data-part=positioner][data-layered] { z-index: 105; --z-index: 105; }
+  /* Zag copies the content's z-index onto the positioner when it opens. It numbers each open layer
+     (--layer-index), so one opened from another sits above it, whichever portal came first in the page. */
+  [data-scope=popover][data-part=content][data-layered] { z-index: calc(105 + var(--layer-index, 0)); }
+  [data-scope=popover][data-part=content] { z-index: calc(50 + var(--layer-index, 0)); position: relative; width: 18rem; max-width: calc(100vw - 32px);
     padding: 1rem; box-sizing: border-box; outline: none; font-weight: 400;
     background: var(--ui-surface); color: var(--ui-text); font-family: var(--ui-font); font-size: 14px;
     border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) + 2px); box-shadow: var(--ui-shadow);
