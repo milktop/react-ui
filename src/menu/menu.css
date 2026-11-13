@@ -4,11 +4,16 @@
   /* The positioner carries the z-index itself. Zag sets it inline as
      var(--z-index) but doesn't always fill in the variable, so set both. */
   [data-scope=menu][data-part=positioner] { z-index: 50; --z-index: 50; }
+  /* Opened from a dialog or sheet (100): above it, below tooltips (110). Zag copies the content's
+     z-index inline when it opens, so the content carries it too. */
+  [data-scope=menu]:is([data-part=positioner], [data-part=content])[data-layered] { z-index: 105; --z-index: 105; }
   [data-scope=menu][data-part=content] {
     z-index: 50; font-weight: 400; min-width: 12rem; padding: 0.5rem 0.25rem; box-sizing: border-box; text-align: left; outline: none;
     background: var(--ui-surface); color: var(--ui-text); font-family: var(--ui-font); font-size: 14px;
     border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) + 2px); box-shadow: var(--ui-shadow);
     transform-origin: var(--transform-origin);
+    /* No taller than the room it has, scrolling inside */
+    max-height: var(--available-height); overflow-y: auto;
     &[data-state=open] { animation: ui-menu-in 120ms ease-out; }
     &[data-state=closed] { animation: ui-menu-out 100ms ease-in forwards; }
   }

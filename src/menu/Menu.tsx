@@ -47,8 +47,10 @@
  */
 import { createContext, useContext, useId, useRef, useState, type ComponentProps, type ReactElement, type ReactNode } from 'react'
 import { Menu as Ark, useMenuContext, type MenuSelectionDetails } from '@ark-ui/react/menu'
+import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
 import { cx, partsOf, withParts, type Classes } from '../utils.js'
+import { InLayer } from '../layer.js'
 import '../theme.css'
 import './menu.css'
 
@@ -395,6 +397,8 @@ function MenuShortcut({
   }
 
   const Trigger = context ? Ark.ContextTrigger : Ark.Trigger
+  // Opened from a dialog or sheet, it shows on top of it (as Popover does)
+  const layered = useContext(InLayer) ? { 'data-layered': '' } : {}
   return (
     // Mounted (hidden) from the start, as in svelte-ui: mounting on first open
     // made it grow as its icons loaded.
@@ -405,15 +409,18 @@ function MenuShortcut({
       // on the document would miss it.
       navigate={(details) => details.node.click()} onSelect={(details) => shared.select(details.value)}>
       {trigger && <Trigger asChild>{trigger}</Trigger>}
-      <Ark.Positioner {...part('positioner')}>
-        <Ark.Content {...rest} {...part('content')} className={cx(className, classes?.content)}>
-          <MenuContext.Provider value={shared}>
-            {label && <div {...part('menu-label')}>{label}</div>}
-            <Entries items={items} />
-            {children}
-          </MenuContext.Provider>
-        </Ark.Content>
-      </Ark.Positioner>
+      {/* At the end of the page, as Popover: a sticky parent (its own stacking layer) can't put it under the page's other sticky parts */}
+      <Portal>
+        <Ark.Positioner {...part('positioner')} {...layered}>
+          <Ark.Content {...rest} {...part('content')} {...layered} className={cx(className, classes?.content)}>
+            <MenuContext.Provider value={shared}>
+              {label && <div {...part('menu-label')}>{label}</div>}
+              <Entries items={items} />
+              {children}
+            </MenuContext.Provider>
+          </Ark.Content>
+        </Ark.Positioner>
+      </Portal>
     </Ark.Root>
   )
 }
