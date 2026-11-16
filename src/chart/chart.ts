@@ -46,3 +46,28 @@ export const toDate = (value: unknown) =>
   value instanceof Date ? value
     : typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00`)
       : new Date(value as string | number)
+
+export type TimeTicks = { ticks: Date[], unit: 'day' | 'month' | 'year' }
+
+// At most `max` marks between start and end: the first of every 1, 2, 3, 6, 12… months when the dates
+// span two months or more, else days, as d3 picks them.
+export function timeTicks(start: Date, end: Date, max: number, days: (count: number) => Date[]): TimeTicks {
+  const from = start.getFullYear() * 12 + start.getMonth()
+  const to = end.getFullYear() * 12 + end.getMonth()
+  if (to - from < 2) {
+    const ticks = days(max)
+    const every = Math.ceil(ticks.length / max)
+    return { ticks: ticks.filter((_, i) => i % every === 0), unit: 'day' }
+  }
+  const step = [1, 2, 3, 6, 12, 24, 60, 120, 240].find((k) => Math.floor((to - from) / k) + 1 <= max) ?? 600
+  const ticks: Date[] = []
+  for (let month = from; month <= to; month++) {
+    const tick = new Date(Math.floor(month / 12), month % 12, 1)
+    if (month % step === 0 && tick >= start) ticks.push(tick)
+  }
+  return { ticks, unit: step >= 12 ? 'year' : 'month' }
+}
+
+export const timeLabel = (unit: TimeTicks['unit'], locale?: string) => (value: unknown) =>
+  toDate(value).toLocaleDateString(locale, unit === 'day' ? { day: 'numeric', month: 'short' }
+    : unit === 'month' ? { month: 'short', year: 'numeric' } : { year: 'numeric' })

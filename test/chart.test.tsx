@@ -2,6 +2,7 @@ import { afterEach, expect, test } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { AreaChart } from '../src/chart/AreaChart.js'
 import { DonutChart } from '../src/chart/DonutChart.js'
+import { timeTicks } from '../src/chart/chart.js'
 
 afterEach(cleanup)
 
@@ -57,7 +58,7 @@ test('the tooltip is headed as asked, and the axis labelled as asked', () => {
   const weights = [{ date: '2020-01-01', kg: 30 }, { date: '2021-01-01', kg: 40 }]
   const { container } = render(<AreaChart data={weights} x="date" y="kg" time
     formatX={() => 'âge'} tooltipLabel={(row) => `pesé le ${row.date}`} />)
-  const axis = [...container.querySelectorAll('[data-part=tick][text-anchor=middle]')].map((tick) => tick.textContent)
+  const axis = [...container.querySelectorAll('[data-part=tick]:not([dy])')].map((tick) => tick.textContent)
   expect(axis.length).toBeGreaterThan(1)
   expect(axis.every((text) => text === 'âge')).toBe(true)
   fireEvent.pointerMove(container.querySelector('[data-part=frame]')!, { clientX: 1000 })
@@ -71,4 +72,15 @@ test('by date, the axis is marked where asked, those outside the dates left out'
   // The value axis' ticks are the ones nudged with dy
   const axis = [...container.querySelectorAll('[data-part=tick]:not([dy])')].map((tick) => tick.textContent)
   expect(axis).toEqual(['2021', '2022'])
+})
+
+test('by date, the axis marks the first of each month, or of each year over a long span, never more than it has room for', () => {
+  expect(timeTicks(new Date(2026, 7, 13), new Date(2026, 10, 13), 7, () => []).ticks.map((tick) => tick.getMonth())).toEqual([8, 9, 10])
+  const years = timeTicks(new Date(2015, 3, 1), new Date(2026, 3, 1), 7, () => [])
+  expect(years.unit).toBe('year')
+  expect(years.ticks.length).toBeLessThanOrEqual(7)
+  expect(years.ticks.every((tick) => tick.getMonth() === 0)).toBe(true)
+  const days = timeTicks(new Date(2026, 7, 1), new Date(2026, 7, 20), 3, () => Array.from({ length: 20 }, (_, i) => new Date(2026, 7, i + 1)))
+  expect(days.unit).toBe('day')
+  expect(days.ticks.length).toBeLessThanOrEqual(3)
 })

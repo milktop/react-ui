@@ -11,7 +11,7 @@
  * - `zero`: the value axis starts at 0 (default); false fits it to the values, so a small change
  *   on a large value shows (a weight); stacked charts always start at 0
  * - `time`: `x` holds dates (Date, or '2024-03-08'), rows in date order: each point sits by its
- *   date, so a year's gap looks like one, and the axis is marked in months and years
+ *   date, so a year's gap looks like one, and the axis is marked in months or years (days when short)
  * - `formatX(value)`: the axis' labels (a Date when `time`); `tooltipLabel(row)`: the tooltip's heading
  * - `xTicks`: where `time` marks its axis (dates), in place of its months and years: a birthday a year
  * - `height` (240 px), `format(value)` for ticks and tooltips, `grid` (lines; true)
@@ -22,7 +22,7 @@ import { useId, useState, type HTMLAttributes, type PointerEvent } from 'react'
 import { scalePoint, scaleTime } from 'd3-scale'
 import { area, line, curveMonotoneX, curveLinear } from 'd3-shape'
 import { ChartFrame, type ChartClasses } from './ChartFrame.js'
-import { seriesOf, formatter, pad, yScale, fitScale, leftFor, labelStep, num, toDate, type ChartRow, type ChartSeries } from './chart.js'
+import { seriesOf, formatter, pad, yScale, fitScale, leftFor, labelStep, num, toDate, timeTicks, timeLabel, type ChartRow, type ChartSeries } from './chart.js'
 import { partsOf } from '../utils.js'
 
 export type ChartProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
@@ -86,15 +86,13 @@ export function AreaChart({
   const byDate = scaleTime().domain([dates[0] ?? new Date(), dates[dates.length - 1] ?? new Date()]).range([0, innerW])
   const evenly = scalePoint<number>().domain(rows.map((_, i) => i)).range([0, innerW])
   const at = (i: number) => (time ? byDate(dates[i]) : evenly(i)) ?? 0
-  const tickLabel = formatX ?? (time
-    ? (value: unknown) => toDate(value).toLocaleDateString(locale, { month: 'short', year: 'numeric' })
-    : (value: unknown) => String(value ?? ''))
-  const labelOf = tooltipLabel ?? ((row: ChartRow) => time ? toDate(row[x]).toLocaleDateString(locale, { dateStyle: 'medium' }) : tickLabel(row[x]))
-  // About one date every 80px, on whole months and years
+  // About one date every 80px
   const [start, end] = byDate.domain()
-  const timeTicks = !time || rows.length < 2 ? []
-    : xTicks ? xTicks.map(toDate).filter((tick) => tick >= start && tick <= end)
-      : byDate.ticks(Math.max(2, Math.floor(innerW / 80)))
+  const auto = timeTicks(start, end, Math.max(2, Math.floor(innerW / 80)), (count) => byDate.ticks(count))
+  const marks = !time || rows.length < 2 ? []
+    : xTicks ? xTicks.map(toDate).filter((tick) => tick >= start && tick <= end) : auto.ticks
+  const tickLabel = formatX ?? (time ? timeLabel(auto.unit, locale) : (value: unknown) => String(value ?? ''))
+  const labelOf = tooltipLabel ?? ((row: ChartRow) => time ? toDate(row[x]).toLocaleDateString(locale, { dateStyle: 'medium' }) : tickLabel(row[x]))
   // A mark near an end is drawn inward from it, so its label stays inside the chart
   const anchorAt = (pos: number) => (pos < 40 ? 'start' : pos > innerW - 40 ? 'end' : 'middle')
   const shape = curve === 'linear' ? curveLinear : curveMonotoneX
@@ -132,7 +130,7 @@ export function AreaChart({
               <text {...part('tick')} x="-8" y={ys(tick)} dy="0.32em" textAnchor="end">{fmt(tick)}</text>
             </g>
           ))}
-          {time ? timeTicks.map((tick) => (
+          {time ? marks.map((tick) => (
             <text key={+tick} {...part('tick')} x={byDate(tick)} y={innerH + 18} textAnchor={anchorAt(byDate(tick))}>{tickLabel(tick)}</text>
           )) : rows.map((row, i) => i % step === 0 && (
             <text key={i} {...part('tick')} x={at(i)} y={innerH + 18}
