@@ -1,11 +1,11 @@
 /* Form dialog
   `trigger` opens it; `footer` holds the buttons; `open` and `onOpenChange` control it. */
 import { useState } from 'react'
-import { Dialog, Button, Fields, Field } from '@milktop/react-ui'
+import { Dialog, Button, DatePicker, Fields, Field } from '@milktop/react-ui'
 
 export default function Example() {
   const [open, setOpen] = useState(false)
-  const [student, setStudent] = useState({ name: 'Ada Lovelace', email: 'ada@example.com' })
+  const [student, setStudent] = useState<{ name: string; email: string; born: string | null }>({ name: 'Ada Lovelace', email: 'ada@example.com', born: '1815-12-10' })
   const [draft, setDraft] = useState(student)
 
   function openChange(next: boolean) {
@@ -27,6 +27,9 @@ export default function Example() {
       <Fields>
         <Field label="Name" value={draft.name} onValueChange={(name) => setDraft({ ...draft, name })} />
         <Field label="Email" type="email" value={draft.email} onValueChange={(email) => setDraft({ ...draft, email })} />
+        <Field label="Born">
+          <DatePicker value={draft.born} onValueChange={(born) => setDraft({ ...draft, born })} />
+        </Field>
       </Fields>
     </Dialog>
     <p className="m-0 w-full text-sm text-(--ui-muted)">student: {JSON.stringify(student)}</p>
