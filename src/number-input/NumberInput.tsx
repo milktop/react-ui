@@ -13,6 +13,7 @@
  * - `allowMouseWheel`: scroll over the focused input to step
  * - `steppers`: false to hide the buttons
  * - `name`: for plain form posts
+ * - `autoFocus`: focuses the input, in a Dialog or Popover too
  *
  * By hand, with Ark's parts:
  *
@@ -97,7 +98,7 @@ function numbers(locale: string, given?: Intl.NumberFormatOptions) {
 
 function NumberInputShortcut({
   label = null, value, defaultValue, onValueChange, prefix = null, suffix = null, icon = null, steppers = true, placeholder = '',
-  locale: localeProp, formatOptions: formatProp, className, classes, ...rest
+  locale: localeProp, formatOptions: formatProp, autoFocus, className, classes, ...rest
 }: NumberInputProps) {
   const t = useMessages()
   const field = useFieldContext()
@@ -133,7 +134,8 @@ function NumberInputShortcut({
       <Ark.Control {...part('control')}>
         {icon ? <iconify-icon {...part('icon')} icon={icon} aria-hidden="true" />
           : prefix != null && <span {...part('prefix')}>{prefix}</span>}
-        <Ark.Input {...part('input')} placeholder={placeholder} ref={inputRef} />
+        {/* React's autoFocus writes no attribute; a dialog's or popover's first focus goes to [data-autofocus] */}
+        <Ark.Input {...part('input')} placeholder={placeholder} ref={inputRef} autoFocus={autoFocus} data-autofocus={autoFocus || undefined} />
         {suffix != null && <span {...part('suffix')}>{suffix}</span>}
         {steppers && <>
           <Ark.DecrementTrigger {...part('decrement-trigger')}><iconify-icon icon="lucide:minus" /></Ark.DecrementTrigger>
