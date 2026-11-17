@@ -1,14 +1,16 @@
 // Select with search: an input that filters the list, loads it, or creates
 // items. Used by Select.tsx, which documents the props.
-import { useEffect, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent, type MouseEvent } from 'react'
+import { useContext, useEffect, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent, type MouseEvent } from 'react'
 import {
   Combobox as Ark, createListCollection, useCombobox,
   type ComboboxInputValueChangeDetails, type ComboboxValueChangeDetails,
 } from '@ark-ui/react/combobox'
 import { useFieldContext } from '@ark-ui/react/field'
+import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
 import { cx, partOf, partsOf, slot } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
+import { InLayer } from '../layer.js'
 import { useItems } from './items.js'
 import type { InnerProps } from './Select.js'
 import '../theme.css'
@@ -130,12 +132,14 @@ export function SearchSelect<T>({
     setCurrent(multiple ? chosen : chosen[0] ?? null)
   }
 
+  // Opened from a dialog or sheet, it shows on top of it (as Popover does)
+  const layered = useContext(InLayer) ? { 'data-layered': '' } : {}
   const combobox = useCombobox<Entry>({
     collection, value: keys, onValueChange: change, onInputValueChange: inputChange,
     multiple, disabled, placeholder, openOnClick: true, inputBehavior: 'autohighlight',
     ...(t.zag.combobox && { translations: t.zag.combobox }),
     closeOnSelect: closeOnSelect ?? !multiple, selectionBehavior: multiple ? 'clear' : 'replace',
-    positioning: { placement, sameWidth: true }, ...(name && { name }),
+    positioning: { placement, sameWidth: true, strategy: 'fixed' }, ...(name && { name }),
   })
   // The latest api, for the timers and promises here.
   const api = useRef(combobox)
@@ -214,27 +218,30 @@ export function SearchSelect<T>({
         <Ark.Trigger {...part('trigger')}><iconify-icon icon="lucide:chevron-down" /></Ark.Trigger>
       </Ark.Control>
 
-      <Ark.Positioner {...part('positioner')}>
-        <Ark.Content {...part('content')}>
-          {listed.map((item) => (
-            <Ark.Item key={keyOf(item)} item={item} {...part('item')}>
-              <Ark.ItemText {...part('item-text')}>
-                {renderItem ? renderItem(item, { selected: keys.includes(keyOf(item)) }) : labelOf(item)}
-              </Ark.ItemText>
-              <Ark.ItemIndicator {...part('item-indicator')}><iconify-icon icon="lucide:check" /></Ark.ItemIndicator>
-            </Ark.Item>
-          ))}
-          {!listed.length && !creating && (
-            <div {...part('empty')}>{loading ? loadingText : slot(empty, emptyText, { query: typed })}</div>
-          )}
-          {creating && (
-            <Ark.Item item={creating} {...part('create')}>
-              {renderCreate ? renderCreate(creating.label)
-                : <><iconify-icon icon="lucide:plus" aria-hidden="true" /><span>{t.select.create(creating.label)}</span></>}
-            </Ark.Item>
-          )}
-        </Ark.Content>
-      </Ark.Positioner>
+      {/* At the end of the page, as Popover: a dialog's scrolling body would clip it to the room left inside it */}
+      <Portal>
+        <Ark.Positioner {...part('positioner')} {...layered}>
+          <Ark.Content {...part('content')} {...layered}>
+            {listed.map((item) => (
+              <Ark.Item key={keyOf(item)} item={item} {...part('item')}>
+                <Ark.ItemText {...part('item-text')}>
+                  {renderItem ? renderItem(item, { selected: keys.includes(keyOf(item)) }) : labelOf(item)}
+                </Ark.ItemText>
+                <Ark.ItemIndicator {...part('item-indicator')}><iconify-icon icon="lucide:check" /></Ark.ItemIndicator>
+              </Ark.Item>
+            ))}
+            {!listed.length && !creating && (
+              <div {...part('empty')}>{loading ? loadingText : slot(empty, emptyText, { query: typed })}</div>
+            )}
+            {creating && (
+              <Ark.Item item={creating} {...part('create')}>
+                {renderCreate ? renderCreate(creating.label)
+                  : <><iconify-icon icon="lucide:plus" aria-hidden="true" /><span>{t.select.create(creating.label)}</span></>}
+              </Ark.Item>
+            )}
+          </Ark.Content>
+        </Ark.Positioner>
+      </Portal>
     </Ark.RootProvider>
   )
 }

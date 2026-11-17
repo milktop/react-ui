@@ -1,11 +1,13 @@
 // Select without search: a button that opens the list. Used by Select.tsx,
 // which documents the props.
-import { Fragment, useMemo, useRef, type KeyboardEvent } from 'react'
+import { Fragment, useContext, useMemo, useRef, type KeyboardEvent } from 'react'
 import { Select as Ark, createListCollection, useSelect, type SelectValueChangeDetails } from '@ark-ui/react/select'
 import { useFieldContext } from '@ark-ui/react/field'
+import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
 import { cx, partsOf, slot } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
+import { InLayer } from '../layer.js'
 import { useItems } from './items.js'
 import type { InnerProps } from './Select.js'
 import '../theme.css'
@@ -57,9 +59,11 @@ export function ListSelect<T>({
 
   const select = useSelect<T>({
     collection, value: keys, onValueChange: change, onOpenChange: openChange, multiple, deselectable, closeOnSelect: closeOnSelect ?? !multiple, disabled,
-    positioning: { placement, sameWidth: true }, ...(name && { name }),
+    positioning: { placement, sameWidth: true, strategy: 'fixed' }, ...(name && { name }),
     ...(t.zag.select && { translations: t.zag.select }),
   })
+  // Opened from a dialog or sheet, it shows on top of it (as Popover does)
+  const layered = useContext(InLayer) ? { 'data-layered': '' } : {}
   // The latest api, for the timers below.
   const api = useRef(select)
   api.current = select
@@ -106,19 +110,22 @@ export function ListSelect<T>({
         {clearable && <Ark.ClearTrigger {...part('clear-trigger')}><iconify-icon icon="lucide:x" /></Ark.ClearTrigger>}
       </Ark.Control>
 
-      <Ark.Positioner {...part('positioner')}>
-        <Ark.Content {...part('content')}>
-          {listed.map((item) => (
-            <Ark.Item key={keyOf(item)} item={item} {...part('item')}>
-              <Ark.ItemText {...part('item-text')}>
-                {renderItem ? renderItem(item, { selected: keys.includes(keyOf(item)) }) : labelOf(item)}
-              </Ark.ItemText>
-              <Ark.ItemIndicator {...part('item-indicator')}><iconify-icon icon="lucide:check" /></Ark.ItemIndicator>
-            </Ark.Item>
-          ))}
-          {!listed.length && <div {...part('empty')}>{slot(empty, emptyText, { query: '' })}</div>}
-        </Ark.Content>
-      </Ark.Positioner>
+      {/* At the end of the page, as Popover: a dialog's scrolling body would clip it to the room left inside it */}
+      <Portal>
+        <Ark.Positioner {...part('positioner')} {...layered}>
+          <Ark.Content {...part('content')} {...layered}>
+            {listed.map((item) => (
+              <Ark.Item key={keyOf(item)} item={item} {...part('item')}>
+                <Ark.ItemText {...part('item-text')}>
+                  {renderItem ? renderItem(item, { selected: keys.includes(keyOf(item)) }) : labelOf(item)}
+                </Ark.ItemText>
+                <Ark.ItemIndicator {...part('item-indicator')}><iconify-icon icon="lucide:check" /></Ark.ItemIndicator>
+              </Ark.Item>
+            ))}
+            {!listed.length && <div {...part('empty')}>{slot(empty, emptyText, { query: '' })}</div>}
+          </Ark.Content>
+        </Ark.Positioner>
+      </Portal>
       <Ark.HiddenSelect />
     </Ark.RootProvider>
   )

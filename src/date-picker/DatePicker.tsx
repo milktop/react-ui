@@ -35,14 +35,16 @@
  * TableRow, TableCell, TableCellTrigger, with DatePicker.Context for the
  * weeks, months and years to lay out.
  */
-import { Fragment, useId, useMemo, useState, type FocusEvent, type FormEvent, type KeyboardEvent, type ReactElement, type ReactNode } from 'react'
+import { Fragment, useContext, useId, useMemo, useState, type FocusEvent, type FormEvent, type KeyboardEvent, type ReactElement, type ReactNode } from 'react'
 import { DatePicker as Ark, parseDate, useDatePicker, type DatePickerValueChangeDetails, type DateValue } from '@ark-ui/react/date-picker'
 import { useFieldContext } from '@ark-ui/react/field'
+import { Portal } from '@ark-ui/react/portal'
 import { DateFormatter, getLocalTimeZone, today } from '@internationalized/date'
 import { parseDateString } from '@zag-js/date-utils'
 import '../icons.js'
 import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { cx, partsOf, useControllable, withParts, type Classes } from '../utils.js'
+import { InLayer } from '../layer.js'
 import '../theme.css'
 import './date-picker.css'
 
@@ -129,13 +131,16 @@ function DatePickerInner(props: DatePickerProps) {
     onValueChange?.(next, details)
   }
 
+  // Opened from a dialog or sheet, it shows on top of it (as Popover does)
+  const inLayer = useContext(InLayer)
+  const layered = inLayer && !inline ? { 'data-layered': '' } : {}
   const picker = useDatePicker({
     locale, selectionMode: range ? 'range' : 'single',
     value: ([] as (string | null)[]).concat(current ?? []).filter((iso): iso is string => !!iso).map((iso) => parseDate(iso)),
     onValueChange: change,
     ...(min && { min: parseDate(min) }), ...(max && { max: parseDate(max) }),
     ...(unavailable && { isDateUnavailable: unavailable }),
-    positioning: { placement },
+    positioning: { placement, strategy: 'fixed' },
     ...(t.zag.datePicker && { translations: t.zag.datePicker }),
     ...(inline && { inline: true }),
     // Inside a Field, its label points at the first input.
@@ -211,7 +216,7 @@ function DatePickerInner(props: DatePickerProps) {
   const view = picker.view
 
   const content = (
-        <Ark.Content {...part('content')}>
+        <Ark.Content {...part('content')} {...layered}>
           <Ark.View view={view} {...part('view')}>
             <Ark.ViewControl {...part('view-control')}>
               {prev ? <Ark.PrevTrigger asChild>{prev}</Ark.PrevTrigger>
@@ -297,7 +302,8 @@ function DatePickerInner(props: DatePickerProps) {
       </Ark.Control>}
       {problem && !inline && <div {...part('error')} id={errorId} role="alert">{problem.reason}</div>}
 
-      {inline ? content : <Ark.Positioner {...part('positioner')}>{content}</Ark.Positioner>}
+      {/* At the end of the page, as Popover: a dialog's scrolling body would clip it */}
+      {inline ? content : <Portal><Ark.Positioner {...part('positioner')} {...layered}>{content}</Ark.Positioner></Portal>}
     </Ark.RootProvider>
   )
 }
