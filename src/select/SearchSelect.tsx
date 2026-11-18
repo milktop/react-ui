@@ -28,7 +28,7 @@ export function SearchSelect<T>({
   emptyText: emptyTextProp, empty, name, size = 'md', placement = 'bottom-start', disabled = false,
   value, defaultValue, onValueChange, renderItem, renderValue, start, renderCreate,
   // ListSelect-only props, not for the div.
-  searchable: _searchable, tags: _tags, deselectable: _deselectable,
+  searchable: _searchable, tags: tagsProp, deselectable: _deselectable,
   className, classes, ...rest
 }: InnerProps<T>) {
   const t = useMessages()
@@ -44,7 +44,10 @@ export function SearchSelect<T>({
   // Items found by `load` or made by `onCreate` are remembered, so picked ones keep their labels.
   const [seen, setSeen] = useState<T[]>([])
   const [created, setCreated] = useState<T[]>([])
-  const pool = [...(load ? seen : items), ...created]
+  // Picking several, the picks show as tags in the box unless `tags` is false (shown elsewhere)
+  const tags = tagsProp !== false
+  // With `load`, `items` are those already known (the current value's), for their labels
+  const pool = [...(load ? [...items, ...seen] : items), ...created]
   const byKey = (key: string) => pool.find((item) => keyOf(item) === key)
 
   // What's been typed (not the picked item's label), filtering the list:
@@ -83,7 +86,7 @@ export function SearchSelect<T>({
     return [...items.filter((item) => text(item).startsWith(q)), ...items.filter((item) => !text(item).startsWith(q) && text(item).includes(q))]
   }, [items, query, load, loading, loaded, labelKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const picked = multiple ? keys.map(byKey).filter((item) => item !== undefined) : []
+  const picked = multiple && tags ? keys.map(byKey).filter((item) => item !== undefined) : []
 
   // The list as shown, and the selected items it doesn't show (left out by a
   // search or `hideSelected`). Zag still needs those to know their labels, so
@@ -139,8 +142,8 @@ export function SearchSelect<T>({
     multiple, disabled, placeholder, openOnClick: true, inputBehavior: 'autohighlight',
     ...(t.zag.combobox && { translations: t.zag.combobox }),
     closeOnSelect: closeOnSelect ?? !multiple,
-    // Left open after a pick, the search stays as typed, for the next pick
-    selectionBehavior: multiple ? 'clear' : closeOnSelect === false ? 'preserve' : 'replace',
+    // Left open after a pick with no tags to clear it for, the search stays as typed, for the next pick
+    selectionBehavior: multiple && tags ? 'clear' : multiple || closeOnSelect === false ? 'preserve' : 'replace',
     positioning: { placement, sameWidth: true, strategy: 'fixed' }, ...(name && { name }),
   })
   // The latest api, for the timers and promises here.
@@ -169,9 +172,9 @@ export function SearchSelect<T>({
   // off the list (disabled in its collection).
   const unpick = (key: string) => setCurrent(keysOf(keys.filter((k) => k !== key)))
 
-  // Backspace in an empty input removes the last pick.
+  // Backspace in an empty input removes the last pick (one shown as a tag).
   function removeLast(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== 'Backspace' || !multiple || e.currentTarget.value || !keys.length) return
+    if (e.key !== 'Backspace' || !picked.length || e.currentTarget.value || !keys.length) return
     unpick(keys.at(-1)!)
   }
 

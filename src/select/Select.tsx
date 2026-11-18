@@ -11,12 +11,14 @@
  * - `value`, `defaultValue`: the item's own value, or an array of them with `multiple`
  * - `onValueChange`: called with the new value (items' own values, not strings)
  * - `multiple`: pick several; picked items show ticked in the list
- * - `tags`: with `multiple`, show the picks as tags in the box (always, when
- *   searchable); `variant` sets their look: 'subtle', 'accent' or 'outline'
+ * - `tags`: with `multiple`, show the picks as tags in the box (searchable,
+ *   unless `tags={false}`: the picks shown elsewhere, the search kept after
+ *   a pick); `variant` sets their look: 'subtle', 'accent' or 'outline'
  * - `hideSelected`: with `multiple`, picked items leave the list
  * - `searchable`: type to filter the list (labels starting with the text first)
  * - `load`: async function(query) returning items, for server search; implies
- *   searchable (debounced by `debounce` ms, `loadingText` meanwhile)
+ *   searchable (debounced by `debounce` ms, `loadingText` meanwhile). `items`
+ *   then are only those already known, e.g. the value's, for their labels
  * - `onCreate`: function(query) called when someone picks "Create …" for text
  *   that matches no item; implies searchable. Return the new item (or a
  *   promise of it) to select it, or handle it yourself
