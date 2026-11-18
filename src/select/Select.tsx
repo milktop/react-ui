@@ -21,7 +21,8 @@
  *   that matches no item; implies searchable. Return the new item (or a
  *   promise of it) to select it, or handle it yourself
  * - `deselectable`: clicking the picked item again clears it (without search)
- * - `closeOnSelect`: close the list after a pick (on by default, except with `multiple`)
+ * - `closeOnSelect`: close the list after a pick (on by default, except with
+ *   `multiple`); left open, a search keeps what was typed
  * - `clearable`: a button to clear it
  * - `placeholder`, `emptyText` (when nothing matches)
  * - `name`: for plain form posts

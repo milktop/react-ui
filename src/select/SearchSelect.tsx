@@ -138,7 +138,9 @@ export function SearchSelect<T>({
     collection, value: keys, onValueChange: change, onInputValueChange: inputChange,
     multiple, disabled, placeholder, openOnClick: true, inputBehavior: 'autohighlight',
     ...(t.zag.combobox && { translations: t.zag.combobox }),
-    closeOnSelect: closeOnSelect ?? !multiple, selectionBehavior: multiple ? 'clear' : 'replace',
+    closeOnSelect: closeOnSelect ?? !multiple,
+    // Left open after a pick, the search stays as typed, for the next pick
+    selectionBehavior: multiple ? 'clear' : closeOnSelect === false ? 'preserve' : 'replace',
     positioning: { placement, sameWidth: true, strategy: 'fixed' }, ...(name && { name }),
   })
   // The latest api, for the timers and promises here.
