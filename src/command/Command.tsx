@@ -5,7 +5,8 @@
  *   <Command items={commands} onSelect={run} trigger={<Button icon="lucide:search">Search</Button>} />
  *
  * ⌘K (Ctrl+K elsewhere) opens and closes it; ↑/↓ move through the results,
- * Enter picks one, Escape closes it.
+ * Enter picks one, Escape closes it. An item with `href` opens in a new tab
+ * with ⌘Enter, ⌘-click or a middle click (Ctrl elsewhere).
  *
  * - `items`: objects with `label`, plus optional `value`, `group` (a heading
  *   the item is listed under), `icon`, `description`, `shortcut` text,
@@ -77,8 +78,7 @@ export type CommandProps = Omit<Dialog.ContentProps, 'onSelect'> & {
 
 // How the shortcut reads on this platform: '⌘K' or 'Ctrl K'.
 export function formatHotkey(key = 'k') {
-  const mac = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '')
-  return mac ? `⌘${key.toUpperCase()}` : `Ctrl ${key.toUpperCase()}`
+  return mac() ? `⌘${key.toUpperCase()}` : `Ctrl ${key.toUpperCase()}`
 }
 
 const keyOf = (item: CommandItem) => String(item.value ?? item.href ?? item.label)
@@ -92,13 +92,19 @@ function matches(item: CommandItem, words: string[]) {
   return words.every((word) => text.includes(word))
 }
 
-function go(href: string) {
+function go(href: string, newTab = false) {
   const link = document.createElement('a')
   link.href = href
+  if (newTab) {
+    link.target = '_blank'
+    link.rel = 'noopener'
+  }
   document.body.appendChild(link)
   link.click()
   link.remove()
 }
+
+const mac = () => /Mac|iPhone|iPad/.test(globalThis.navigator?.platform ?? '')
 
 // Zag's own scrolling, off: the Command does its own (see below).
 const noScroll = () => {}
@@ -158,6 +164,14 @@ export function Command({
     setOpen(false)
     onSelect?.(item.value === undefined ? item : item.value)
     if (item.href) (navigate ?? go)(item.href)
+  }
+
+  // A link's own tab: the menu closes, and neither onSelect nor navigate runs.
+  function openInNewTab(item: CommandItem | undefined, event: { preventDefault(): void }) {
+    if (!item?.href || item.disabled) return
+    event.preventDefault()
+    setOpen(false)
+    go(item.href, true)
   }
 
   // Keeps the highlighted item in view, scrolling only the list, and showing
@@ -251,7 +265,12 @@ export function Command({
                 {scope}
                 <Listbox.Input ref={input} className={classes?.input} autoHighlight type="text" placeholder={placeholder}
                   value={query} onChange={(e) => search(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Backspace' && !query) onScopeClear?.() }} />
+                  onKeyDown={(e) => { if (e.key === 'Backspace' && !query) onScopeClear?.() }}
+                  // Capture: Zag's Enter would pick it here first
+                  onKeyDownCapture={(e) => {
+                    if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey)) return
+                    openInNewTab(results.find((item) => keyOf(item) === list.highlightedValue), e)
+                  }} />
                 <kbd {...part('key')} data-esc="">{t.command.esc}</kbd>
               </div>
               <Listbox.Content ref={listEl} className={classes?.list}>
@@ -262,7 +281,9 @@ export function Command({
                       <Listbox.ItemGroup key={group.name} className={classes?.group}>
                         {group.name && <Listbox.ItemGroupLabel className={classes?.groupLabel}>{group.name}</Listbox.ItemGroupLabel>}
                         {group.items.map((item) => (
-                          <Listbox.Item key={keyOf(item)} item={item} highlightOnHover className={classes?.item}>
+                          <Listbox.Item key={keyOf(item)} item={item} highlightOnHover className={classes?.item}
+                            onClickCapture={(e) => { if (e.metaKey || e.ctrlKey) openInNewTab(item, e) }}
+                            onAuxClick={(e) => { if (e.button === 1) openInNewTab(item, e) }}>
                             {item.icon && <iconify-icon {...part('icon')} icon={item.icon} aria-hidden="true" />}
                             <span {...part('text')}>
                               <span {...part('label')}>{item.label}</span>
@@ -278,6 +299,9 @@ export function Command({
                 <div {...part('hints')} aria-hidden="true">
                   <span><kbd {...part('key')}>↑</kbd><kbd {...part('key')}>↓</kbd> {t.command.toNavigate}</span>
                   <span><kbd {...part('key')}>↵</kbd> {t.command.toSelect}</span>
+                  {results.some((item) => item.href) && (
+                    <span><kbd {...part('key')}>{mac() ? '⌘' : 'Ctrl'}</kbd><kbd {...part('key')}>↵</kbd> {t.command.toOpenInNewTab}</span>
+                  )}
                 </div>
               )}
             </Listbox.RootProvider>

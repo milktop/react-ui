@@ -60,7 +60,7 @@ export type Messages = {
   datePicker: { format: (pattern: string) => string, min: (date: string) => string, max: (date: string) => string, unavailable: string }
   dateRangeFilter: { placeholder: string, clear: string, ranges: Record<DateRangeKey, string> }
   swatchPicker: { placeholder: string, colors: Record<string, string> }
-  command: { label: string, placeholder: string, empty: string, loading: string, esc: string, toNavigate: string, toSelect: string }
+  command: { label: string, placeholder: string, empty: string, loading: string, esc: string, toNavigate: string, toSelect: string, toOpenInNewTab: string }
   toaster: { label: string }
   actionBar: { label: string }
   chart: { label: string, total: string }
@@ -152,7 +152,7 @@ export const en: Messages = {
   swatchPicker: { placeholder: 'Choose a colour', colors: Object.fromEntries(swatchNames.map((name) => [name, capital(name)])) },
   command: {
     label: 'Command menu', placeholder: 'Type a command or search…', empty: 'No results', loading: 'Searching…',
-    esc: 'Esc', toNavigate: 'to navigate', toSelect: 'to select',
+    esc: 'Esc', toNavigate: 'to navigate', toSelect: 'to select', toOpenInNewTab: 'in a new tab',
   },
   toaster: { label: 'Notifications' },
   actionBar: { label: 'Selection actions' },
@@ -253,7 +253,7 @@ export const fr: Messages = {
   },
   command: {
     label: 'Menu de commandes', placeholder: 'Tapez une commande ou recherchez…', empty: 'Aucun résultat', loading: 'Recherche…',
-    esc: 'Échap', toNavigate: 'pour naviguer', toSelect: 'pour choisir',
+    esc: 'Échap', toNavigate: 'pour naviguer', toSelect: 'pour choisir', toOpenInNewTab: 'dans un nouvel onglet',
   },
   toaster: { label: 'Notifications' },
   actionBar: { label: 'Actions sur la sélection' },
