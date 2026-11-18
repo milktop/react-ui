@@ -153,12 +153,12 @@ export function SearchSelect<T>({
 
   // Picking several: the highlight stays where it was (on the next item, when
   // the picked one leaves the list), so Enter can pick a run of them. Not
-  // after a search, which the pick clears. Zag only acts on Enter once the
+  // after a search the pick clears (with tags). Zag only acts on Enter once the
   // keys have moved the highlight, so it moves there the way they would.
   function keepPlace(next: string[]) {
     const key = next.find((k) => !keys.includes(k)) ?? keys.find((k) => !next.includes(k))
     const at = listed.findIndex((item) => keyOf(item) === key)
-    if (at < 0 || query) return
+    if (at < 0 || (query && tags)) return
     setTimeout(() => {
       const n = Math.min(at, listed.length - 1)
       if (n < 0 || !api.current.open) return
