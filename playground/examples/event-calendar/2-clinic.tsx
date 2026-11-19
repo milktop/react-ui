@@ -1,5 +1,5 @@
 /* A vet clinic's day
-  Day view has a column per vet (`resources`); Week puts everyone together (`resourceViews={['day']}`), in each vet's colour, with who's working in each day's header (`renderDayHeader`, given the day's events). 15-minute slots, inside a fixed `height` that opens at the current time. Each vet's hours, lunch and clashes come from `isAvailable` (hatched, the reason on hover; drops and bookings there are refused). Drag to book; hold Shift to block time; select in the all-day strip to mark a vet away. Drag an appointment onto the all-day strip to make it all-day, or an all-day one onto a time. Moves save for a moment (`pending`). Click an appointment, then Move…, to place it anywhere, even another week (`pinned`). Right-click an appointment or an empty time for a menu (`eventMenu`, `slotMenu`). The day's messages are an extra row. */
+  Day view has a column per vet (`resources`); Week puts everyone together (`resourceViews={['day']}`), in each vet's colour, with who's working in each day's header (`renderDayHeader`, given the day's events). 15-minute slots, inside a fixed `height` that opens at the current time. Each vet's hours, lunch and clashes come from `isAvailable` (hatched, the reason on hover; drops and bookings there are refused). Drag to book; hold Shift to block time; select in the all-day strip to mark a vet away. Drag an appointment onto the all-day strip to make it all-day, or an all-day one onto a time. Moves save for a moment (`pending`). Click an appointment, then Move…, to place it anywhere, even another week (`pinned`). Scrolled into the day, the rows above the hours fold into a line (`rowsSummary`): point at it to see them. Right-click an appointment or an empty time for a menu (`eventMenu`, `slotMenu`). The day's messages are an extra row. */
 import { useState } from 'react'
 import { EventCalendar, Avatar, AvatarGroup, Badge, toaster, confirm, type CalendarChange, type CalendarQuery, type CalendarSelection, type CalendarKeys } from '@milktop/react-ui'
 import { vets, appointments as initial, type Appointment } from './clinic'
@@ -74,6 +74,7 @@ export default function Example() {
   return (
     <EventCalendar events={appointments} resources={vets} defaultView="day" views={['day', 'week']} resourceViews={['day']} slotMinutes={15} hourHeight="5rem"
       startHour={8} endHour={18} height="34rem" scrollToTime="now"
+      rowsSummary={<span>{messages.length} messages · {appointments.filter((a) => a.allDay).length} all day</span>}
       onEventChange={update} onSelect={book} isAvailable={isAvailable} onUnavailable={(reason) => toaster.error({ title: reason })}
       onResourceClick={(vet) => toaster.info({ title: vet.title, description: `${vet.role}: ${appointments.filter((x) => x.resourceId === vet.id && !x.allDay).length} appointments` })}
       pinned={pinned} onPinnedChange={setPinned}

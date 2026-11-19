@@ -130,6 +130,19 @@
     /* A header with its menu open (focus is in it) sits above the rows below. */
     & > [data-sticky-row]:focus-within { z-index: 7; } }
 
+  /* Scrolled into the day (rowsSummary): the rows above the hours fold into one line, over them, and
+     pointing at it brings them back. They keep their place in the grid, so nothing below moves. */
+  [data-scope=event-calendar][data-part=grid][data-folded] > [data-foldable] { visibility: hidden; }
+  [data-scope=event-calendar][data-part=rows-summary] { grid-column: 1 / -1; position: sticky; z-index: 7; height: 0; }
+  [data-scope=event-calendar][data-part=rows-summary-bar] { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 0.75rem;
+    height: calc(var(--lane) + 0.5rem); padding: 0 0.875rem; box-sizing: border-box; border: none; border-bottom: 1px solid var(--ui-border);
+    background: var(--ui-surface); color: var(--ui-muted); font: inherit; font-size: 12px; text-align: left; white-space: nowrap; overflow: hidden;
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 120ms;
+    [data-folded] > [data-part=rows-summary] > & { opacity: 1; pointer-events: auto; }
+    &:hover { color: var(--ui-text); }
+    &:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--ui-ring-soft); }
+    & > iconify-icon { font-size: 13px; } }
+
   /* Time that can't be used (isAvailable): hatched, with its reason on hover. */
   [data-scope=event-calendar][data-part=unavailable] { position: absolute; left: 0; right: 0; cursor: not-allowed;
     background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ui-muted) 14%, transparent) 0 1px, transparent 1px 7px),
