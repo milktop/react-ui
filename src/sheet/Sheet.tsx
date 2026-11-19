@@ -9,6 +9,8 @@
  *
  * A modal dialog underneath: focus is trapped, the page behind doesn't
  * scroll, Escape or the backdrop closes it, and focus returns to the trigger.
+ * As in Dialog, the first Escape from a textarea or the Editor only leaves
+ * the field.
  *
  * - `side`: 'right' (default), 'left', 'top' or 'bottom'
  * - `size`: 'sm', 'md' (default) or 'lg': the width (or height for top and bottom)
@@ -29,7 +31,7 @@ import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
 import { cx, on, partOf, partsOf, withParts, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
-import { InLayer } from '../layer.js'
+import { InLayer, useStepBack } from '../layer.js'
 import '../theme.css'
 import './sheet.css'
 
@@ -80,6 +82,7 @@ function SheetShortcut({
 }: SheetProps) {
   const t = useMessages()
   const part = partsOf('sheet', classes)
+  const { layer, onEscapeKeyDown } = useStepBack()
   const nodes = Children.toArray(children)
   const composed = nodes.some((node) => isValidElement(node) && layout.includes(node.type))
   const triggers = nodes.filter((node) => isValidElement(node) && node.type === Ark.Trigger)
@@ -89,13 +92,13 @@ function SheetShortcut({
     <Ark.Root {...(open !== undefined && { open })} {...(defaultOpen !== undefined && { defaultOpen })}
       {...on('onOpenChange', onOpenChange, (details: DialogOpenChangeDetails) => details.open)}
       role={alert ? 'alertdialog' : 'dialog'} modal={modal} trapFocus={modal} preventScroll={modal}
-      closeOnInteractOutside={modal && !alert} lazyMount unmountOnExit>
+      closeOnInteractOutside={modal && !alert} onEscapeKeyDown={onEscapeKeyDown} lazyMount unmountOnExit>
       {trigger && <Ark.Trigger asChild>{trigger}</Ark.Trigger>}
       {composed && triggers}
       <InLayer.Provider value>
         <Portal>
           {modal && <Ark.Backdrop {...part('backdrop')} />}
-          <Ark.Positioner {...part('positioner')} data-side={side}>
+          <Ark.Positioner ref={layer} {...part('positioner')} data-side={side}>
             <Ark.Content {...rest} {...part('content')} className={cx(className, classes?.content)} data-side={side} data-size={size}>
               {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label={t.common.close}><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
               {composed ? content : <>

@@ -10,7 +10,9 @@
  *
  * Focus moves in and is trapped while it is open, the page behind doesn't
  * scroll, Escape or a click on the backdrop closes it, and focus returns to
- * the trigger.
+ * the trigger. Escape steps back one level from a textarea or the Editor:
+ * the first leaves the field (what's written stays), the next closes.
+ * Single-line fields close it at once. (By hand, Dialog.Root is Ark's own.)
  *
  * - `open`, `defaultOpen`; `onOpenChange`: called with the new open state;
  *   `onExitComplete`: called once it has animated out
@@ -54,7 +56,7 @@ import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
 import { cx, on, partOf, partsOf, withParts, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
-import { InLayer } from '../layer.js'
+import { InLayer, useStepBack } from '../layer.js'
 import '../theme.css'
 import './dialog.css'
 
@@ -97,6 +99,7 @@ function DialogShortcut({
 }: DialogProps) {
   const t = useMessages()
   const part = partsOf('dialog', classes)
+  const { layer, onEscapeKeyDown } = useStepBack()
   // Composed from Dialog.Header, Body and Footer: they go straight into the
   // dialog (not wrapped as its body), and a Dialog.Trigger goes before it.
   const nodes = Children.toArray(children)
@@ -109,13 +112,13 @@ function DialogShortcut({
   return (
     <Ark.Root {...state} {...on('onOpenChange', onOpenChange, (details: DialogOpenChangeDetails) => details.open)}
       {...(onExitComplete && { onExitComplete })}
-      role={alert ? 'alertdialog' : 'dialog'} closeOnInteractOutside={!alert} lazyMount unmountOnExit>
+      role={alert ? 'alertdialog' : 'dialog'} closeOnInteractOutside={!alert} onEscapeKeyDown={onEscapeKeyDown} lazyMount unmountOnExit>
       {trigger && <Ark.Trigger asChild>{trigger}</Ark.Trigger>}
       {composed && triggers}
       <InLayer.Provider value>
         <Portal>
           <Ark.Backdrop {...part('backdrop')} />
-          <Ark.Positioner {...part('positioner')}>
+          <Ark.Positioner ref={layer} {...part('positioner')}>
             <Ark.Content {...rest} {...part('content')} className={cx(className, classes?.content)} data-size={size}>
               {closable && <Ark.CloseTrigger {...part('close-trigger')} aria-label={t.common.close}><iconify-icon icon="lucide:x" /></Ark.CloseTrigger>}
               {(heading || description) && (
