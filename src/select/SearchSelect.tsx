@@ -138,7 +138,7 @@ export function SearchSelect<T>({
   // Opened from a dialog or sheet, it shows on top of it (as Popover does)
   const layered = useContext(InLayer) ? { 'data-layered': '' } : {}
   const combobox = useCombobox<Entry>({
-    collection, value: keys, onValueChange: change, onInputValueChange: inputChange,
+    collection, value: keys, onValueChange: change, onInputValueChange: inputChange, onHighlightChange: highlightShown,
     multiple, disabled, placeholder, openOnClick: true, inputBehavior: 'autohighlight',
     ...(t.zag.combobox && { translations: t.zag.combobox }),
     closeOnSelect: closeOnSelect ?? !multiple,
@@ -151,21 +151,26 @@ export function SearchSelect<T>({
   api.current = combobox
   const input = useRef<HTMLInputElement>(null)
 
-  // Picking several: the highlight stays where it was (on the next item, when
-  // the picked one leaves the list), so Enter can pick a run of them. Not
-  // after a search the pick clears (with tags). Zag only acts on Enter once the
-  // keys have moved the highlight, so it moves there the way they would.
+  // Picking several: the highlight stays where it was, so Enter can pick a run
+  // of them. A picked item that stays listed keeps it; one that leaves
+  // (`hideSelected`) hands it to the next, before it goes, so it doesn't blink
+  // (Zag clears a highlight whose item is removed). Not after a search the
+  // pick clears (with tags): the whole list comes back.
   function keepPlace(next: string[]) {
-    const key = next.find((k) => !keys.includes(k)) ?? keys.find((k) => !next.includes(k))
+    if (!hideSelected || (query && tags)) return
+    const key = next.find((k) => !keys.includes(k))
     const at = listed.findIndex((item) => keyOf(item) === key)
-    if (at < 0 || (query && tags)) return
-    setTimeout(() => {
-      const n = Math.min(at, listed.length - 1)
-      if (n < 0 || !api.current.open) return
-      if (n > 0) api.current.setHighlightValue(keyOf(listed[n - 1]))
-      // In React the highlight lands on the next render: move on from it after that.
-      setTimeout(() => input.current?.dispatchEvent(new globalThis.KeyboardEvent('keydown', { key: n > 0 ? 'ArrowDown' : 'Home', bubbles: true })), 30)
-    }, 30)
+    const following = listed[at + 1] ?? listed[at - 1]
+    if (at >= 0 && following) api.current.setHighlightValue(keyOf(following))
+  }
+
+  // Opening by the keys highlights the first pick, which may be off the list
+  // (`hideSelected`, a search): Enter would then unpick it unseen. The first
+  // item shown instead.
+  function highlightShown({ highlightedValue }: { highlightedValue: string | null }) {
+    const hidden = highlightedValue != null && offList.some((item) => keyOf(item) === highlightedValue)
+    // After Zag's own step (opening), which would otherwise undo it
+    if (hidden && listed.length) setTimeout(() => api.current.setHighlightValue(keyOf(listed[0])), 0)
   }
 
   // Removes picks. Set here, not by Zag, which won't clear an item that's
