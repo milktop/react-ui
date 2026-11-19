@@ -40,7 +40,8 @@
  * - `rows`: extra rows above the all-day strip, a cell per day (or per
  *   column with `perColumn`), e.g. the day's messages:
  *   `[{ key, label, render: (date, resource) => …, onClick: (date, resource) => … }]`
- * - `allDayMax`: all-day lanes shown before a "+2 more" (3)
+ * - `allDayMax`: all-day lanes shown before a "+2 more" (3); the CSS variable
+ *   `--lane` sets a lane's height (1.75rem), and the extra rows' least height
  *
  * Changing things
  * - `onSelect({ start, end, resourceId, allDay }, keys)`: an empty slot was
@@ -888,7 +889,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
           {/* The title opens a month, to jump to any date. */}
           <Popover placement="bottom-start" open={picking} onOpenChange={setPicking} trigger={
             <button type="button" {...part('title')} aria-label={`${title}: ${t.pickDate}`}>
-              {title}<iconify-icon icon="lucide:chevron-down" aria-hidden="true" />
+              <span>{title}</span><iconify-icon icon="lucide:chevron-down" aria-hidden="true" />
             </button>
           }>
             <DatePicker inline value={date} locale={locale} onValueChange={(value) => { if (value) { setDate(value); setPicking(false) } }} />
@@ -985,7 +986,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                 data-editable={editable(event) || undefined} data-pending={event.pending || undefined}
                 data-dragging={(preview?.kind === 'drop' && preview.id === event.id) || undefined}
                 style={{
-                  left: `${(first / columns.length) * 100}%`, width: `${(covers / columns.length) * 100}%`, top: `calc(${lane} * 1.625rem + 0.25rem)`,
+                  left: `${(first / columns.length) * 100}%`, width: `${(covers / columns.length) * 100}%`, top: `calc(${lane} * var(--lane) + 0.375rem)`,
                   ...(!named.includes(barColor(event)) && { '--event-color': barColor(event) }),
                 } as CSSProperties}
                 onPointerDown={(e) => { if (editable(event) && !pinned) begin(e, 'move-bar', first, event); else e.stopPropagation() }}
@@ -997,7 +998,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
             ))}
             {folding && columns.map((_, i) => hiddenIn(i) > 0 && (
               <button key={`more-${i}`} type="button" {...part('more')} onClick={() => setAllDayOpen(true)}
-                style={{ left: `${(i / columns.length) * 100}%`, width: `${100 / columns.length}%`, top: `calc(${shownLanes} * 1.625rem + 0.25rem)` }}>
+                style={{ left: `${(i / columns.length) * 100}%`, width: `${100 / columns.length}%`, top: `calc(${shownLanes} * var(--lane) + 0.375rem)` }}>
                 {t.more(hiddenIn(i))}
               </button>
             ))}
