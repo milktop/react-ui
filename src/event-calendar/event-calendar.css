@@ -72,7 +72,8 @@
 
   [data-scope=event-calendar][data-part=gutter] { position: relative; min-width: 3.5rem; height: calc(var(--hour-height) * var(--hours)); }
   [data-scope=event-calendar][data-part=hour] { position: absolute; right: 0.5rem; translate: 0 -50%; color: var(--ui-muted); font-size: 11px;
-    &:first-child { translate: 0 2px; } }
+    &:first-child { translate: 0 2px; }
+    &[data-covered] { visibility: hidden; } }
   /* Hour lines, with a fainter one at the half hour. */
   [data-scope=event-calendar][data-part=day] { position: relative; height: calc(var(--hour-height) * var(--hours)); border-left: 1px solid var(--ui-border);
     background-image: linear-gradient(var(--ui-border) 1px, transparent 1px),
@@ -113,6 +114,10 @@
     border-radius: calc(var(--ui-radius) + 2px); background: color-mix(in srgb, var(--resource-color, var(--ui-accent)) 18%, transparent);
     border: 1px dashed var(--resource-color, var(--ui-accent)); color: var(--ui-text); font-size: 12px; font-weight: 500; pointer-events: none;
     &[data-all-day] { top: 2px; bottom: 2px; left: auto; right: auto; } }
+  /* Now's time in the gutter, beside the line: over the hour it comes near. */
+  [data-scope=event-calendar][data-part=now-time] { position: absolute; right: 0.25rem; z-index: 1; translate: 0 calc(1px - 50%); padding: 0 0.3125rem;
+    border-radius: 9999px; background: var(--ui-danger); color: white; font-size: 10px; font-weight: 600; line-height: 1rem;
+    font-variant-numeric: tabular-nums; pointer-events: none; }
   [data-scope=event-calendar][data-part=now] { position: absolute; left: 0; right: 0; z-index: 2; height: 2px; background: var(--ui-danger); pointer-events: none;
     &::before { content: ''; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 9999px; background: var(--ui-danger); } }
   [data-scope=event-calendar][data-part=status] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

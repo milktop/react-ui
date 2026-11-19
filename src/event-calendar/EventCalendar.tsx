@@ -207,7 +207,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     locale?: string
     classes?: Classes<'root' | 'toolbar' | 'nav' | 'title' | 'actions' | 'pinned' | 'grid' | 'corner' | 'dayHeader' | 'resourceHeader'
       | 'rowLabel' | 'rowCell' | 'allDayLabel' | 'allDay' | 'allDayEvent' | 'more' | 'gutter' | 'hour' | 'day' | 'unavailable'
-      | 'event' | 'eventTitle' | 'headerButton' | 'hover' | 'eventTime' | 'resize' | 'ghost' | 'selection' | 'now' | 'status'>
+      | 'event' | 'eventTitle' | 'headerButton' | 'hover' | 'eventTime' | 'resize' | 'ghost' | 'selection' | 'now' | 'nowTime' | 'status'>
   }
 
 const named = ['accent', 'success', 'warning', 'danger', 'neutral']
@@ -830,6 +830,13 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     }
     el.style.setProperty('--sticky-total', `${offset}px`)
   })
+  // Now's time in the gutter, and the hour label it would sit on (within about a label's height) left out
+  const gutter = useRef<HTMLDivElement>(null)
+  const nowShown = dates.some((d) => sameDay(d, now)) && minutesOfDay(now) >= startHour * 60 && minutesOfDay(now) < endHour * 60
+  const [gutterHeight, setGutterHeight] = useState(0)
+  useLayoutEffect(() => setGutterHeight(gutter.current?.offsetHeight ?? 0), [hours.length, hourHeight])
+  const covers = (hour: number) => gutterHeight > 0 && Math.abs(hour * 60 - minutesOfDay(now)) * gutterHeight / (hours.length * 60) < 14
+
   // Opens scrolled to `scrollToTime` ('now' when today's shown), once.
   const scrolled = useRef(false)
   useLayoutEffect(() => {
@@ -1054,8 +1061,13 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
           </div>
         </>}
 
-        <div {...part('gutter')} aria-hidden="true" style={{ '--hours': hours.length } as CSSProperties}>
-          {hours.map((hour) => <span key={hour} {...part('hour')} style={{ top: top(hour * 60) }}>{hourFormat.format(new Date(2000, 0, 1, hour))}</span>)}
+        <div {...part('gutter')} ref={gutter} aria-hidden="true" style={{ '--hours': hours.length } as CSSProperties}>
+          {hours.map((hour) => (
+            <span key={hour} {...part('hour')} data-covered={nowShown && covers(hour) || undefined} style={{ top: top(hour * 60) }}>
+              {hourFormat.format(new Date(2000, 0, 1, hour))}
+            </span>
+          ))}
+          {nowShown && <span {...part('now-time')} style={{ top: top(minutesOfDay(now)) }}>{timeFormat.format(now)}</span>}
         </div>
         {columns.map((column, index) => {
           const own = events.filter((event) => !isAllDay(event) && event.start.startsWith(column.iso)
@@ -1164,7 +1176,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                   })()}
                 </div>
               )}
-              {isToday && minutesOfDay(now) >= startHour * 60 && minutesOfDay(now) < endHour * 60 && (
+              {isToday && nowShown && (
                 <div {...part('now')} style={{ top: top(minutesOfDay(now)) }} aria-hidden="true" />
               )}
             </div>
