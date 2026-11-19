@@ -87,7 +87,8 @@
  * - `renderEvent(event, { start, end, resource, compact })`, `renderResource(resource)`,
  *   `renderDayHeader(date, { events, resources })`: draw those yourself. A day
  *   header gets that day's events and the resources (e.g. who's in, in a view
- *   without their columns)
+ *   without their columns). An event's `start` and `end` follow it while it's
+ *   moved or resized, so it can show its new times
  * - `eventLabel(event)`: what screen readers call an event (its title, if text)
  * - `translations`: its words (Today, All day, the views, the announcements…),
  *   over the LocaleProvider's (English and French are built in);
@@ -622,6 +623,8 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
       setPreview({ kind: 'place', column: g.column, from: placeAt(minuteAt(g.lastY, box)) })
     } else {
       let byMinutes = Math.round((exactMinute(g.lastY, box) - g.exact) / slotMinutes) * slotMinutes
+      // A resize ends on the grid (8:10 – 8:25 stretches to 9:00, not 9:05), wherever it started.
+      if (g.kind === 'resize') byMinutes = Math.round(exactMinute(g.lastY, box) / slotMinutes) * slotMinutes - minutesOfDay(parse(g.event!.end))
       if (g.kind === 'move') {
         const scrolledX = (grid.current?.scrollLeft ?? 0) - g.scroll.left + scrollX - g.scroll.x
         const byColumns = Math.round((g.lastX - g.x + scrolledX) / g.width)
@@ -1040,10 +1043,12 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                 const moving = preview?.kind === 'move' && preview.id === event.id ? preview : null
                 const across = preview?.kind === 'drop' && preview.id === event.id
                 const resizing = preview?.kind === 'resize' && preview.id === event.id ? preview : null
-                const shownEnd = resizing ? addMinutes(finish, resizing.minutes) : finish
-                const minutes = minutesBetween(start, shownEnd)
+                // The times it would have where it's dragged to, for renderEvent and the label.
+                const shownStart = moving ? addMinutes(start, moving.minutes) : start
+                const shownEnd = resizing ? addMinutes(finish, resizing.minutes) : moving ? addMinutes(finish, moving.minutes) : finish
+                const minutes = minutesBetween(start, resizing ? shownEnd : finish)
                 const color = event.color ?? (column.resource ?? resourceOf(event.resourceId))?.color ?? 'accent'
-                const time = `${timeFormat.format(start)} – ${timeFormat.format(shownEnd)}`
+                const time = `${timeFormat.format(shownStart)} – ${timeFormat.format(shownEnd)}`
                 const box = { top: top(minutesOfDay(start)), left: `${(sub / subs) * 100}%`, width: `${100 / subs}%` }
                 return (
                   <Fragment key={event.id}>
@@ -1071,7 +1076,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                       }}
                       onContextMenu={(e) => { if (openMenu(e.clientX, e.clientY, eventMenu?.(event))) e.preventDefault() }}
                       onClick={() => { if (suppressClick.current) suppressClick.current = false; else onEventClick?.(event) }}>
-                      {renderEvent ? renderEvent(event, { start, end: shownEnd, resource: column.resource, compact: minutes <= 30 }) : <>
+                      {renderEvent ? renderEvent(event, { start: shownStart, end: shownEnd, resource: column.resource, compact: minutes <= 30 }) : <>
                         <span {...part('event-title')}>{event.title}</span>
                         <span {...part('event-time')}>{time}</span>
                       </>}
