@@ -40,6 +40,8 @@
  * - `rows`: extra rows above the all-day strip, a cell per day (or per
  *   column with `perColumn`), e.g. the day's messages:
  *   `[{ key, label, render: (date, resource) => …, onClick: (date, resource) => … }]`
+ * - `allDayLabel`: the strip's label, in place of "All day" (an icon, say,
+ *   as `rows` labels can be)
  * - `allDayMax`: all-day lanes shown before a "+2 more" (3); the CSS variable
  *   `--lane` sets a lane's height (1.75rem), and the extra rows' least height
  *
@@ -177,6 +179,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     scrollToTime?: string | null
     rows?: CalendarRow<R>[]
     allDayMax?: number
+    allDayLabel?: ReactNode
     onSelect?: (selection: CalendarSelection, keys: CalendarKeys) => void
     onEventClick?: (event: E) => void
     onDayClick?: (date: string) => void
@@ -273,7 +276,7 @@ type Preview = { kind: 'select', column: number, from: number, to: number }
 export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends CalendarResource = CalendarResource>({
   events = [], resources = null, resourceViews = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
   date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, hourHeight = '3rem',
-  height = null, scrollToTime = null, rows = [], allDayMax = 3, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
+  height = null, scrollToTime = null, rows = [], allDayMax = 3, allDayLabel = null, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
   pinned = null, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
   locale: localeProp, className, classes, style, ...rest
 }: EventCalendarProps<E, R>) {
@@ -978,9 +981,9 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
           <div {...part('all-day-label')} data-sticky-row={allDayRow} style={{ top: `var(--sticky-${allDayRow})` }}>
             {laneEnds.length > allDayMax
               ? <button type="button" onClick={() => setAllDayOpen(!allDayOpen)} aria-expanded={allDayOpen}>
-                  {t.allDay}<iconify-icon icon={allDayOpen ? 'lucide:chevron-up' : 'lucide:chevron-down'} aria-hidden="true" />
+                  {allDayLabel ?? t.allDay}<iconify-icon icon={allDayOpen ? 'lucide:chevron-up' : 'lucide:chevron-down'} aria-hidden="true" />
                 </button>
-              : t.allDay}
+              : allDayLabel ?? t.allDay}
           </div>
           <div {...part('all-day')} ref={strip} data-sticky-row={allDayRow}
             style={{ '--lanes': Math.max(1, shownLanes + (folding ? 1 : 0)), top: `var(--sticky-${allDayRow})` } as CSSProperties}
