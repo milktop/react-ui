@@ -42,10 +42,10 @@
  *   `[{ key, label, render: (date, resource) => …, onClick: (date, resource) => … }]`
  * - `allDayLabel`: the strip's label, in place of "All day" (an icon, say,
  *   as `rows` labels can be)
- * - `rowsSummary`: with `height`, once scrolled an hour into the day the
- *   extra rows and the all-day strip fold into one line saying this (say,
- *   "2 messages · 3 all day"); pointing at it brings them back over the
- *   hours. They keep their place, so nothing below moves
+ * - `hideRowsOnScroll`: with `height`, the extra rows and the all-day strip
+ *   slip away while scrolling down the day and come back on scrolling up a
+ *   little, as a phone's top bar does. They keep their place, so nothing
+ *   below moves
  * - `allDayMax`: all-day lanes shown before a "+2 more" (3); the CSS variable
  *   `--lane` sets a lane's height (1.75rem), and the extra rows' least height
  *
@@ -184,7 +184,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     rows?: CalendarRow<R>[]
     allDayMax?: number
     allDayLabel?: ReactNode
-    rowsSummary?: ReactNode
+    hideRowsOnScroll?: boolean
     onSelect?: (selection: CalendarSelection, keys: CalendarKeys) => void
     onEventClick?: (event: E) => void
     onDayClick?: (date: string) => void
@@ -206,7 +206,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     toolbar?: boolean
     locale?: string
     classes?: Classes<'root' | 'toolbar' | 'nav' | 'title' | 'actions' | 'pinned' | 'grid' | 'corner' | 'dayHeader' | 'resourceHeader'
-      | 'rowLabel' | 'rowCell' | 'rowsSummary' | 'rowsSummaryBar' | 'allDayLabel' | 'allDay' | 'allDayEvent' | 'more' | 'gutter' | 'hour' | 'day' | 'unavailable'
+      | 'rowLabel' | 'rowCell' | 'allDayLabel' | 'allDay' | 'allDayEvent' | 'more' | 'gutter' | 'hour' | 'day' | 'unavailable'
       | 'event' | 'eventTitle' | 'headerButton' | 'hover' | 'eventTime' | 'resize' | 'ghost' | 'selection' | 'now' | 'status'>
   }
 
@@ -281,7 +281,7 @@ type Preview = { kind: 'select', column: number, from: number, to: number }
 export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends CalendarResource = CalendarResource>({
   events = [], resources = null, resourceViews = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
   date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, hourHeight = '3rem',
-  height = null, scrollToTime = null, rows = [], allDayMax = 3, allDayLabel = null, rowsSummary = null, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
+  height = null, scrollToTime = null, rows = [], allDayMax = 3, allDayLabel = null, hideRowsOnScroll = false, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
   pinned = null, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
   locale: localeProp, className, classes, style, ...rest
 }: EventCalendarProps<E, R>) {
@@ -353,32 +353,25 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const [status, setStatus] = useState('')
   const [allDayOpen, setAllDayOpen] = useState(false)
 
-  // Scrolled an hour into the day: the rows above the hours fold (rowsSummary), unless pointed at (peek).
-  const [scrolledPast, setScrolledPast] = useState(false)
-  const [peek, setPeek] = useState(false)
-  const foldable = rowsSummary != null && !!height
-  const folded = foldable && scrolledPast && !peek
-  useEffect(() => {
-    const el = grid.current
-    if (!el || !foldable) return
-    const onScroll = () => {
-      const day = el.querySelector<HTMLElement>('[data-part=day][role=gridcell]')
-      const hour = day ? day.offsetHeight / Math.max(1, endHour - startHour) : 48
-      // Folds an hour in, unfolds half an hour from the top: no flicker on the line between
-      setScrolledPast((was) => el.scrollTop > (was ? hour / 2 : hour))
-    }
-    onScroll()
-    el.addEventListener('scroll', onScroll, { passive: true })
-    return () => el.removeEventListener('scroll', onScroll)
-  }, [foldable, startHour, endHour])
-  useEffect(() => { if (!scrolledPast) setPeek(false) }, [scrolledPast])
-  // Pointing below them again (or away): they fold back.
-  const unpeek = (e: PointerEvent<HTMLElement>) => {
-    if (!peek || gesture.current) return
-    const el = grid.current!
-    const bottom = el.getBoundingClientRect().top + (parseFloat(el.style.getPropertyValue('--sticky-total')) || 0)
-    if (e.clientY > bottom + 4) setPeek(false)
+  // Scrolling down the day the rows above the hours slip away; scrolling up a little brings them back.
+  const [folded, setFolded] = useState(false)
+  const foldable = hideRowsOnScroll && !!height
+  const lastScroll = useRef({ top: 0, up: 0 })
+  const fold = (el: HTMLElement) => {
+    const top = el.scrollTop
+    const delta = top - lastScroll.current.top
+    lastScroll.current.top = top
+    // Hidden above that, the band would show their own empty place
+    const rows = [...el.querySelectorAll<HTMLElement>(':scope > :is([data-part=row-label], [data-part=all-day-label])')]
+    if (top <= rows.reduce((sum, row) => sum + row.offsetHeight, 0)) { lastScroll.current.up = 0; setFolded(false) }
+    else if (delta > 0) {
+      lastScroll.current.up = 0
+      // The bounce past the bottom isn't scrolling back up
+      if (top < el.scrollHeight - el.clientHeight - 1) setFolded(true)
+    } else if (delta < 0 && (lastScroll.current.up -= delta) > 6) setFolded(false)
   }
+  // Another day or view: they're back, as at the top
+  useEffect(() => { setFolded(false) }, [title, split])
 
   // ---- One menu, opened where it's wanted (right-click, or the keyboard).
   // It opens through a hidden context-menu trigger: a contextmenu event sent to
@@ -849,6 +842,8 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     const minutes = Math.max(startHour * 60, Math.min(endHour * 60, h * 60 + (m || 0)))
     const sticky = parseFloat(el.style.getPropertyValue('--sticky-total')) || 0
     el.scrollTop = day.offsetTop + ((minutes - startHour * 60) / span) * day.offsetHeight - sticky
+    // Opening there isn't scrolling down: the rows above the hours stay
+    lastScroll.current.top = el.scrollTop
   })
 
   // ---- All-day and multi-day events: bars across the columns they cover, in lanes.
@@ -967,7 +962,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
 
       <div {...part('grid')} ref={grid} role="grid" aria-label={title} data-two-rows={twoRows || undefined}
         data-scroll={height ? '' : undefined} data-folded={folded || undefined} style={height ? { maxHeight: height } : undefined}
-        onPointerMove={peek ? unpeek : undefined} onPointerLeave={peek ? () => { if (!gesture.current) setPeek(false) } : undefined}>
+        onScroll={foldable ? (e) => fold(e.currentTarget) : undefined}>
         {/* Headers: the days (spanning their resources), then the resources. */}
         <div {...part('corner')} data-sticky-row={dayRow >= 0 ? dayRow : resourceRow}
           style={{ gridRow: twoRows ? 'span 2' : undefined, top: `var(--sticky-${dayRow >= 0 ? dayRow : resourceRow})` }} />
@@ -992,16 +987,6 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
               : renderResource ? renderResource(c.resource!) : c.resource!.title}
           </div>
         ))}
-
-        {/* The folded rows' one line: no height of its own, it lies over them. */}
-        {foldable && (
-          <div {...part('rows-summary')} style={{ top: `var(--sticky-${rows.length ? extraRows[0] : allDayRow})` }}>
-            <button type="button" {...part('rows-summary-bar')} tabIndex={folded ? 0 : -1} aria-hidden={!folded}
-              onPointerEnter={() => setPeek(true)} onClick={() => setPeek(true)} onFocus={() => setPeek(true)}>
-              <iconify-icon icon="lucide:chevrons-up-down" aria-hidden="true" />{rowsSummary}
-            </button>
-          </div>
-        )}
 
         {rows.map((row, r) => <Fragment key={row.key}>
           <div {...part('row-label')} data-foldable="" data-sticky-row={extraRows[r]} style={{ top: `var(--sticky-${extraRows[r]})` }}>{row.label}</div>
