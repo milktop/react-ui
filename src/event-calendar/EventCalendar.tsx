@@ -881,10 +881,11 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
       style={{ ...style, '--columns': columns.length, '--hour-height': hourHeight } as CSSProperties}>
       {toolbar && (
         <div {...part('toolbar')}>
-          <div {...part('nav')}>
+          {/* Before the title, so the arrows stay put as its length changes */}
+          <div {...part('nav')} role="group">
+            <Button size="sm" icon="lucide:chevron-left" aria-label={t.previous} onClick={() => setDate(toISODate(addDays(current, -step)))} />
             <Button size="sm" onClick={() => setDate(today)}>{t.today}</Button>
-            <Button size="sm" variant="ghost" icon="lucide:chevron-left" aria-label={t.previous} onClick={() => setDate(toISODate(addDays(current, -step)))} />
-            <Button size="sm" variant="ghost" icon="lucide:chevron-right" aria-label={t.next} onClick={() => setDate(toISODate(addDays(current, step)))} />
+            <Button size="sm" icon="lucide:chevron-right" aria-label={t.next} onClick={() => setDate(toISODate(addDays(current, step)))} />
           </div>
           {/* The title opens a month, to jump to any date. */}
           <Popover placement="bottom-start" open={picking} onOpenChange={setPicking} trigger={
