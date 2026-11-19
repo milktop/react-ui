@@ -57,7 +57,8 @@
  * - `onEventChange(event, { start, end, resourceId }, { kind })`: makes
  *   events movable and resizable: drag one to another time, day or resource,
  *   or its bottom edge to change its length; or focus it and use ↑↓ (a slot),
- *   ←→ (a column), Shift+↑↓ (its length). An event dragged onto the all-day
+ *   ←→ (a column), Shift+↑↓ (its length); Escape cancels a drag (or a
+ *   selection being drawn) before it's let go. An event dragged onto the all-day
  *   strip becomes all-day there (`allDay: true`, dates only); an all-day one
  *   moves along the strip by days, or dropped on a time becomes timed, a slot
  *   long (refuse either in `isAvailable`, where `allDay` says which; a
@@ -729,6 +730,22 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     scrolling.current = false
     setPreview(null)
   }
+
+  // Escape mid-drag: nothing happens, and letting go isn't a click on the event either.
+  useEffect(() => {
+    const escape = (e: globalThis.KeyboardEvent) => {
+      const g = gesture.current
+      if (e.key !== 'Escape' || !g) return
+      e.preventDefault()
+      e.stopPropagation()
+      if (g.moved && g.event) suppressClick.current = true
+      gesture.current = null
+      scrolling.current = false
+      setPreview(null)
+    }
+    addEventListener('keydown', escape, true)
+    return () => removeEventListener('keydown', escape, true)
+  }, [])
 
   function keyDown(e: KeyboardEvent, event: E) {
     if (!editable(event)) return
