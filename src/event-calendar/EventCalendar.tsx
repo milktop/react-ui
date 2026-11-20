@@ -84,6 +84,8 @@
  *   set, a click on a time moves it there (through `onEventChange`, keeping
  *   its length); Escape or the bar's Cancel call `onPinnedChange(null)`.
  *   Clear it once you've moved it
+ * - `selection`: a selection to keep outlined after `onSelect`, say while
+ *   its form is open (null clears it)
  *
  * - `eventMenu(event)`, `slotMenu(slot)`: items for a menu on right-click
  *   (or the Menu key, or Shift+F10, on a focused event): of an event, or of
@@ -194,6 +196,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     isAvailable?: (query: CalendarQuery<E>) => boolean | string
     onUnavailable?: (reason: string, attempt: CalendarQuery<E>) => void
     pinned?: E | null
+    selection?: CalendarSelection | null
     eventMenu?: (event: E) => CalendarMenuItem[] | null | undefined
     slotMenu?: (slot: CalendarSelection) => CalendarMenuItem[] | null | undefined
     onPinnedChange?: (event: E | null) => void
@@ -282,7 +285,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   events = [], resources = null, resourceViews = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
   date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, hourHeight = '3rem',
   height = null, scrollToTime = null, rows = [], allDayMax = 3, allDayLabel = null, hideRowsOnScroll = false, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
-  pinned = null, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
+  pinned = null, selection = null, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
   locale: localeProp, className, classes, style, ...rest
 }: EventCalendarProps<E, R>) {
   const app = useLocale()
@@ -347,6 +350,10 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const nameOf = (event: E) => eventLabel ? eventLabel(event) : typeof event.title === 'string' ? event.title : 'Event'
   const resourceName = (column: Column<R> | undefined) =>
     column?.resource && typeof column.resource.title === 'string' ? `, ${column.resource.title}` : ''
+  // The columns `selection` covers: its days, and its resource's column when split by resource
+  const held = (column: { iso: string, resource?: R | null }) => !!selection
+    && column.iso >= selection.start.slice(0, 10) && column.iso <= selection.end.slice(0, 10)
+    && (!split || !column.resource || selection.resourceId == null || String(column.resource.id) === String(selection.resourceId))
   const columnOf = (event: E, iso: string) => columns.findIndex((c) => c.iso === iso && (!split || c.resource?.id === event.resourceId))
 
   const [picking, setPicking] = useState(false)
@@ -1032,6 +1039,10 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
               const slot = { start: column.iso, end: column.iso, allDay: true, ...(column.resource && { resourceId: column.resource.id }) }
               if (openMenu(e.clientX, e.clientY, slotMenu?.(slot))) e.preventDefault()
             }}>
+            {!preview && selection?.allDay && columns.map((column, i) => held(column) && (
+              <div key={i} {...part('selection')} data-all-day="" data-held=""
+                style={{ left: `${(i / columns.length) * 100}%`, width: `${100 / columns.length}%` }} />
+            ))}
             {(preview?.kind === 'all-day' || (preview?.kind === 'drop' && preview.change.allDay)) && preview.columns.map((i) => (
               <div key={i} {...part('selection')} data-all-day="" data-invalid={previewReason ? '' : undefined}
                 style={{ left: `${(i / columns.length) * 100}%`, width: `${100 / columns.length}%` }} />
@@ -1154,6 +1165,13 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                 const off = shading[index].find((run) => hoverSlot.from >= run.from && hoverSlot.from < run.to)
                 return <div {...part('hover')} data-invalid={off ? '' : undefined} aria-hidden="true"
                   style={{ top: top(hoverSlot.from), height: length(slotMinutes) }} />
+              })()}
+              {!preview && selection && !selection.allDay && column.iso === selection.start.slice(0, 10) && held(column) && (() => {
+                const from = minutesOfDay(parse(selection.start))
+                const to = minutesOfDay(parse(selection.end)) || 24 * 60
+                return <div {...part('selection')} data-held="" style={{ top: top(from), height: length(to - from) }}>
+                  {timeFormat.format(parse(selection.start))} – {timeFormat.format(parse(selection.end))}
+                </div>
               })()}
               {selecting && (
                 <div {...part('selection')} data-invalid={previewReason ? '' : undefined}
