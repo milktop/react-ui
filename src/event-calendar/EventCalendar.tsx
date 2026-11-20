@@ -85,7 +85,7 @@
  *   its length); Escape or the bar's Cancel call `onPinnedChange(null)`.
  *   Clear it once you've moved it
  * - `selection`: a selection to keep outlined after `onSelect`, say while
- *   its form is open (null clears it)
+ *   its form is open (null clears it); moved out of sight, it's scrolled to
  *
  * - `eventMenu(event)`, `slotMenu(slot)`: items for a menu on right-click
  *   (or the Menu key, or Shift+F10, on a focused event): of an event, or of
@@ -843,6 +843,21 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const [gutterHeight, setGutterHeight] = useState(0)
   useLayoutEffect(() => setGutterHeight(gutter.current?.offsetHeight ?? 0), [hours.length, hourHeight])
   const covers = (hour: number) => gutterHeight > 0 && Math.abs(hour * 60 - minutesOfDay(now)) * gutterHeight / (hours.length * 60) < 14
+
+  // A kept selection moved out of sight (its form picked another time): scrolled to, in the middle;
+  // on a day (no time), the rows above the hours come back to show it
+  useEffect(() => {
+    if (selection?.allDay) setFolded(false)
+    const el = grid.current
+    const outline = el?.querySelector<HTMLElement>('[data-part=selection][data-held]:not([data-all-day])')
+    if (!el || !outline || !height) return
+    const sticky = parseFloat(el.style.getPropertyValue('--sticky-total')) || 0
+    const view = el.getBoundingClientRect()
+    const box = outline.getBoundingClientRect()
+    if (box.top >= view.top + sticky && box.bottom <= view.bottom) return
+    const middle = el.scrollTop + (box.top + box.height / 2) - (view.top + sticky + (view.height - sticky) / 2)
+    el.scrollTo({ top: middle, behavior: 'smooth' })
+  }, [selection?.start, selection?.end, selection?.resourceId, selection?.allDay, height])
 
   // Opens scrolled to `scrollToTime` ('now' when today's shown), once.
   const scrolled = useRef(false)
