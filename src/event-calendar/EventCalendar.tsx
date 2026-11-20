@@ -47,7 +47,8 @@
  *   little, as a phone's top bar does. They keep their place, so nothing
  *   below moves
  * - `allDayMax`: all-day lanes shown before a "+2 more" (3); the CSS variable
- *   `--lane` sets a lane's height (1.75rem), and the extra rows' least height
+ *   `--lane` sets a lane's height (1.75rem), and the extra rows' least height;
+ *   `--all-day-inset` sets how far in from the columns' edges the bars sit (0)
  *
  * Changing things
  * - `onSelect({ start, end, resourceId, allDay }, keys)`: an empty slot was
@@ -1068,7 +1069,10 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                 data-editable={editable(event) || undefined} data-pending={event.pending || undefined}
                 data-dragging={(preview?.kind === 'drop' && preview.id === event.id) || undefined}
                 style={{
-                  left: `${(first / columns.length) * 100}%`, width: `${(covers / columns.length) * 100}%`, top: `calc(${lane} * var(--lane) + 0.375rem)`,
+                  // --all-day-inset: in from the columns' edges, as the extra rows' cells pad theirs (none where it carries on from before)
+                  left: `calc(${(first / columns.length) * 100}% + ${continued ? '0px' : 'var(--all-day-inset, 0px)'})`,
+                  width: `calc(${(covers / columns.length) * 100}% - ${continued ? 1 : 2} * var(--all-day-inset, 0px))`,
+                  top: `calc(${lane} * var(--lane) + 0.375rem)`,
                   ...(!named.includes(barColor(event)) && { '--event-color': barColor(event) }),
                 } as CSSProperties}
                 onPointerDown={(e) => { if (editable(event) && !pinned) begin(e, 'move-bar', first, event); else e.stopPropagation() }}
