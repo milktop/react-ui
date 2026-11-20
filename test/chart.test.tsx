@@ -43,6 +43,12 @@ test('the value axis starts at 0, or fits the values when asked', () => {
 const xsOf = (container: HTMLElement) =>
   [...(container.querySelector('[data-part=line]')?.getAttribute('d') ?? '').matchAll(/[ML]([\d.]+),/g)].map((m) => Number(m[1]))
 
+test('a missing value leaves a gap: the line stops where a year still under way does', () => {
+  const months = [{ label: 'Jan', now: 3 }, { label: 'Fév', now: 4 }, { label: 'Mar', now: null }]
+  const { container } = render(<AreaChart data={months} y="now" curve="linear" />)
+  expect(xsOf(container)).toHaveLength(2)
+})
+
 test('by date, a week apart sits closer than a year apart', () => {
   const weights = [{ date: '2020-01-01', kg: 30 }, { date: '2020-01-08', kg: 31 }, { date: '2021-01-01', kg: 40 }]
   const { container: evenly } = render(<AreaChart data={weights} x="date" y="kg" curve="linear" />)

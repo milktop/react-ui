@@ -8,6 +8,7 @@
  * - `y`: the value property, or `series` for several, each `{ key, label, color }`
  *   (colours from the theme's --ui-chart-1…5 by default)
  * - `curve`: 'smooth' (default) or 'linear'; `stacked`: series sit on top of one another
+ * - a value that's null or missing leaves a gap in its line, unless stacked (a year still under way)
  * - `zero`: the value axis starts at 0 (default); false fits it to the values, so a small change
  *   on a large value shows (a weight); stacked charts always start at 0
  * - `time`: `x` holds dates (Date, or '2024-03-08'), rows in date order: each point sits by its
@@ -69,6 +70,7 @@ export function AreaChart({
 
   // Each series' [low, high] per row: from 0, or stacked on the ones before.
   const base = rows.map(() => 0)
+  const gap = (row: ChartRow, key: string) => !stacked && row[key] == null
   const bands: Band[][] = list.map((s) => rows.map((row, i) => {
     const value = num(row[s.key])
     const low = stacked ? base[i] : 0
@@ -97,8 +99,9 @@ export function AreaChart({
   const anchorAt = (pos: number) => (pos < 40 ? 'start' : pos > innerW - 40 ? 'end' : 'middle')
   const shape = curve === 'linear' ? curveLinear : curveMonotoneX
   // Fitted, the fill runs down to the axis' foot rather than to 0, which is off the chart
-  const fill = area<Band>().x((_, i) => at(i)).y0((d) => (fitted ? innerH : ys(d[0]))).y1((d) => ys(d[1])).curve(shape)
-  const stroke = line<Band>().x((_, i) => at(i)).y((d) => ys(d[1])).curve(shape)
+  const fill = (key: string) => area<Band>().defined((_, i) => !gap(rows[i], key))
+    .x((_, i) => at(i)).y0((d) => (fitted ? innerH : ys(d[0]))).y1((d) => ys(d[1])).curve(shape)
+  const stroke = (key: string) => line<Band>().defined((_, i) => !gap(rows[i], key)).x((_, i) => at(i)).y((d) => ys(d[1])).curve(shape)
   const step = labelStep(rows.length, innerW)
 
   function move(e: PointerEvent<HTMLDivElement>) {
@@ -138,13 +141,13 @@ export function AreaChart({
           ))}
           {list.map((s, i) => (
             <g key={s.key}>
-              <path {...part('area')} d={fill(bands[i]) ?? ''} fill={`url(#${id}-${i})`} />
-              <path {...part('line')} d={stroke(bands[i]) ?? ''} stroke={s.color} />
+              <path {...part('area')} d={fill(s.key)(bands[i]) ?? ''} fill={`url(#${id}-${i})`} />
+              <path {...part('line')} d={stroke(s.key)(bands[i]) ?? ''} stroke={s.color} />
             </g>
           ))}
           {hover != null && <>
             <line {...part('cursor')} x1={at(hover)} x2={at(hover)} y1="0" y2={innerH} />
-            {list.map((s, i) => <circle key={s.key} {...part('dot')} cx={at(hover)} cy={ys(bands[i][hover][1])} r="4" fill={s.color} />)}
+            {list.map((s, i) => !gap(rows[hover], s.key) && <circle key={s.key} {...part('dot')} cx={at(hover)} cy={ys(bands[i][hover][1])} r="4" fill={s.color} />)}
           </>}
         </g>
       </svg>

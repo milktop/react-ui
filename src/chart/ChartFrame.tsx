@@ -52,7 +52,7 @@ export function ChartFrame({
         {hover != null && rows[hover] && (
           <div {...part('tooltip')} data-flip={flip || undefined} style={{ left: tipLeft }}>
             <div {...part('tooltip-label')}>{labelOf(rows[hover])}</div>
-            {list.map((s) => (
+            {list.filter((s) => rows[hover][s.key] != null).map((s) => (
               <div key={s.key} {...part('tooltip-row')}>
                 <span {...part('swatch')} style={{ background: s.color }} />
                 <span {...part('tooltip-name')}>{s.label}</span>
