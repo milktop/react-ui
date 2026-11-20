@@ -26,13 +26,24 @@
     [data-divided] > &, [data-flush] > & { padding-bottom: calc(var(--card-pad) * 0.8); border-bottom: 1px solid var(--ui-border); }
     /* A card that is all header (a link card): padded all round. */
     &:last-child { padding-bottom: var(--card-pad); border-bottom: none; } }
-  [data-scope=card][data-part=icon] { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; flex-shrink: 0; margin-top: -0.125rem;
+  [data-scope=card][data-part=icon] { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; flex-shrink: 0;
     border-radius: var(--ui-radius); background: var(--ui-accent-soft); color: var(--ui-accent-soft-text); font-size: 18px; }
   [data-scope=card][data-part=titles] { flex: 1; min-width: 0; }
-  [data-scope=card][data-part=heading] { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35; }
-  /* Close under the heading, so the two read as one title. */
-  [data-scope=card][data-part=description] { margin: 0.125rem 0 0; line-height: 1.35; color: var(--ui-muted); }
+  [data-scope=card][data-part=heading] { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.25rem; }
+  /* Right under the heading, so the two read as one title: together exactly the icon's height. */
+  [data-scope=card][data-part=description] { margin: 0; font-size: 13px; line-height: 1rem; color: var(--ui-muted); }
   [data-scope=card][data-part=actions] { display: flex; gap: 0.5rem; flex-shrink: 0; }
+  /* Beside an icon or actions, the titles and the actions centre on the icon's line, with a description
+     or without; a long one wraps below and the icon stays with the first lines. */
+  [data-scope=card][data-part=header]:is(:has(> [data-part=icon]), :has(> [data-part=actions])) {
+    > [data-part=titles] { display: flex; flex-direction: column; justify-content: center; min-height: 2.25rem; }
+    > [data-part=actions] { align-items: center; min-height: 2.25rem; } }
+  /* Icon buttons in the actions are one set: smaller, side by side, whatever gap a wrapper asks for. */
+  [data-scope=card][data-part=actions] {
+    &:has(> [data-icon-only]), > :has(> [data-icon-only]) { gap: 0; }
+    [data-scope=button][data-icon-only][data-size=sm] { width: 1.75rem; height: 1.75rem; }
+    /* Ending on one, its glyph lines up with the card's edge, as the icon does on the other side. */
+    &:has(> [data-icon-only]:last-child, > :last-child > [data-icon-only]:last-child) { margin-right: -0.4375rem; } }
   [data-scope=card][data-part=body] { padding: var(--card-pad); flex-grow: 1;
     [data-part=header] + & { padding-top: calc(var(--card-pad) * 0.8); }
     [data-flush] > & { padding: 0; } }

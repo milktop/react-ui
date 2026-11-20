@@ -11,4 +11,9 @@
   [data-scope=empty-state][data-part=heading] { margin: 0; font-size: 16px; font-weight: 600; }
   [data-scope=empty-state][data-part=description] { margin: 0.25rem 0 0; max-width: 28rem; color: var(--ui-muted); }
   [data-scope=empty-state][data-part=actions] { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-top: 1.25rem; }
+  /* Small: one quiet line in a card, whose header already says what's empty. */
+  [data-scope=empty-state][data-part=root][data-size=sm] { padding: 1rem 1.25rem;
+    > [data-part=heading] { font-size: 14px; font-weight: 400; color: var(--ui-muted); }
+    > [data-part=description] { font-size: 13px; }
+    > [data-part=actions] { margin-top: 0.75rem; } }
 }
