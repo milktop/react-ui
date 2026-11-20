@@ -30,7 +30,8 @@
     border-radius: var(--ui-radius); background: var(--ui-accent-soft); color: var(--ui-accent-soft-text); font-size: 18px; }
   [data-scope=card][data-part=titles] { flex: 1; min-width: 0; }
   [data-scope=card][data-part=heading] { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.35; }
-  [data-scope=card][data-part=description] { margin: 0.25rem 0 0; color: var(--ui-muted); }
+  /* Close under the heading, so the two read as one title. */
+  [data-scope=card][data-part=description] { margin: 0.125rem 0 0; line-height: 1.35; color: var(--ui-muted); }
   [data-scope=card][data-part=actions] { display: flex; gap: 0.5rem; flex-shrink: 0; }
   [data-scope=card][data-part=body] { padding: var(--card-pad); flex-grow: 1;
     [data-part=header] + & { padding-top: calc(var(--card-pad) * 0.8); }
