@@ -167,6 +167,10 @@
     background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ui-muted) 20%, transparent) 0 2px, transparent 2px 8px),
       color-mix(in srgb, var(--ui-muted) 12%, var(--ui-surface)); }
   [data-scope=event-calendar][data-part=selection] {
+    /* Time being blocked (shiftBlocks, or a kept selection's blocked): hatched grey, as blocked time. */
+    &[data-blocked] { border-color: color-mix(in srgb, var(--ui-text) 55%, transparent); color: var(--ui-text);
+      background: repeating-linear-gradient(-45deg, color-mix(in srgb, var(--ui-muted) 22%, transparent) 0 2px, transparent 2px 8px),
+        color-mix(in srgb, var(--ui-muted) 14%, var(--ui-surface)); }
     &[data-placing] { background: color-mix(in srgb, var(--ui-accent) 12%, var(--ui-surface)); border-style: solid; }
     &[data-invalid] { border-color: var(--ui-danger); background: color-mix(in srgb, var(--ui-danger) 12%, transparent); color: var(--ui-danger); } }
   [data-placing] [data-scope=event-calendar][data-part=day] { cursor: copy; }

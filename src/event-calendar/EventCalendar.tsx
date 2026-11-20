@@ -58,7 +58,8 @@
  * - `onSelect({ start, end, resourceId, allDay }, keys)`: an empty slot was
  *   clicked or a time dragged out, or (`allDay`) days in the all-day strip,
  *   e.g. to book it. `keys` says which of Shift, Alt, Ctrl and ⌘ were held
- *   (say, Shift to block time instead of booking it)
+ *   (say, Shift to block time instead of booking it); with `shiftBlocks`, a
+ *   time dragged out with Shift held looks like blocked time as it's drawn
  * - `onEventClick(event)`: an event was clicked (not dragged), e.g. to open it
  * - `onDayClick(date)`: a day's header was clicked (an ISO date), e.g. to show
  *   that day; `onResourceClick(resource, date)`: a resource's header
@@ -90,7 +91,8 @@
  *   its length); Escape or the bar's Cancel call `onPinnedChange(null)`.
  *   Clear it once you've moved it
  * - `selection`: a selection to keep outlined after `onSelect`, say while
- *   its form is open (null clears it); moved out of sight, it's scrolled to
+ *   its form is open (null clears it); moved out of sight, it's scrolled to.
+ *   `blocked: true` draws it as blocked time
  *
  * - `eventMenu(event)`, `slotMenu(slot)`: items for a menu on right-click
  *   (or the Menu key, or Shift+F10, on a focused event): of an event, or of
@@ -203,7 +205,8 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     isAvailable?: (query: CalendarQuery<E>) => boolean | string
     onUnavailable?: (reason: string, attempt: CalendarQuery<E>) => void
     pinned?: E | null
-    selection?: CalendarSelection | null
+    selection?: (CalendarSelection & { blocked?: boolean }) | null
+    shiftBlocks?: boolean
     eventMenu?: (event: E) => CalendarMenuItem[] | null | undefined
     slotMenu?: (slot: CalendarSelection) => CalendarMenuItem[] | null | undefined
     onPinnedChange?: (event: E | null) => void
@@ -292,7 +295,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   events = [], resources = null, resourceViews = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
   date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, compactMinutes = 30, hourHeight = '3rem',
   height = null, scrollToTime = null, rows = [], allDayMax = 3, allDayLabel = null, hideRowsOnScroll = false, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
-  pinned = null, selection = null, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
+  pinned = null, selection = null, shiftBlocks = false, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
   locale: localeProp, className, classes, style, ...rest
 }: EventCalendarProps<E, R>) {
   const app = useLocale()
@@ -461,6 +464,8 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   // ---- Changing events: by pointer (previewed until it's dropped) or by keyboard.
   const grid = useRef<HTMLDivElement>(null)
   const gesture = useRef<Gesture<E> | null>(null)
+  // Shift held while dragging out a time: with shiftBlocks, it's drawn as blocked time
+  const [shiftHeld, setShiftHeld] = useState(false)
   const [preview, setPreviewState] = useState<Preview | null>(null)
   // Also kept in a ref: a quick click ends before React renders the preview it set.
   const latestPreview = useRef<Preview | null>(null)
@@ -471,6 +476,20 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const refocus = useRef<Id | null>(null)
   const suppressClick = useRef(false)
   const strip = useRef<HTMLDivElement>(null)
+
+  const selectingTime = preview?.kind === 'select'
+  // Pressed or let go without moving: the look and onSelect's keys follow too
+  useEffect(() => {
+    if (!selectingTime || !shiftBlocks) return
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== 'Shift' || !gesture.current) return
+      gesture.current.keys = { ...gesture.current.keys, shiftKey: e.type === 'keydown' }
+      setShiftHeld(e.type === 'keydown')
+    }
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('keyup', onKey)
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('keyup', onKey) }
+  }, [selectingTime, shiftBlocks])
 
   // `byMinutes` kept to the day's hours: an event moves or grows no further than
   // the grid shows (one already past an edge doesn't go further past it), and
@@ -559,6 +578,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     // grid (or the page), and positions are measured again as it does.
     const scroll = { left: grid.current?.scrollLeft ?? 0, x: scrollX }
     const point = { x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, moved: false, keys: keysOf(e), scroll }
+    setShiftHeld(e.shiftKey)
     if (kind === 'all-day' || kind === 'move-bar') {
       // The strip spans every column: which one is under the pointer.
       const target = strip.current!
@@ -635,6 +655,9 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     if (!g) return
     g.lastX = e.clientX
     g.lastY = e.clientY
+    // Keys pressed or let go on the way count, for the look and for onSelect
+    g.keys = keysOf(e)
+    setShiftHeld(e.shiftKey)
     if (!g.moved && Math.hypot(e.clientX - g.x, e.clientY - g.y) < 4) return
     g.moved = true
     updatePreview()
@@ -1194,12 +1217,12 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
               {!preview && selection && !selection.allDay && column.iso === selection.start.slice(0, 10) && held(column) && (() => {
                 const from = minutesOfDay(parse(selection.start))
                 const to = minutesOfDay(parse(selection.end)) || 24 * 60
-                return <div {...part('selection')} data-held="" style={{ top: top(from), height: length(to - from) }}>
+                return <div {...part('selection')} data-held="" data-blocked={selection.blocked || undefined} style={{ top: top(from), height: length(to - from) }}>
                   {timeFormat.format(parse(selection.start))} – {timeFormat.format(parse(selection.end))}
                 </div>
               })()}
               {selecting && (
-                <div {...part('selection')} data-invalid={previewReason ? '' : undefined}
+                <div {...part('selection')} data-invalid={previewReason ? '' : undefined} data-blocked={(shiftBlocks && shiftHeld) || undefined}
                   style={{ top: top(selecting.from), height: length(selecting.to - selecting.from) }}>
                   {previewReason ?? `${timeFormat.format(addMinutes(column.date, selecting.from))} – ${timeFormat.format(addMinutes(column.date, selecting.to))}`}
                 </div>
