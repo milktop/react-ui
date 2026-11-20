@@ -997,7 +997,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
             ? (
               <div {...part('nav')} role="group" data-look="icons">
                 <Tooltip content={t.today}>
-                  <button type="button" {...part('today')} aria-label={t.today} onClick={() => setDate(today)}>
+                  <button type="button" {...part('today')} aria-label={t.today} data-current={dates.some((d) => sameDay(d, now)) || undefined} onClick={() => setDate(today)}>
                     <span {...part('today-month')}>{monthTag.format(now).replace('.', '')}</span>{now.getDate()}
                   </button>
                 </Tooltip>
