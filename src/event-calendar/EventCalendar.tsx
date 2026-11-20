@@ -222,7 +222,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     toolbar?: boolean
     nav?: 'buttons' | 'icons'
     locale?: string
-    classes?: Classes<'root' | 'toolbar' | 'nav' | 'today' | 'title' | 'actions' | 'pinned' | 'grid' | 'corner' | 'dayHeader' | 'resourceHeader'
+    classes?: Classes<'root' | 'toolbar' | 'nav' | 'today' | 'todayMonth' | 'title' | 'actions' | 'pinned' | 'grid' | 'corner' | 'dayHeader' | 'resourceHeader'
       | 'rowLabel' | 'rowCell' | 'allDayLabel' | 'allDay' | 'allDayEvent' | 'more' | 'gutter' | 'hour' | 'day' | 'unavailable'
       | 'event' | 'eventTitle' | 'headerButton' | 'hover' | 'eventTime' | 'resize' | 'ghost' | 'selection' | 'now' | 'nowTime' | 'status'>
   }
@@ -355,6 +355,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   const longDay = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' })
   const hourFormat = new Intl.DateTimeFormat(locale, { hour: 'numeric' })
   const timeFormat = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' })
+  const monthTag = new Intl.DateTimeFormat(locale, { month: 'short' })
   const title = count === 1
     ? new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(first)
     : new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).formatRange(first, dates[count - 1])
@@ -996,7 +997,9 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
             ? (
               <div {...part('nav')} role="group" data-look="icons">
                 <Tooltip content={t.today}>
-                  <button type="button" {...part('today')} aria-label={t.today} onClick={() => setDate(today)}>{now.getDate()}</button>
+                  <button type="button" {...part('today')} aria-label={t.today} onClick={() => setDate(today)}>
+                    <span {...part('today-month')}>{monthTag.format(now).replace('.', '')}</span>{now.getDate()}
+                  </button>
                 </Tooltip>
                 <Button size="sm" variant="ghost" icon="lucide:chevron-left" aria-label={t.previous} onClick={() => setDate(toISODate(addDays(current, -step)))} />
                 <Button size="sm" variant="ghost" icon="lucide:chevron-right" aria-label={t.next} onClick={() => setDate(toISODate(addDays(current, step)))} />
