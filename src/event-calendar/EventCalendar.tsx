@@ -110,7 +110,9 @@
  * - `translations`: its words (Today, All day, the views, the announcements…),
  *   over the LocaleProvider's (English and French are built in);
  *   `locale`: for the dates and times (the LocaleProvider's by default)
- * - `actions`: in the toolbar; `toolbar`: false hides it
+ * - `actions`: in the toolbar; `toolbar`: false hides it; `nav`: 'buttons'
+ *   (‹ Today ›, joined; default) or 'icons' (a tile with today's day, then
+ *   plain arrows: quieter, and they stay put as the title changes length)
  */
 import {
   Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type KeyboardEvent, type PointerEvent,
@@ -119,6 +121,7 @@ import {
 import '../icons.js'
 import { Button } from '../button/Button.js'
 import { Popover } from '../popover/Popover.js'
+import { Tooltip } from '../tooltip/Tooltip.js'
 import { DatePicker } from '../date-picker/DatePicker.js'
 import { Segmented } from '../segment-group/Segmented.js'
 import { Menu, type MenuEntry } from '../menu/Menu.js'
@@ -217,8 +220,9 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     translations?: Partial<CalendarTranslations>
     actions?: ReactNode
     toolbar?: boolean
+    nav?: 'buttons' | 'icons'
     locale?: string
-    classes?: Classes<'root' | 'toolbar' | 'nav' | 'title' | 'actions' | 'pinned' | 'grid' | 'corner' | 'dayHeader' | 'resourceHeader'
+    classes?: Classes<'root' | 'toolbar' | 'nav' | 'today' | 'title' | 'actions' | 'pinned' | 'grid' | 'corner' | 'dayHeader' | 'resourceHeader'
       | 'rowLabel' | 'rowCell' | 'allDayLabel' | 'allDay' | 'allDayEvent' | 'more' | 'gutter' | 'hour' | 'day' | 'unavailable'
       | 'event' | 'eventTitle' | 'headerButton' | 'hover' | 'eventTime' | 'resize' | 'ghost' | 'selection' | 'now' | 'nowTime' | 'status'>
   }
@@ -295,7 +299,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
   events = [], resources = null, resourceViews = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
   date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, compactMinutes = 30, hourHeight = '3rem',
   height = null, scrollToTime = null, rows = [], allDayMax = 3, allDayLabel = null, hideRowsOnScroll = false, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
-  pinned = null, selection = null, shiftBlocks = false, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
+  pinned = null, selection = null, shiftBlocks = false, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true, nav = 'buttons',
   locale: localeProp, className, classes, style, ...rest
 }: EventCalendarProps<E, R>) {
   const app = useLocale()
@@ -988,11 +992,23 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
       {toolbar && (
         <div {...part('toolbar')}>
           {/* Before the title, so the arrows stay put as its length changes */}
-          <div {...part('nav')} role="group">
-            <Button size="sm" icon="lucide:chevron-left" aria-label={t.previous} onClick={() => setDate(toISODate(addDays(current, -step)))} />
-            <Button size="sm" onClick={() => setDate(today)}>{t.today}</Button>
-            <Button size="sm" icon="lucide:chevron-right" aria-label={t.next} onClick={() => setDate(toISODate(addDays(current, step)))} />
-          </div>
+          {nav === 'icons'
+            ? (
+              <div {...part('nav')} role="group" data-look="icons">
+                <Tooltip content={t.today}>
+                  <button type="button" {...part('today')} aria-label={t.today} onClick={() => setDate(today)}>{now.getDate()}</button>
+                </Tooltip>
+                <Button size="sm" variant="ghost" icon="lucide:chevron-left" aria-label={t.previous} onClick={() => setDate(toISODate(addDays(current, -step)))} />
+                <Button size="sm" variant="ghost" icon="lucide:chevron-right" aria-label={t.next} onClick={() => setDate(toISODate(addDays(current, step)))} />
+              </div>
+            )
+            : (
+              <div {...part('nav')} role="group">
+                <Button size="sm" icon="lucide:chevron-left" aria-label={t.previous} onClick={() => setDate(toISODate(addDays(current, -step)))} />
+                <Button size="sm" onClick={() => setDate(today)}>{t.today}</Button>
+                <Button size="sm" icon="lucide:chevron-right" aria-label={t.next} onClick={() => setDate(toISODate(addDays(current, step)))} />
+              </div>
+            )}
           {/* The title opens a month, to jump to any date. */}
           <Popover placement="bottom-start" open={picking} onOpenChange={setPicking} trigger={
             <button type="button" {...part('title')} aria-label={`${title}: ${t.pickDate}`}>

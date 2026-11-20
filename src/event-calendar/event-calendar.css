@@ -5,11 +5,20 @@
   [data-scope=event-calendar][data-part=toolbar] { display: flex; align-items: center; gap: 0.5rem 0.75rem; flex-wrap: wrap; }
   /* ‹ Today ›, joined: square inside, their borders overlapping */
   [data-scope=event-calendar][data-part=nav] { display: flex; align-items: center;
-    & > [data-scope=button] { border-radius: 0;
+    /* nav="icons": a tile with today's day, then plain arrows, apart */
+    &[data-look=icons] { gap: 0.25rem;
+      & > [data-scope=button] { border-radius: var(--ui-radius); margin: 0; } }
+    &:not([data-look]) > [data-scope=button] { border-radius: 0;
       &:first-child { border-radius: var(--ui-radius) 0 0 var(--ui-radius); }
       &:last-child { border-radius: 0 var(--ui-radius) var(--ui-radius) 0; }
       & + [data-scope=button] { margin-left: -1px; }
       &:is(:hover, :focus-visible) { z-index: 1; } } }
+  /* Today, as a calendar page: its day, a line of the accent along the top */
+  [data-scope=event-calendar][data-part=today] { display: inline-grid; place-items: center; width: 1.875rem; height: 1.875rem; margin-right: 0.25rem;
+    padding: 2px 0 0; box-sizing: border-box; border: 1px solid var(--ui-border); border-top: 3px solid var(--ui-accent); border-radius: var(--ui-radius);
+    background: var(--ui-surface); color: var(--ui-text); font: inherit; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer;
+    &:hover { background: var(--ui-hover); }
+    &:focus-visible { outline: 2px solid var(--ui-ring); outline-offset: 1px; } }
   [data-scope=event-calendar][data-part=title] { display: inline-flex; align-items: center; gap: 0.375rem; margin: 0; padding: 0.25rem 0.5rem;
     border: none; border-radius: var(--ui-radius); background: transparent; color: inherit; font: inherit; font-size: 18px; font-weight: 600; cursor: pointer;
     /* "jeudi 26 novembre" in French: a heading starts with a capital */
