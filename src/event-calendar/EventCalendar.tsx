@@ -12,10 +12,12 @@
  *
  * Events and resources
  * - `events`: `{ id, title, start, end, allDay, resourceId, description,
- *   color, editable, blocked, pending }`; `color` is 'accent' (default),
+ *   color, editable, blocked, pending, dimmed }`; `color` is 'accent' (default),
  *   'success', 'warning', 'danger', 'neutral' or any CSS colour;
  *   `editable: false` fixes one; `blocked` draws it hatched (time taken out,
- *   not an appointment); `pending` faded and fixed (saving)
+ *   not an appointment); `pending` faded and fixed (saving); `dimmed` faded
+ *   only (one that's still there but didn't happen, say). The CSS variable
+ *   `--event-inset` sets the space between an event and its column's edges (0)
  * - `resources`: `{ id, title, color, hours, offLabel }` (and anything for
  *   `renderResource`): a column each, per day; events go in their
  *   `resourceId`'s column. Change the list to add or remove one (a vet
@@ -137,6 +139,7 @@ export type CalendarEvent = {
   editable?: boolean
   blocked?: boolean
   pending?: boolean
+  dimmed?: boolean
 }
 export type CalendarResource = {
   id: Id
@@ -1066,7 +1069,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
             {shownBars.map(({ event, first, length: covers, lane, continued }) => (
               <button key={`${event.id}-${first}`} type="button" {...part('all-day-event')} data-event-id={event.id} data-continued={continued || undefined}
                 data-color={named.includes(barColor(event)) ? barColor(event) : 'custom'} data-blocked={event.blocked || undefined}
-                data-editable={editable(event) || undefined} data-pending={event.pending || undefined}
+                data-editable={editable(event) || undefined} data-pending={event.pending || undefined} data-dimmed={event.dimmed || undefined}
                 data-dragging={(preview?.kind === 'drop' && preview.id === event.id) || undefined}
                 style={{
                   // --all-day-inset: in from the columns' edges, as the extra rows' cells pad theirs (none where it carries on from before)
@@ -1141,7 +1144,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                 const minutes = minutesBetween(start, resizing ? shownEnd : finish)
                 const color = event.color ?? (column.resource ?? resourceOf(event.resourceId))?.color ?? 'accent'
                 const time = `${timeFormat.format(shownStart)} – ${timeFormat.format(shownEnd)}`
-                const box = { top: top(minutesOfDay(start)), left: `${(sub / subs) * 100}%`, width: `${100 / subs}%` }
+                const box = { top: top(minutesOfDay(start)), left: `calc(${(sub / subs) * 100}% + var(--event-inset, 0px))`, width: `calc(${100 / subs}% - 2 * var(--event-inset, 0px))` }
                 return (
                   <Fragment key={event.id}>
                     {/* Where it was, while it's dragged. */}
@@ -1149,7 +1152,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                     <button type="button" {...part('event')} data-event-id={event.id}
                       data-dragging={moving || resizing || across ? '' : undefined} data-invalid={(moving || resizing) && previewReason ? '' : undefined}
                       data-editable={editable(event) || undefined} data-compact={minutes <= 30 || undefined}
-                      data-blocked={event.blocked || undefined} data-pending={event.pending || undefined} data-pinned={pinned?.id === event.id || undefined}
+                      data-blocked={event.blocked || undefined} data-pending={event.pending || undefined} data-dimmed={event.dimmed || undefined} data-pinned={pinned?.id === event.id || undefined}
                       data-color={named.includes(color) ? color : 'custom'}
                       aria-label={`${nameOf(event)}, ${time}`} aria-busy={event.pending || undefined}
                       title={(moving || resizing) && previewReason ? previewReason : undefined}
