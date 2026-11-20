@@ -36,6 +36,8 @@
  *   `onDateChange`, from the toolbar (its title opens a calendar)
  * - `weekStartsOn`: 1 (Monday, default) or 0; `startHour`, `endHour` (7, 21);
  *   `slotMinutes`: what selecting, moving and resizing snap to (30);
+ *   `compactMinutes`: events this long or shorter go on one line, tighter (30;
+ *   lower it with a taller `hourHeight`, where short ones have the room);
  *   `hourHeight`: a CSS length ('3rem')
  * - `height`: a CSS length: the hours scroll inside it under the headers;
  *   `scrollToTime`: where it opens scrolled to ('08:00', or 'now'), once
@@ -184,6 +186,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     startHour?: number
     endHour?: number
     slotMinutes?: number
+    compactMinutes?: number
     hourHeight?: string
     height?: string | null
     scrollToTime?: string | null
@@ -287,7 +290,7 @@ type Preview = { kind: 'select', column: number, from: number, to: number }
 
 export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends CalendarResource = CalendarResource>({
   events = [], resources = null, resourceViews = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
-  date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, hourHeight = '3rem',
+  date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, compactMinutes = 30, hourHeight = '3rem',
   height = null, scrollToTime = null, rows = [], allDayMax = 3, allDayLabel = null, hideRowsOnScroll = false, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
   pinned = null, selection = null, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true,
   locale: localeProp, className, classes, style, ...rest
@@ -1151,7 +1154,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                     {(moving || resizing) && <div {...part('ghost')} style={{ ...box, height: length(minutesBetween(start, finish)) }} />}
                     <button type="button" {...part('event')} data-event-id={event.id}
                       data-dragging={moving || resizing || across ? '' : undefined} data-invalid={(moving || resizing) && previewReason ? '' : undefined}
-                      data-editable={editable(event) || undefined} data-compact={minutes <= 30 || undefined}
+                      data-editable={editable(event) || undefined} data-compact={minutes <= compactMinutes || undefined}
                       data-blocked={event.blocked || undefined} data-pending={event.pending || undefined} data-dimmed={event.dimmed || undefined} data-pinned={pinned?.id === event.id || undefined}
                       data-color={named.includes(color) ? color : 'custom'}
                       aria-label={`${nameOf(event)}, ${time}`} aria-busy={event.pending || undefined}
@@ -1171,7 +1174,7 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
                       }}
                       onContextMenu={(e) => { if (openMenu(e.clientX, e.clientY, eventMenu?.(event))) e.preventDefault() }}
                       onClick={() => { if (suppressClick.current) suppressClick.current = false; else onEventClick?.(event) }}>
-                      {renderEvent ? renderEvent(event, { start: shownStart, end: shownEnd, resource: column.resource, compact: minutes <= 30 }) : <>
+                      {renderEvent ? renderEvent(event, { start: shownStart, end: shownEnd, resource: column.resource, compact: minutes <= compactMinutes }) : <>
                         <span {...part('event-title')}>{event.title}</span>
                         <span {...part('event-time')}>{time}</span>
                       </>}
