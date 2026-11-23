@@ -1,9 +1,11 @@
 @layer ui {
-  [data-scope=sheet][data-part=backdrop] { position: fixed; inset: 0; z-index: 100; background: rgba(0, 0, 0, 0.45);
+  /* 100; one opened over another layer (a confirm from a popover in a dialog) joins what opens from a
+     sheet (105 + Zag's --layer-index), so the newest paints on top. */
+  [data-scope=sheet][data-part=backdrop] { position: fixed; inset: 0; z-index: calc(100 + var(--layer-index, 0) + 5 * min(1, var(--layer-index, 0))); background: rgba(0, 0, 0, 0.45);
     &[data-state=open] { animation: ui-sheet-fade-in 200ms ease-out; }
     &[data-state=closed] { animation: ui-sheet-fade-out 160ms ease-in forwards; } }
   /* Covers the screen and lines the panel up against one edge; clicks pass through to the backdrop. */
-  [data-scope=sheet][data-part=positioner] { position: fixed; inset: 0; z-index: 100; display: flex; pointer-events: none;
+  [data-scope=sheet][data-part=positioner] { position: fixed; inset: 0; z-index: calc(100 + var(--layer-index, 0) + 5 * min(1, var(--layer-index, 0))); display: flex; pointer-events: none;
     &[data-side=right] { justify-content: flex-end; }
     &[data-side=top] { align-items: flex-start; }
     &[data-side=bottom] { align-items: flex-end; } }

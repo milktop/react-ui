@@ -14,8 +14,9 @@
  *   pointer is over it; `disabled`
  * - `open`, `defaultOpen`; `onOpenChange`: called with the new open state
  *
- * It closes on Escape, click or scroll. With `interactive` it stays open while
- * the pointer is over it, so its text can be selected.
+ * It closes on Escape (the dialog or popover it's in stays open), click or
+ * scroll. With `interactive` it stays open while the pointer is over it, so its
+ * text can be selected.
  *
  * By hand, with Ark's parts:
  *
@@ -24,8 +25,8 @@
  *     <Tooltip.Positioner><Tooltip.Content><Tooltip.Arrow><Tooltip.ArrowTip /></Tooltip.Arrow>Saves a draft</Tooltip.Content></Tooltip.Positioner>
  *   </Tooltip.Root>
  */
-import { isValidElement, type ReactNode } from 'react'
-import { Tooltip as Ark, type TooltipOpenChangeDetails } from '@ark-ui/react/tooltip'
+import { isValidElement, useEffect, type ReactNode } from 'react'
+import { Tooltip as Ark, useTooltipContext, type TooltipOpenChangeDetails } from '@ark-ui/react/tooltip'
 import { Portal } from '@ark-ui/react/portal'
 import { cx, on, partsOf, withParts, type Classes } from '../utils.js'
 import '../theme.css'
@@ -60,6 +61,7 @@ function TooltipShortcut({
       {...(closeDelay !== undefined && { closeDelay })} {...(open !== undefined && { open })}
       {...(defaultOpen !== undefined && { defaultOpen })}
       {...on('onOpenChange', onOpenChange, (details: TooltipOpenChangeDetails) => details.open)}>
+      <EscapeFirst />
       {anchored
         ? <Ark.Trigger asChild>{children}</Ark.Trigger>
         : <Ark.Trigger asChild><span {...part('trigger')}>{children}</span></Ark.Trigger>}
@@ -73,6 +75,19 @@ function TooltipShortcut({
       </Portal>
     </Ark.Root>
   )
+}
+
+// An Escape while it shows closes only the tooltip. Zag's dialog, popover and menu listen on the document
+// before it does; marked done on the window first, they leave it alone (the tooltip still closes).
+function EscapeFirst() {
+  const { open } = useTooltipContext()
+  useEffect(() => {
+    if (!open) return
+    const keep = (event: KeyboardEvent) => { if (event.key === 'Escape') event.preventDefault() }
+    window.addEventListener('keydown', keep, { capture: true })
+    return () => window.removeEventListener('keydown', keep, { capture: true })
+  }, [open])
+  return null
 }
 
 export const Tooltip = withParts(TooltipShortcut, {

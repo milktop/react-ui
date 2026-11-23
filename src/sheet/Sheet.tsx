@@ -25,8 +25,8 @@
  * Ark parts work too: give them data-scope="sheet" (Sheet.Content and the
  * rest here do that for you).
  */
-import { Children, isValidElement, type ComponentProps, type ComponentType, type ReactElement, type ReactNode } from 'react'
-import { Dialog as Ark, type DialogOpenChangeDetails } from '@ark-ui/react/dialog'
+import { Children, isValidElement, useEffect, useRef, type ComponentProps, type ComponentType, type ReactElement, type ReactNode, type RefObject } from 'react'
+import { Dialog as Ark, useDialogContext, type DialogOpenChangeDetails } from '@ark-ui/react/dialog'
 import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
 import { cx, on, partOf, partsOf, withParts, type Classes } from '../utils.js'
@@ -95,6 +95,7 @@ function SheetShortcut({
       closeOnInteractOutside={modal && !alert} onEscapeKeyDown={onEscapeKeyDown} lazyMount unmountOnExit>
       {trigger && <Ark.Trigger asChild>{trigger}</Ark.Trigger>}
       {composed && triggers}
+      {!modal && <ReturnFocus layer={layer} />}
       <InLayer.Provider value>
         <Portal>
           {modal && <Ark.Backdrop {...part('backdrop')} />}
@@ -117,6 +118,22 @@ function SheetShortcut({
       </InLayer.Provider>
     </Ark.Root>
   )
+}
+
+// Zag hands focus back only from its focus trap, which a sheet that isn't modal goes without: closing one
+// that held focus (Escape, its close button) puts it back where it was before it opened.
+function ReturnFocus({ layer }: { layer: RefObject<HTMLDivElement | null> }) {
+  const { open } = useDialogContext()
+  const opener = useRef<Element | null>(null)
+  useEffect(() => {
+    if (open) { opener.current = document.activeElement; return }
+    const back = opener.current
+    opener.current = null
+    const focus = document.activeElement
+    const lost = !focus || focus === document.body || !!layer.current?.contains(focus)
+    if (lost && back instanceof HTMLElement && back.isConnected) back.focus({ preventScroll: true })
+  }, [open, layer])
+  return null
 }
 
 export const Sheet = withParts(SheetShortcut, {
