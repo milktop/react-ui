@@ -14,6 +14,8 @@
  * - `placement`: where the calendar opens ('bottom-start')
  * - `inline`: just the calendar, always showing (no input or popup), e.g. a
  *   month beside a schedule
+ * - `pick`: 'month' to pick a month from a year's grid (the value is a date in
+ *   it); 'day' by default
  * - `prev`, `next`: elements to use as those buttons; they get the trigger's
  *   props, so a component must pass them on (as Button does)
  *
@@ -60,6 +62,7 @@ export type DatePickerProps = Omit<Ark.RootProps, 'value' | 'defaultValue' | 'on
   prev?: ReactElement | null
   next?: ReactElement | null
   inline?: boolean
+  pick?: 'day' | 'month'
   onInvalidChange?: ((reason: string | null) => void) | null
   classes?: Classes<'root' | 'label' | 'control' | 'input' | 'separator' | 'clearTrigger' | 'trigger' | 'positioner' | 'content'
     | 'view' | 'viewControl' | 'prevTrigger' | 'viewTrigger' | 'nextTrigger' | 'table' | 'tableHeader' | 'tableCell' | 'tableCellTrigger' | 'error'>
@@ -111,7 +114,7 @@ function DatePickerShortcut(props: DatePickerProps) {
 function DatePickerInner(props: DatePickerProps) {
   const {
     label = null, value, defaultValue, onValueChange, range = false, min = null, max = null, unavailable = null,
-    locale: localeProp, placement = 'bottom-start', prev = null, next = null, inline = false, onInvalidChange = null, className, classes, ...rest
+    locale: localeProp, placement = 'bottom-start', prev = null, next = null, inline = false, pick = 'day', onInvalidChange = null, className, classes, ...rest
   } = props as DatePickerProps & { value?: string | string[] | null, defaultValue?: string | string[] | null,
     onValueChange?: (value: string | string[] | null, details: DatePickerValueChangeDetails) => void }
   const field = useFieldContext()
@@ -143,6 +146,7 @@ function DatePickerInner(props: DatePickerProps) {
     positioning: { placement, strategy: 'fixed' },
     ...(t.zag.datePicker && { translations: t.zag.datePicker }),
     ...(inline && { inline: true }),
+    ...(pick === 'month' && { minView: 'month', defaultView: 'month' }),
     // Inside a Field, its label points at the first input.
     ...(field && { ids: { label: () => field.ids.label, input: (index: number) => (index === 0 ? field.ids.control : `${field.ids.control}-${index}`) }, invalid: field.invalid }),
   })
