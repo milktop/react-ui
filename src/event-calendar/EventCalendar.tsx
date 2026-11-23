@@ -35,7 +35,9 @@
  * - `date`, `defaultDate`: a day in the range shown (today's by default);
  *   `onDateChange`, from the toolbar (its title opens a calendar)
  * - `weekStartsOn`: 1 (Monday, default) or 0; `startHour`, `endHour` (7, 21);
- *   `slotMinutes`: what selecting, moving and resizing snap to (30);
+ *   `slotMinutes`: what selecting and resizing snap to (30); `moveMinutes`:
+ *   the grid a moved event's start lands on (`slotMinutes`), so 10:55 can go
+ *   to 11:00, and the arrow keys' step;
  *   `compactMinutes`: events this long or shorter go on one line, tighter (30;
  *   lower it with a taller `hourHeight`, where short ones have the room);
  *   `hourHeight`: a CSS length ('3rem')
@@ -191,6 +193,7 @@ export type EventCalendarProps<E extends CalendarEvent = CalendarEvent, R extend
     startHour?: number
     endHour?: number
     slotMinutes?: number
+    moveMinutes?: number
     compactMinutes?: number
     hourHeight?: string
     height?: string | null
@@ -297,7 +300,7 @@ type Preview = { kind: 'select', column: number, from: number, to: number }
 
 export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends CalendarResource = CalendarResource>({
   events = [], resources = null, resourceViews = null, view: viewProp, defaultView = 'week', onViewChange, views = ['day', 'week'],
-  date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, compactMinutes = 30, hourHeight = '3rem',
+  date: dateProp, defaultDate, onDateChange, weekStartsOn = 1, startHour = 7, endHour = 21, slotMinutes = 30, moveMinutes = slotMinutes, compactMinutes = 30, hourHeight = '3rem',
   height = null, scrollToTime = null, rows = [], allDayMax = 3, allDayLabel = null, hideRowsOnScroll = false, onSelect, onEventClick, onDayClick, onResourceClick, onRangeChange, onEventChange, isAvailable, onUnavailable,
   pinned = null, selection = null, shiftBlocks = false, onPinnedChange, eventMenu, slotMenu, renderEvent, renderResource, renderDayHeader, eventLabel, translations, actions = null, toolbar = true, nav = 'buttons',
   locale: localeProp, className, classes, style, ...rest
@@ -508,6 +511,14 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     return Math.max(earliest, Math.min(latest, byMinutes))
   }
 
+  // How far a drag by `delta` minutes moves an event: its start onto the move
+  // grid (10:55 a step down is 11:00), and nowhere for a drag that's only sideways.
+  function moveBy(event: E, delta: number) {
+    if (Math.abs(delta) < moveMinutes / 2) return 0
+    const from = minutesOfDay(parse(event.start))
+    return Math.round((from + delta) / moveMinutes) * moveMinutes - from
+  }
+
   // Where a pinned event placed at `minute` starts: on a slot, ending by the day's last hour.
   function placeAt(minute: number) {
     if (!pinned) return minute
@@ -694,15 +705,14 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
     } else if (g.kind === 'place') {
       setPreview({ kind: 'place', column: g.column, from: placeAt(minuteAt(g.lastY, box)) })
     } else {
-      let byMinutes = Math.round((exactMinute(g.lastY, box) - g.exact) / slotMinutes) * slotMinutes
-      // A resize ends on the grid (8:10 – 8:25 stretches to 9:00, not 9:05), wherever it started.
-      if (g.kind === 'resize') byMinutes = Math.round(exactMinute(g.lastY, box) / slotMinutes) * slotMinutes - minutesOfDay(parse(g.event!.end))
       if (g.kind === 'move') {
         const scrolledX = (grid.current?.scrollLeft ?? 0) - g.scroll.left + scrollX - g.scroll.x
         const byColumns = Math.round((g.lastX - g.x + scrolledX) / g.width)
-        byMinutes = withinHours(g.event!, 'move', byMinutes)
+        const byMinutes = withinHours(g.event!, 'move', moveBy(g.event!, exactMinute(g.lastY, box) - g.exact))
         setPreview({ kind: 'move', id: g.event!.id, columns: byColumns, minutes: byMinutes, x: byColumns * g.width, y: byMinutes * perMinute })
       } else {
+        // A resize ends on the grid (8:10 – 8:25 stretches to 9:00, not 9:05), wherever it started.
+        const byMinutes = Math.round(exactMinute(g.lastY, box) / slotMinutes) * slotMinutes - minutesOfDay(parse(g.event!.end))
         setPreview({ kind: 'resize', id: g.event!.id, minutes: withinHours(g.event!, 'resize', byMinutes) })
       }
     }
@@ -819,12 +829,17 @@ export function EventCalendar<E extends CalendarEvent = CalendarEvent, R extends
 
   function keyDown(e: KeyboardEvent, event: E) {
     if (!editable(event)) return
-    const keys: Record<string, [number, number]> = { ArrowUp: [0, -slotMinutes], ArrowDown: [0, slotMinutes], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }
+    const keys: Record<string, [number, number]> = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }
     const move = keys[e.key]
     if (!move) return
     e.preventDefault()
-    if (e.shiftKey && move[0] === 0) change(event, 'resize', 0, move[1])
-    else change(event, 'move', move[0], move[1])
+    const [byColumns, steps] = move
+    if (e.shiftKey && !byColumns) return change(event, 'resize', 0, steps * slotMinutes)
+    // Up or down to the next line of the move grid, from wherever it starts
+    const from = minutesOfDay(parse(event.start))
+    const byMinutes = steps > 0 ? (Math.floor(from / moveMinutes) + 1) * moveMinutes - from
+      : steps < 0 ? (Math.ceil(from / moveMinutes) - 1) * moveMinutes - from : 0
+    change(event, 'move', byColumns, byMinutes)
   }
 
   // The slot under the pointer: tinted (in its resource's colour) when it can
