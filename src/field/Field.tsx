@@ -100,7 +100,8 @@ export const Field = withParts(FieldShortcut, {
  *     <Field label="Date" span={6}>…</Field>
  *   </Fields>
  *
- * - `legend`, `description`: a heading for the group
+ * - `legend`, `description`: a heading for the group. Alone it's a title; Fields
+ *   that follow one another are a form's sections, each headed by a small label on a rule
  */
 export type FieldsProps = ComponentProps<'fieldset'> & {
   legend?: ReactNode
