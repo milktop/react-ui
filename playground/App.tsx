@@ -16,8 +16,9 @@ import { useAppearance } from './lib/appearance'
 import { Theming } from './pages/Theming'
 import { Installation } from './pages/Installation'
 import { Tokens } from './pages/Tokens'
+import { Layers } from './pages/Layers'
 
-const guides: Record<string, string> = { '#/theming': 'Theming', '#/tokens': 'Tokens', '#/installation': 'Installation' }
+const guides: Record<string, string> = { '#/theming': 'Theming', '#/tokens': 'Tokens', '#/installation': 'Installation', '#/layers': 'Layers' }
 
 function useHash() {
   const [hash, setHash] = useState(location.hash)
@@ -94,6 +95,7 @@ export function App() {
           <Sidebar.Item icon="lucide:palette" href="#/theming" active={route === '#/theming'}>Theming</Sidebar.Item>
           <Sidebar.Item icon="lucide:swatch-book" href="#/tokens" active={route === '#/tokens'}>Tokens</Sidebar.Item>
           <Sidebar.Item icon="lucide:download" href="#/installation" active={route === '#/installation'}>Installation</Sidebar.Item>
+          <Sidebar.Item icon="lucide:layers" href="#/layers" active={route === '#/layers'}>Layers</Sidebar.Item>
         </Sidebar.Section>
         <Sidebar.Section heading="Components">
           {groups.map((group) => (
@@ -136,6 +138,7 @@ export function App() {
           : route === '#/theming' ? <Theming />
           : route === '#/tokens' ? <Tokens query={new URLSearchParams(hash.split('?')[1] ?? '').get('q') ?? ''} />
           : route === '#/installation' ? <Installation />
+          : route === '#/layers' ? <Layers query={new URLSearchParams(hash.split('?')[1] ?? '')} />
           : <Overview />}
       </Page>
       <Toaster />
