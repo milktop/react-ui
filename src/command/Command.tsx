@@ -37,7 +37,7 @@ import { Dialog } from '@ark-ui/react/dialog'
 import { Listbox, createListCollection, useListbox } from '@ark-ui/react/listbox'
 import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
-import { cx, partsOf, useControllable, type Classes } from '../utils.js'
+import { cx, fold, partsOf, useControllable, type Classes } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './command.css'
@@ -82,9 +82,6 @@ export function formatHotkey(key = 'k') {
 }
 
 const keyOf = (item: CommandItem) => String(item.value ?? item.href ?? item.label)
-
-// Lowercase without accents, so "tache" finds "Tâches"
-const fold = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 
 // Every word typed must appear in the label, description, group or keywords.
 function matches(item: CommandItem, words: string[]) {

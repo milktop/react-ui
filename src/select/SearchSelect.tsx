@@ -8,7 +8,7 @@ import {
 import { useFieldContext } from '@ark-ui/react/field'
 import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
-import { cx, partOf, partsOf, slot } from '../utils.js'
+import { cx, fold, partOf, partsOf, slot } from '../utils.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import { InLayer } from '../layer.js'
 import { useItems } from './items.js'
@@ -80,9 +80,9 @@ export function SearchSelect<T>({
 
   const shown = useMemo(() => {
     if (load) return loading ? [] : loaded
-    const q = query.toLowerCase()
+    const q = fold(query)
     if (!q) return [...items]
-    const text = (item: T) => labelOf(item).toLowerCase()
+    const text = (item: T) => fold(labelOf(item))
     return [...items.filter((item) => text(item).startsWith(q)), ...items.filter((item) => !text(item).startsWith(q) && text(item).includes(q))]
   }, [items, query, load, loading, loaded, labelKey]) // eslint-disable-line react-hooks/exhaustive-deps
 

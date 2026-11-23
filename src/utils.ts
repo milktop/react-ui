@@ -77,3 +77,6 @@ export function on<Name extends string, Details, Value>(
 ): Partial<Record<Name, (details: Details) => void>> {
   return handler ? { [name]: (details: Details) => handler(pick(details), details) } as Record<Name, (details: Details) => void> : {}
 }
+
+/** Text as a search compares it: lowercase, without accents ("Valérie" → "valerie"). */
+export const fold = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()

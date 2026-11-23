@@ -35,7 +35,7 @@ import {
   type CountryCode, type PhoneNumber,
 } from 'libphonenumber-js/max'
 import '../icons.js'
-import { cx, partsOf, useControllable, type Classes } from '../utils.js'
+import { cx, fold, partsOf, useControllable, type Classes } from '../utils.js'
 import { useLocale, useMessages } from '../format/LocaleProvider.js'
 import { useFieldReport } from '../field/report.js'
 import '../theme.css'
@@ -69,8 +69,6 @@ const reasons: Record<string, 'tooShort' | 'tooLong'> = { TOO_SHORT: 'tooShort',
 
 const flagOf = (country?: string | null) =>
   country ? String.fromCodePoint(...[...country].map((letter) => 127397 + letter.charCodeAt(0))) : '🌐'
-
-const fold = (text: string) => text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 function regionOf(locale?: string) {
   try {
