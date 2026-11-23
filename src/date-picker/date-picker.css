@@ -31,7 +31,7 @@
      z-index onto the positioner when it opens, numbering each open layer (--layer-index). */
   [data-scope=date-picker][data-part=positioner][data-layered] { z-index: 105; --z-index: 105; }
   [data-scope=date-picker][data-part=content][data-layered] { z-index: calc(105 + var(--layer-index, 0)); }
-  [data-scope=date-picker][data-part=content] { z-index: 50; padding: 0.75rem; background: var(--ui-surface); outline: none;
+  [data-scope=date-picker][data-part=content] { z-index: calc(50 + var(--layer-index, 0)); padding: 0.75rem; background: var(--ui-surface); outline: none;
     border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) + 2px); box-shadow: var(--ui-shadow);
     /* An inline calendar in a popover (EventCalendar's date jump): the popover is the card. */
     [data-scope=popover] & { padding: 0; border: none; border-radius: 0; box-shadow: none; background: transparent; } }

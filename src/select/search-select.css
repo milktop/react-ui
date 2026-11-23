@@ -34,7 +34,7 @@
      z-index onto the positioner when it opens, numbering each open layer (--layer-index). */
   [data-scope=combobox][data-part=positioner][data-layered] { z-index: 105; --z-index: 105; }
   [data-scope=combobox][data-part=content][data-layered] { z-index: calc(105 + var(--layer-index, 0)); }
-  [data-scope=combobox][data-part=content] { z-index: 50; margin: 0; padding: 0.25rem; list-style: none; box-sizing: border-box; outline: none;
+  [data-scope=combobox][data-part=content] { z-index: calc(50 + var(--layer-index, 0)); margin: 0; padding: 0.25rem; list-style: none; box-sizing: border-box; outline: none;
     max-height: min(300px, var(--available-height)); overflow-y: auto; font-weight: 400;
     background: var(--ui-surface); border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) + 2px); box-shadow: var(--ui-shadow); }
   [data-scope=combobox][data-part=empty] { padding: 0.5rem; font-size: 14px; color: var(--ui-muted); }

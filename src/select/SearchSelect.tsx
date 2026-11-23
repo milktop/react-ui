@@ -121,9 +121,19 @@ export function SearchSelect<T>({
   const keysOf = (list: string[]) => list.map(byKey).filter((item) => item !== undefined).map(valueOf)
 
   function inputChange(details: ComboboxInputValueChangeDetails) {
+    const typing = details.reason === 'input-change'
+    // Picking one, the box shows its label: a search typed after it (a key, a phone's keyboard, a
+    // paste) replaces it rather than adding to it.
+    const shown = !multiple && !query && keys.length ? byKey(keys[0]) : undefined
+    const label = shown === undefined ? '' : labelOf(shown)
+    if (typing && label && details.inputValue.length > label.length && details.inputValue.startsWith(label)) {
+      const search = details.inputValue.slice(label.length)
+      queueMicrotask(() => api.current.setInputValue(search, 'input-change'))
+      return
+    }
     // Emptying the input clears a single pick; partial edits revert on blur.
-    if (details.reason === 'input-change' && !details.inputValue && !multiple && keys.length) queueMicrotask(() => api.current.clearValue())
-    if (details.reason === 'input-change') setQuery(details.inputValue)
+    if (typing && !details.inputValue && !multiple && keys.length) queueMicrotask(() => api.current.clearValue())
+    if (typing) setQuery(details.inputValue)
     else if (!load || details.reason === 'clear-trigger') setQuery('')
   }
 
