@@ -11,6 +11,10 @@
  * - `name`, `value`: for plain form posts
  * - `disabled`, `invalid`, `required`
  *
+ * Inside a Field, one with a label keeps its own ids, so several can share it
+ * (the Field's label heads them); one without is the Field's control, named by
+ * its label. Ark's Root by hand always takes the Field's ids.
+ *
  * By hand, with Ark's parts:
  *
  *   <Checkbox.Root>
@@ -38,6 +42,10 @@ export type CheckboxProps = Omit<Ark.RootProps, 'onCheckedChange' | 'label'> & {
   classes?: Classes<'root' | 'control' | 'indicator' | 'label'>
 }
 
+// Ark hands a control inside a Field the Field's ids. One with a label of its own is a
+// control of its own (one of several, say), so it keeps its own; ids from the caller win.
+const ownIds = {}
+
 function CheckboxShortcut({
   onCheckedChange, label = null, labelHidden = false, indicator,
   className, classes, children, ...rest
@@ -45,7 +53,7 @@ function CheckboxShortcut({
   const part = partsOf('checkbox', classes)
 
   return (
-    <Ark.Root {...rest} {...part('root')} className={cx(className, classes?.root)}
+    <Ark.Root {...((label || children) && { ids: ownIds })} {...rest} {...part('root')} className={cx(className, classes?.root)}
       {...on('onCheckedChange', onCheckedChange, (details: CheckboxCheckedChangeDetails) => details.checked === true)}>
       <Ark.Control {...part('control')}>
         <Ark.Indicator {...part('indicator')}>

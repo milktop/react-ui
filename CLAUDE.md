@@ -54,7 +54,9 @@ look. Read `README.md` first.
   `…Shortcut` function's destructured parameters. A prop with no notes shows
   a blank: document it.
 - Form controls take `label`, skipped inside a Field (`useFieldContext()`).
-  Ark's controls wire themselves to an Ark Field: no ids to pass.
+  Ark's controls wire themselves to an Ark Field: no ids to pass. A Checkbox
+  or Switch with its own label keeps its own ids (`ids: ownIds`), so several
+  share a Field; one without a label takes the Field's.
 - Props: `className` (outer element), `classes` (per part), `...rest` onto the
   natural element (the button, the input, Ark's root).
 - `const part = partsOf('<scope>', classes)` and `{...part('name')}` on every

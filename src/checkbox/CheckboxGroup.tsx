@@ -110,11 +110,12 @@ export function CheckboxGroup<T, K extends string = 'value'>({
     <div {...rest} {...part('root')} className={cx(className, classes?.root)} role="group" data-variant={variant}
       aria-labelledby={field ? field.ids.label : label ? `${id}-label` : undefined}>
       {label && !field && <span {...part('label')} id={`${id}-label`}>{label}</span>}
-      {selectAll && <Checkbox label={selectAll} disabled={disabled} checked={allState} onCheckedChange={toggleAll} />}
+      {/* ids={{}}: its boxes are never the Field's one control, even one with an empty label */}
+      {selectAll && <Checkbox ids={{}} label={selectAll} disabled={disabled} checked={allState} onCheckedChange={toggleAll} />}
       <div {...part('items')} data-orientation={orientation} data-indented={selectAll ? '' : undefined}
         onPointerDownCapture={noteShift} onMouseDownCapture={noteShift} onKeyDownCapture={noteShift}>
         {items.map((item) => (
-          <Checkbox key={String(valueOf(item))} label={labelFor(item)} value={String(valueOf(item))} disabled={isLocked(item)}
+          <Checkbox key={String(valueOf(item))} ids={{}} label={labelFor(item)} value={String(valueOf(item))} disabled={isLocked(item)}
             {...(name && { name })} checked={isSelected(item)} onCheckedChange={(on) => toggle(item, on)} />
         ))}
       </div>
