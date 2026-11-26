@@ -1,11 +1,11 @@
 @layer ui {
-  [data-scope=tabs][data-part=root] { display: block; width: 100%; color: var(--ui-text); font-family: var(--ui-font); }
+  [data-scope=tabs][data-part=root] { position: relative; display: block; width: 100%; color: var(--ui-text); font-family: var(--ui-font); }
   [data-scope=tabs][data-part=list] { position: relative; display: flex; gap: 0.25rem; overflow-x: auto;
     /* A shadow, not a border: the list scrolls sideways, and the underline over a border would add a pixel of vertical scroll. */
     [data-variant=line] > & { box-shadow: inset 0 -1px var(--ui-border); }
     /* Pills: a raised pill behind the selected tab, like Segmented. */
     [data-variant=pills] > & { display: inline-flex; padding: 0.25rem; background: var(--ui-hover); border-radius: var(--ui-radius); } }
-  [data-scope=tabs][data-part=trigger] {
+  [data-scope=tabs]:is([data-part=trigger], [data-part=more]) {
     position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 0.5rem; height: var(--ui-control-height); padding: 0 0.75rem;
     border: none; background: transparent; color: var(--ui-muted); font: inherit; font-size: 14px; font-weight: 500; white-space: nowrap;
     cursor: pointer; border-radius: var(--ui-radius);
@@ -16,6 +16,14 @@
     [data-variant=line] & { border-radius: 0; height: calc(var(--ui-control-height) + 0.5rem); padding: 0 0.875rem; }
     [data-variant=pills] & { height: calc(var(--ui-control-height) - 8px); border-radius: calc(var(--ui-radius) - 2px); } }
   [data-scope=tabs][data-part=icon] { display: block; font-size: 16px; }
+  /* The menu of tabs that don't fit: a tab of its own, its chevron quieter */
+  [data-scope=tabs][data-part=more] { gap: 0.25rem; flex-shrink: 0;
+    & > iconify-icon { font-size: 14px; opacity: 0.7; }
+    &[data-state=open] { color: var(--ui-text); } }
+  /* Every tab laid out where nothing shows, to measure which fit: no size of its own, so nothing scrolls */
+  [data-scope=tabs][data-part=measure] { position: absolute; top: 0; left: 0; width: 0; height: 0; overflow: hidden; visibility: hidden;
+    pointer-events: none; display: flex; gap: 0.25rem;
+    & > * { flex-shrink: 0; } }
   /* The count after a label: quiet by default, coloured for status. */
   [data-scope=tabs][data-part=count] { position: relative; display: inline-grid; place-items: center; min-width: 18px; height: 18px;
     padding: 0 5px; box-sizing: border-box; border-radius: 9999px; isolation: isolate;
