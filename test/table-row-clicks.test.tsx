@@ -60,3 +60,18 @@ test('a middle click opens the row, for a new tab', () => {
   fireEvent(cell('Malou'), new MouseEvent('auxclick', { bubbles: true, button: 1 }))
   expect(opened).toEqual(['Malou (new tab)'])
 })
+
+test('while ⌘, Ctrl or Shift is held, the table says a click would tick (for the hovered row’s faint tick)', () => {
+  render(<Animals opened={[]} />)
+  const table = () => document.querySelector('[data-scope=table][data-part=root]')!
+
+  fireEvent.keyDown(window, { key: 'Meta', metaKey: true })
+  expect(table().hasAttribute('data-ticking')).toBe(true)
+  fireEvent.keyUp(window, { key: 'Meta' })
+  expect(table().hasAttribute('data-ticking')).toBe(false)
+
+  fireEvent.pointerMove(cell('Naska'), { shiftKey: true })
+  expect(table().hasAttribute('data-ticking')).toBe(true)
+  fireEvent.blur(window)
+  expect(table().hasAttribute('data-ticking')).toBe(false)
+})

@@ -41,7 +41,7 @@
  * Or write the <table> yourself as its content, for the look alone (no
  * sorting, selection or loading states); `data-align` on cells works too.
  */
-import { useEffect, useRef, type CSSProperties, type HTMLAttributes, type MouseEvent, type ReactNode, type SyntheticEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type MouseEvent, type ReactNode, type SyntheticEvent } from 'react'
 import '../icons.js'
 import { Checkbox } from '../checkbox/Checkbox.js'
 import { Skeleton } from '../skeleton/Skeleton.js'
@@ -150,6 +150,23 @@ export function Table<T extends object = Row>({
   // Once a row is ticked, a click on a row ticks it rather than opening it.
   const selecting = selectable && selected.length > 0
 
+  // While ⌘/Ctrl or Shift is held, the row under the pointer shows a faint tick: a
+  // click would tick it. Pointer moves carry the keys too, for one pressed elsewhere.
+  const [ticking, setTicking] = useState(false)
+  const noteKeys = (e: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean }) => setTicking(e.metaKey || e.ctrlKey || e.shiftKey)
+  useEffect(() => {
+    if (!selectable) return
+    const off = () => setTicking(false)
+    window.addEventListener('keydown', noteKeys)
+    window.addEventListener('keyup', noteKeys)
+    window.addEventListener('blur', off)
+    return () => {
+      window.removeEventListener('keydown', noteKeys)
+      window.removeEventListener('keyup', noteKeys)
+      window.removeEventListener('blur', off)
+    }
+  }, [selectable])
+
   // Change events don't carry the Shift key, so it's noted on the way in;
   // Shift+mousedown would also select the text between (a run is ticked instead).
   const shift = useRef(false)
@@ -202,7 +219,8 @@ export function Table<T extends object = Row>({
   const columnCount = columns.length + (selectable ? 1 : 0)
   return (
     <div {...rest} {...part('root')} className={cx(className, classes?.root)} data-size={size} data-flush={flush || undefined}
-      data-clickable={onRowClick ? '' : undefined} data-selecting={selecting || undefined} data-loading={(loading && rows.length > 0) || undefined}>
+      data-clickable={onRowClick ? '' : undefined} data-selecting={selecting || undefined}
+      data-ticking={(selectable && ticking) || undefined} data-loading={(loading && rows.length > 0) || undefined}>
       <div {...part('scroll')} data-sticky={maxHeight ? '' : undefined} style={maxHeight ? { maxHeight } as CSSProperties : undefined}>
         {!columns.length ? children : (
           <table {...part('table')} aria-busy={loading}>
@@ -229,7 +247,7 @@ export function Table<T extends object = Row>({
                 ))}
               </tr>
             </thead>
-            <tbody onPointerDownCapture={noteShift} onMouseDownCapture={noteShift} onKeyDownCapture={noteShift}>
+            <tbody onPointerMove={selectable ? noteKeys : undefined} onPointerDownCapture={noteShift} onMouseDownCapture={noteShift} onKeyDownCapture={noteShift}>
               {loading && !rows.length
                 ? Array.from({ length: loadingRows }, (_, i) => (
                     <tr key={i}>
