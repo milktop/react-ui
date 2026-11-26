@@ -21,10 +21,11 @@
     & :is(th, td)[data-align=center] { text-align: center; }
     & :is(th, td)[data-align=end] { text-align: right; }
     & tbody tr:last-child td { border-bottom: none; }
-    & tbody tr:hover { background: color-mix(in srgb, var(--ui-hover) 60%, transparent); }
     & tbody tr[data-selected] { background: color-mix(in srgb, var(--ui-accent-soft) 45%, transparent); }
-    /* A click on a row opens it (`onRowClick`) or, while rows are ticked, ticks it. */
-    :is([data-clickable], [data-selecting]) > & tbody tr { cursor: pointer; }
+    /* A click on a row opens it (`onRowClick`) or, while rows are ticked, ticks it: only then does a row
+       answer the pointer. A read-only table stays still. */
+    :is([data-clickable], [data-selecting]) > & tbody tr { cursor: pointer;
+      &:not([data-selected]):hover { background: color-mix(in srgb, var(--ui-hover) 60%, transparent); } }
     /* Outer cells line up with a card's padding. */
     [data-flush] > & :is(th, td):first-child { padding-left: 1.25rem; }
     [data-flush] > & :is(th, td):last-child { padding-right: 1.25rem; } }

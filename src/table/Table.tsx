@@ -23,8 +23,9 @@
  * - `selectable`: a checkbox per row and a select-all; `selected`,
  *   `defaultSelected`: the selected rows' keys; `onSelectedChange`. Shift-click
  *   a row's checkbox to tick (or clear) the rows between it and the last one
- *   clicked. Once a row is ticked, clicking a row ticks (or clears) it too,
- *   Shift a run, rather than calling `onRowClick`
+ *   clicked. As in a file list, ⌘/Ctrl-click a row to tick it and Shift-click
+ *   for a run; once a row is ticked, a plain click ticks too, rather than
+ *   calling `onRowClick`
  * - `loading`: skeleton rows while there are none yet (`loadingRows`, 5),
  *   else dims the rows
  * - `emptyText`, or `empty` (markup), for no rows
@@ -32,8 +33,10 @@
  * - `label`: a caption for assistive tech
  * - `size`: 'sm', 'md' (default) or 'lg' (roomier rows)
  * - `flush`: no border or rounding, to sit edge to edge in a card
- * - `onRowClick`: called with the row when a row is clicked (outside its
- *   controls), unless rows are ticked; rows then show the pointer
+ * - `onRowClick`: called with the row and the event when a row is clicked
+ *   (outside its controls), unless rows are ticked; rows then show the
+ *   pointer and answer hover. A middle click comes too (`event.button` 1),
+ *   to open the row in a new tab
  *
  * Or write the <table> yourself as its content, for the look alone (no
  * sorting, selection or loading states); `data-align` on cells works too.
@@ -82,7 +85,7 @@ export type TableProps<T extends object = Row> = Omit<HTMLAttributes<HTMLDivElem
   label?: string | null
   size?: 'sm' | 'md' | 'lg'
   flush?: boolean
-  onRowClick?: (row: T) => void
+  onRowClick?: (row: T, event: MouseEvent) => void
   classes?: Classes<'root' | 'scroll' | 'table' | 'caption' | 'sort' | 'sortIcon' | 'row' | 'selectCell' | 'empty'>
 }
 
@@ -148,13 +151,13 @@ export function Table<T extends object = Row>({
   const selecting = selectable && selected.length > 0
 
   // Change events don't carry the Shift key, so it's noted on the way in;
-  // Shift+mousedown would also select the text between.
+  // Shift+mousedown would also select the text between (a run is ticked instead).
   const shift = useRef(false)
   const anchorKey = useRef<Key | null>(null)
   function noteShift(e: SyntheticEvent) {
     const event = e.nativeEvent as MouseEvent['nativeEvent'] | KeyboardEvent
     shift.current = event.shiftKey
-    if (event.shiftKey && e.type === 'mousedown' && (selecting || (e.target as Element).closest('[data-part=select-cell]'))) e.preventDefault()
+    if (event.shiftKey && e.type === 'mousedown' && selectable) e.preventDefault()
   }
 
   function toggleRow(row: T, on: boolean) {
@@ -179,11 +182,21 @@ export function Table<T extends object = Row>({
 
   // Not when the click was on a control in the row (a link, a menu…); only
   // the row's own contents count, not what the table sits in (a Card).
-  function rowClicked(e: MouseEvent, row: T) {
+  const onControl = (e: MouseEvent) => {
     const control = (e.target as Element).closest('a, button, input, label, select, textarea, [data-scope]:not([data-scope=table])')
-    if (control && e.currentTarget.contains(control)) return
-    if (selecting) toggleRow(row, !isSelected(row))
-    else onRowClick?.(row)
+    return !!control && e.currentTarget.contains(control)
+  }
+
+  // ⌘/Ctrl or Shift ticks, as in a file list, before any row is ticked too
+  function rowClicked(e: MouseEvent, row: T) {
+    if (onControl(e)) return
+    if (selectable && (selecting || e.metaKey || e.ctrlKey || e.shiftKey)) toggleRow(row, !isSelected(row))
+    else onRowClick?.(row, e)
+  }
+
+  // A middle click, for a new tab
+  function rowAuxClicked(e: MouseEvent, row: T) {
+    if (e.button === 1 && !onControl(e)) onRowClick?.(row, e)
   }
 
   const columnCount = columns.length + (selectable ? 1 : 0)
@@ -228,7 +241,7 @@ export function Table<T extends object = Row>({
                   ? <tr><td {...part('empty')} colSpan={columnCount}>{empty ?? emptyText}</td></tr>
                   : sortedRows.map((row) => (
                       <tr key={keyOf(row)} {...part('row')} data-selected={isSelected(row) || undefined}
-                        aria-selected={selectable ? isSelected(row) : undefined} onClick={(e) => rowClicked(e, row)}>
+                        aria-selected={selectable ? isSelected(row) : undefined} onClick={(e) => rowClicked(e, row)} onAuxClick={(e) => rowAuxClicked(e, row)}>
                         {selectable && (
                           <td {...part('select-cell')}>
                             <Checkbox label={<>{t.table.selectRow} {display(row, columns[0])}</>} labelHidden checked={isSelected(row)}
