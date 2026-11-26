@@ -17,6 +17,8 @@
   :root {
     --ui-text: #18181b;
     --ui-muted: #71717a;
+    /* Plain and ghost buttons: a step softer than text, so toolbars don't outweigh the content. */
+    --ui-button-text: #3f3f46;
     --ui-surface: white;
     --ui-canvas: #f2f4f7;
     /* The inset app shell: its sidebar (a lighter shade of the canvas) and the frame round the page. */
@@ -124,6 +126,7 @@
   :root.dark, [data-theme=dark] {
     --ui-text: #fafafa;
     --ui-muted: #a1a1aa;
+    --ui-button-text: #e4e4e7;
     --ui-surface: #1c1c21;
     --ui-canvas: #141418;
     --ui-sidebar-bg: #0c0c0e;
