@@ -21,7 +21,7 @@
  * - `heading`, `description`: label and describe it for assistive tech
  * - `footer`: buttons along the bottom
  * - `alert`: an alertdialog, for confirmations; the backdrop doesn't close it
- * - `size`: 'sm', 'md' (default) or 'lg'
+ * - `size`: 'sm' (32rem), 'md' (default, 44rem) or 'lg' (56rem)
  * - `closable`: false hides the close button
  *
  * Or composed, with the overlay still done for you (backdrop, positioning,
