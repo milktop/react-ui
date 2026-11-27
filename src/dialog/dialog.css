@@ -6,8 +6,10 @@
     &[data-state=closed] { animation: ui-fade-out 120ms ease-in forwards; } }
   /* Covers the screen to centre the panel, but lets clicks through to the backdrop. */
   [data-scope=dialog][data-part=positioner] { position: fixed; inset: 0; z-index: calc(100 + var(--layer-index, 0) + 5 * min(1, var(--layer-index, 0))); display: grid; place-items: center; padding: 1rem; pointer-events: none; }
+  /* min-width: 0, or as a grid item it can't shrink below its content: a long line or a wide
+     table would push it past a phone's screen rather than truncate or scroll. */
   [data-scope=dialog][data-part=content] {
-    position: relative; display: flex; flex-direction: column; width: 100%; max-width: 32rem; max-height: calc(100vh - 32px); box-sizing: border-box;
+    position: relative; display: flex; flex-direction: column; width: 100%; min-width: 0; max-width: 32rem; max-height: calc(100vh - 32px); box-sizing: border-box;
     background: var(--ui-surface); color: var(--ui-text); font-family: var(--ui-font); font-size: 14px;
     border: 1px solid var(--ui-border); border-radius: calc(var(--ui-radius) + 4px); box-shadow: var(--ui-shadow); outline: none; pointer-events: auto;
     &[data-size=sm] { max-width: 24rem; }
