@@ -38,6 +38,7 @@ import { Listbox, createListCollection, useListbox } from '@ark-ui/react/listbox
 import { Portal } from '@ark-ui/react/portal'
 import '../icons.js'
 import { cx, fold, partsOf, useControllable, type Classes } from '../utils.js'
+import { InLayer } from '../layer.js'
 import { useMessages } from '../format/LocaleProvider.js'
 import '../theme.css'
 import './command.css'
@@ -248,63 +249,66 @@ export function Command({
     <Dialog.Root open={open} onOpenChange={(details) => setOpen(details.open)} lazyMount unmountOnExit
       initialFocusEl={() => input.current}>
       {trigger && <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>}
-      <Portal>
-        <Dialog.Backdrop {...part('backdrop')} />
-        <Dialog.Positioner {...part('positioner')}>
-          <Dialog.Content {...rest} {...part('content')} className={cx(className, classes?.content)}>
-            {/* Hidden, yet still the dialog's name: aria-labelledby reads hidden elements. */}
-            <Dialog.Title {...part('title')} hidden>{label}</Dialog.Title>
-            {/* The listbox parts keep Ark's scope, which the CSS targets inside the command. */}
-            <Listbox.RootProvider value={list}>
-              <Listbox.Label hidden>{label}</Listbox.Label>
-              <div {...part('search')}>
-                <iconify-icon {...part('search-icon')} icon="lucide:search" aria-hidden="true" />
-                {scope}
-                <Listbox.Input ref={input} className={classes?.input} autoHighlight type="text" placeholder={placeholder}
-                  value={query} onChange={(e) => search(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Backspace' && !query) onScopeClear?.() }}
-                  // Capture: Zag's Enter would pick it here first
-                  onKeyDownCapture={(e) => {
-                    if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey)) return
-                    openInNewTab(results.find((item) => keyOf(item) === list.highlightedValue), e)
-                  }} />
-                <kbd {...part('key')} data-esc="">{t.command.esc}</kbd>
-              </div>
-              <Listbox.Content ref={listEl} className={classes?.list}>
-                {/* Earlier results stay while a search runs. */}
-                {!results.length
-                  ? <div {...part('status')}>{loading ? loadingText : emptyText}</div>
-                  : groups.map((group) => (
-                      <Listbox.ItemGroup key={group.name} className={classes?.group}>
-                        {group.name && <Listbox.ItemGroupLabel className={classes?.groupLabel}>{group.name}</Listbox.ItemGroupLabel>}
-                        {group.items.map((item) => (
-                          <Listbox.Item key={keyOf(item)} item={item} highlightOnHover className={classes?.item}
-                            onClickCapture={(e) => { if (e.metaKey || e.ctrlKey) openInNewTab(item, e) }}
-                            onAuxClick={(e) => { if (e.button === 1) openInNewTab(item, e) }}>
-                            {item.icon && <iconify-icon {...part('icon')} icon={item.icon} aria-hidden="true" />}
-                            <span {...part('text')}>
-                              <span {...part('label')}>{item.label}</span>
-                              {item.description && <span {...part('description')}>{item.description}</span>}
-                            </span>
-                            {item.shortcut && <kbd {...part('shortcut')}>{item.shortcut}</kbd>}
-                          </Listbox.Item>
-                        ))}
-                      </Listbox.ItemGroup>
-                    ))}
-              </Listbox.Content>
-              {hints && (
-                <div {...part('hints')} aria-hidden="true">
-                  <span><kbd {...part('key')}>↑</kbd><kbd {...part('key')}>↓</kbd> {t.command.toNavigate}</span>
-                  <span><kbd {...part('key')}>↵</kbd> {t.command.toSelect}</span>
-                  {results.some((item) => item.href) && (
-                    <span><kbd {...part('key')}>{mac() ? '⌘' : 'Ctrl'}</kbd><kbd {...part('key')}>↵</kbd> {t.command.toOpenInNewTab}</span>
-                  )}
+      {/* The scope's Menu opens on top of the palette */}
+      <InLayer.Provider value>
+        <Portal>
+          <Dialog.Backdrop {...part('backdrop')} />
+          <Dialog.Positioner {...part('positioner')}>
+            <Dialog.Content {...rest} {...part('content')} className={cx(className, classes?.content)}>
+              {/* Hidden, yet still the dialog's name: aria-labelledby reads hidden elements. */}
+              <Dialog.Title {...part('title')} hidden>{label}</Dialog.Title>
+              {/* The listbox parts keep Ark's scope, which the CSS targets inside the command. */}
+              <Listbox.RootProvider value={list}>
+                <Listbox.Label hidden>{label}</Listbox.Label>
+                <div {...part('search')}>
+                  <iconify-icon {...part('search-icon')} icon="lucide:search" aria-hidden="true" />
+                  {scope}
+                  <Listbox.Input ref={input} className={classes?.input} autoHighlight type="text" placeholder={placeholder}
+                    value={query} onChange={(e) => search(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Backspace' && !query) onScopeClear?.() }}
+                    // Capture: Zag's Enter would pick it here first
+                    onKeyDownCapture={(e) => {
+                      if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey)) return
+                      openInNewTab(results.find((item) => keyOf(item) === list.highlightedValue), e)
+                    }} />
+                  <kbd {...part('key')} data-esc="">{t.command.esc}</kbd>
                 </div>
-              )}
-            </Listbox.RootProvider>
-          </Dialog.Content>
-        </Dialog.Positioner>
-      </Portal>
+                <Listbox.Content ref={listEl} className={classes?.list}>
+                  {/* Earlier results stay while a search runs. */}
+                  {!results.length
+                    ? <div {...part('status')}>{loading ? loadingText : emptyText}</div>
+                    : groups.map((group) => (
+                        <Listbox.ItemGroup key={group.name} className={classes?.group}>
+                          {group.name && <Listbox.ItemGroupLabel className={classes?.groupLabel}>{group.name}</Listbox.ItemGroupLabel>}
+                          {group.items.map((item) => (
+                            <Listbox.Item key={keyOf(item)} item={item} highlightOnHover className={classes?.item}
+                              onClickCapture={(e) => { if (e.metaKey || e.ctrlKey) openInNewTab(item, e) }}
+                              onAuxClick={(e) => { if (e.button === 1) openInNewTab(item, e) }}>
+                              {item.icon && <iconify-icon {...part('icon')} icon={item.icon} aria-hidden="true" />}
+                              <span {...part('text')}>
+                                <span {...part('label')}>{item.label}</span>
+                                {item.description && <span {...part('description')}>{item.description}</span>}
+                              </span>
+                              {item.shortcut && <kbd {...part('shortcut')}>{item.shortcut}</kbd>}
+                            </Listbox.Item>
+                          ))}
+                        </Listbox.ItemGroup>
+                      ))}
+                </Listbox.Content>
+                {hints && (
+                  <div {...part('hints')} aria-hidden="true">
+                    <span><kbd {...part('key')}>↑</kbd><kbd {...part('key')}>↓</kbd> {t.command.toNavigate}</span>
+                    <span><kbd {...part('key')}>↵</kbd> {t.command.toSelect}</span>
+                    {results.some((item) => item.href) && (
+                      <span><kbd {...part('key')}>{mac() ? '⌘' : 'Ctrl'}</kbd><kbd {...part('key')}>↵</kbd> {t.command.toOpenInNewTab}</span>
+                    )}
+                  </div>
+                )}
+              </Listbox.RootProvider>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </InLayer.Provider>
     </Dialog.Root>
   )
 }
